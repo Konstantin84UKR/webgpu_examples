@@ -2,7 +2,7 @@
 //let gpu;
 const webGPU_Start = async()=>{
  
-    // checkWebGPU
+    // checkWebGPU // 
     if(!navigator.gpu){
        console.log("Your current browser does not support WebGPU!");
        return;
