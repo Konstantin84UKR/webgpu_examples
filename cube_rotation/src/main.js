@@ -2,11 +2,13 @@
 import * as Matrix from "./gl-matrix.js";
 
 async function main() {
-    ///**  Шейдеры тут се понятно более мение. */  
+    ///**  Шейдеры тут все понятно более мение. */  
     const shader = {
       vertex: `
       struct Uniform {
-       mvpMatrix : mat4x4<f32>;
+       pMatrix : mat4x4<f32>;
+       vMatrix : mat4x4<f32>;
+       mMatrix : mat4x4<f32>;
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
          
@@ -19,7 +21,7 @@ async function main() {
         fn main(@location(0) pos: vec4<f32>, @location(1) color: vec4<f32>) -> Output {
            
             var output: Output;
-            output.Position = uniforms.mvpMatrix * pos;
+            output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.vColor = color;
 
             return output;
@@ -36,7 +38,7 @@ async function main() {
 
     //----------------------------------------------------
     const cube_vertex= new Float32Array([
-      -1,-1,-1,     1,1,0,
+      -1,-1,-1,     1,1,0,  // XYZ  RGB
       1,-1,-1,     1,1,0,
       1, 1,-1,     1,1,0,
       -1, 1,-1,     1,1,0,
@@ -127,18 +129,12 @@ async function main() {
     let MODELMATRIX = glMatrix.mat4.create();
     let VIEWMATRIX = glMatrix.mat4.create(); 
     let PROJMATRIX = glMatrix.mat4.create();
-    let MVP_MATRIX = glMatrix.mat4.create();
+    
     glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]);
 
     glMatrix.mat4.identity(PROJMATRIX);
     let fovy = 40 * Math.PI / 180;
     glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
-
-    glMatrix.mat4.mul(VIEWMATRIX,VIEWMATRIX,MODELMATRIX);
-    glMatrix.mat4.mul(MVP_MATRIX,PROJMATRIX,VIEWMATRIX);
-   
-    // const vertexBuffer = CreateGPUBuffer(device, vertexData);
-    // const colorBuffer = CreateGPUBuffer(device, colorData);
 
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
@@ -172,6 +168,7 @@ async function main() {
     //** arrayStride количество байт на одну вершину */
     //** attributes настриваем локацию формат и отступ от начала  arrayStride */
     //** primitive указываем тип примитива для отрисовки*/
+    //** depthStencil настраиваем буффер глубины*/
     const pipeline = device.createRenderPipeline({
       vertex: {
         module: device.createShaderModule({
@@ -211,15 +208,15 @@ async function main() {
         //topology: "point-list",
       },
       depthStencil:{
-        format: "depth24plus",
-        depthWriteEnabled: true,
-        depthCompare: "less"
+        format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
+        depthWriteEnabled: true, //вкл\выкл теста глубины 
+        depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. 
     }
     });
 
     // create uniform buffer and layout
     const uniformBuffer = device.createBuffer({
-        size: 64,
+        size: 64 + 64 + 64,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });   
 
@@ -230,26 +227,35 @@ async function main() {
             resource: {
                 buffer: uniformBuffer,
                 offset: 0,
-                size: 64
+                size: 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
             }
         }]
     });
- 
-// Animation    
-  const animate = function (time) {
-    
-    console.log(time);
-      
-      //------------------MATRIX EDIT------------------------
-      glMatrix.mat4.identity(MODELMATRIX);
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, time * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, time * 0.001);
 
-      glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]);
-      glMatrix.mat4.mul(VIEWMATRIX,VIEWMATRIX,MODELMATRIX);
-      glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
-      glMatrix.mat4.mul(MVP_MATRIX,PROJMATRIX,VIEWMATRIX);
+
+    device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
+    device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+ 
+// Animation   
+let time_old=0; 
+ async function animate(time) {
+      
+      //-----------------TIME-----------------------------
+      //console.log(time);
+      let dt=time-time_old;
+      time_old=time;
       //--------------------------------------------------
+     
+      //------------------MATRIX EDIT---------------------
+      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
+      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
+      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
+      //--------------------------------------------------
+
+      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
+      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+      device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
+
 
       const commandEncoder = device.createCommandEncoder();
       const textureView = context.getCurrentTexture().createView();
@@ -274,9 +280,7 @@ async function main() {
             stencilStoreOp: "store"
         }
       });
-
-      device.queue.writeBuffer(uniformBuffer, 0, MVP_MATRIX); 
-
+      
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setIndexBuffer(indexBuffer, "uint32");
