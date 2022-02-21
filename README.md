@@ -11,3 +11,5 @@ texture : https://konstantin84ukr.github.io/webgpu_examples/texture/
 mesh : https://konstantin84ukr.github.io/webgpu_examples/mesh/
 
 phong : https://konstantin84ukr.github.io/webgpu_examples/phong/
+
+mesh_obj : https://konstantin84ukr.github.io/webgpu_examples/mesh_obj/
