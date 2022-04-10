@@ -270,7 +270,7 @@ async function main() {
 
     //-------------------- TEXTURE ---------------------
     let img = new Image();
-    img.src = './res/UV.jpg'; //'./tex/yachik.jpg';
+    img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);
