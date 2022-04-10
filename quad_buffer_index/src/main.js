@@ -1,15 +1,15 @@
 async function main() {
-    ///**  Шейдеры тут се понятно более мение. */  
+    ///**  Шейдеры тут все понятно более мение. */  
     const shader = {
       vertex: `
       
       struct Output {
-          [[builtin(position)]] Position : vec4<f32>;
-          [[location(0)]] vColor : vec4<f32>;
+        @builtin(position) Position : vec4<f32>,
+        @location(0) vColor : vec4<f32>,
       };
 
-        [[stage(vertex)]]
-        fn main([[location(0)]] pos: vec4<f32>, [[location(1)]] color: vec4<f32>) -> Output {
+      @stage(vertex)
+        fn main(@location(0)  pos: vec4<f32>, @location(1)  color: vec4<f32>) -> Output {
            
             var output: Output;
             output.Position = pos;
@@ -20,8 +20,8 @@ async function main() {
     `,
 
       fragment: `
-    [[stage(fragment)]]
-    fn main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    @stage(fragment)
+    fn main(@location(0)  vColor: vec4<f32>) -> @location(0)  vec4<f32> {
         return vColor;
     }
     `,
@@ -55,7 +55,8 @@ async function main() {
     context.configure({
       device: device,
       format: format,
-      size: size
+      size: size,
+      compositingAlphaMode : "opaque",
     });
 
     // const vertexData = new Float32Array([
@@ -177,7 +178,8 @@ async function main() {
       colorAttachments: [
         {
           view: textureView,
-          loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
+          clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+          loadOp: 'clear',
           storeOp: "store", //ХЗ
         },
       ],
@@ -189,7 +191,7 @@ async function main() {
     renderPass.setIndexBuffer(indexBuffer, "uint32")
     //renderPass.draw(6, 1, 0, 0);
     renderPass.drawIndexed(6);
-    renderPass.endPass();
+    renderPass.end();
 
     device.queue.submit([commandEncoder.finish()]);
   }

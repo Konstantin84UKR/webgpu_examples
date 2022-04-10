@@ -46,15 +46,15 @@ async function main() {
     const shader = {
       vertex: `
       struct Uniform {
-       pMatrix : mat4x4<f32>;
-       vMatrix : mat4x4<f32>;
-       mMatrix : mat4x4<f32>;
+       pMatrix : mat4x4<f32>,
+       vMatrix : mat4x4<f32>,
+       mMatrix : mat4x4<f32>,
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
          
       struct Output {
-          @builtin(position) Position : vec4<f32>;
-          @location(0) vUV : vec2<f32>;
+          @builtin(position) Position : vec4<f32>,
+          @location(0) vUV : vec2<f32>,
       };
 
       @stage(vertex)
@@ -122,7 +122,8 @@ async function main() {
     context.configure({
       device: device,
       format: format,
-      size: size
+      size: size,
+      compositingAlphaMode : "opaque",
     });
 
 
@@ -240,6 +241,7 @@ async function main() {
       },
       primitive: {
         topology: "triangle-list",
+        //topology: "line-list",
         //topology: "point-list",
         frontFace : "ccw",
         cullMode : "back"
@@ -327,9 +329,8 @@ async function main() {
         {
           view: textureView,
           //loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
-          clearValue: {r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-          loadValue: {r: 0.5, g: 0.5, b: 0.5, a: 1.0},
-          //loadOp: "load",            
+          clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+          loadOp: 'clear',            
           storeOp: "store", //ХЗ
         },],
         depthStencilAttachment: {
@@ -339,8 +340,8 @@ async function main() {
           depthClearValue :1.0,
           depthStoreOp: "store",
          // stencilLoadValue: 0,
-          stencilStoreOp: "store",
-          stencilLoadOp: "clear"
+          //stencilStoreOp: "store",
+         // stencilLoadOp: "clear"
           //tencilClearValue: 
       }
     };

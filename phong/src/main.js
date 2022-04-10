@@ -25,17 +25,17 @@ async function main() {
     const shader = {
       vertex: `
       struct Uniform {
-       pMatrix : mat4x4<f32>;
-       vMatrix : mat4x4<f32>;
-       mMatrix : mat4x4<f32>;      
+       pMatrix : mat4x4<f32>,
+       vMatrix : mat4x4<f32>,
+       mMatrix : mat4x4<f32>,      
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
          
       struct Output {
-          @builtin(position) Position : vec4<f32>;
-          @location(0) vPosition : vec4<f32>;
-          @location(1) vUV : vec2<f32>;
-          @location(2) vNormal : vec4<f32>;
+          @builtin(position) Position : vec4<f32>,
+          @location(0) vPosition : vec4<f32>,
+          @location(1) vUV : vec2<f32>,
+          @location(2) vNormal : vec4<f32>,
       };
 
       @stage(vertex)
@@ -55,8 +55,8 @@ async function main() {
       @binding(2) @group(0) var textureData : texture_2d<f32>;   
 
       struct Uniforms {
-        eyePosition : vec4<f32>;
-        lightPosition : vec4<f32>;       
+        eyePosition : vec4<f32>,
+        lightPosition : vec4<f32>,       
       };
       @binding(3) @group(0) var<uniform> uniforms : Uniforms;
 
@@ -122,7 +122,9 @@ async function main() {
     context.configure({
       device: device,
       format: format,
-      size: size
+      size: size,
+      compositingAlphaMode: "opaque",
+
     });
 
 
@@ -335,6 +337,32 @@ async function main() {
     device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition));
     device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
 
+
+    const depthTexture = device.createTexture({
+      size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });  
+
+    const renderPassDescription = {
+      colorAttachments: [
+        {
+          view: undefined,
+          clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+          loadOp: 'clear',
+          storeOp: "store", //ХЗ
+        },],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+          depthClearValue: 1.0,
+          depthLoadOp: 'clear',
+          depthStoreOp: 'store',
+         // stencilLoadValue: 0,
+         // stencilStoreOp: "store"
+      }
+    };
+
+
 // Animation   
 let time_old=0; 
  async function animate(time) {
@@ -366,27 +394,9 @@ let time_old=0;
 
       const commandEncoder = device.createCommandEncoder();
       const textureView = context.getCurrentTexture().createView();
-      const depthTexture = device.createTexture({
-        size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-        format: "depth24plus",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT
-      });  
+      renderPassDescription.colorAttachments[0].view = textureView;
   
-      const renderPass = commandEncoder.beginRenderPass({
-        colorAttachments: [
-          {
-            view: textureView,
-            loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
-            storeOp: "store", //ХЗ
-          },],
-          depthStencilAttachment: {
-            view: depthTexture.createView(),
-            depthLoadValue: 1.0,
-            depthStoreOp: "store",
-            stencilLoadValue: 0,
-            stencilStoreOp: "store"
-        }
-      });
+      const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
       
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
@@ -396,7 +406,7 @@ let time_old=0;
       renderPass.setBindGroup(0, uniformBindGroup);
       //renderPass.draw(6, 1, 0, 0);
       renderPass.drawIndexed(cube_index.length);
-      renderPass.endPass();
+      renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);
 

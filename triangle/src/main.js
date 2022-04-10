@@ -87,7 +87,8 @@ const webGPU_Start = async()=>{
         const renderPass = commandEncoder.beginRenderPass({  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
             colorAttachments: [{
                 view: textureView,
-                loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
+                clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+                loadOp: 'clear',
                 storeOp: 'store' //хз
             }]
         });
@@ -98,7 +99,7 @@ const webGPU_Start = async()=>{
         // undefined draw(GPUSize32 vertexCount, optional GPUSize32 instanceCount = 1,
         // optional GPUSize32 firstVertex = 0, optional GPUSize32 firstInstance = 0);
 
-        renderPass.endPass();
+        renderPass.end();
     
         device.queue.submit([commandEncoder.finish()]);
 }
