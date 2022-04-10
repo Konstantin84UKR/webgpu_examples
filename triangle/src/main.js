@@ -18,6 +18,7 @@ const webGPU_Start = async()=>{
     context.configure({     // конфигурируем контекстр указываем логическое устройство и формат хранения данных
         device: device,
         format: format,
+        compositingAlphaMode:"opaque",
     });
 
     // текст шейлеров 

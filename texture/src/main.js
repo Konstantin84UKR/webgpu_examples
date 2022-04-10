@@ -2,7 +2,8 @@
 import * as Matrix from "./gl-matrix.js";
 
 async function main() {
-    ///**  Шейдеры тут все понятно более мение. */  
+    ///**  Шейдеры тут все понятно более мение. */ 
+    //   vUV vec2 вместо vColor vec4
     const shader = {
       vertex: `
       struct Uniform {
@@ -27,14 +28,16 @@ async function main() {
             return output;
         }
     `,
-
+      // Добавленны
+      // texture_2d - данные самой текстуры
+      // sampler - структура параметров обработки данных текстуры
       fragment: `
-      @binding(1) @group(0) var textureSampler : sampler;
+      @binding(1) @group(0) var Sampler : sampler;
       @binding(2) @group(0) var textureData : texture_2d<f32>;
 
       @stage(fragment)
       fn main(@location(0) vUV: vec2<f32>) -> @location(0) vec4<f32> {
-      let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vUV)).rgb;
+      let textureColor:vec3<f32> = (textureSample(textureData, Sampler, vUV)).rgb;
       return vec4<f32>(textureColor, 1.0);
     }
     `,
@@ -221,37 +224,41 @@ async function main() {
     // create uniform buffer and layout
     const uniformBuffer = device.createBuffer({
         size: 64 + 64 + 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
     });   
 
     //-------------------- TEXTURE ---------------------
+    //Создаем картинку и загрудаем в нее данные из файла
     let img = new Image();
     img.src = './tex/uv.jpg'; //'./tex/yachik.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);
 
+    // Создаем sampler с параметрами обработки текстуры
     const sampler = device.createSampler({
       minFilter:'linear',
       magFilter:'linear',
-      mipmapFilter : "nearest", //nearest
+      mipmapFilter : "nearest", //nearest ???
       addressModeU: 'repeat',
       addressModeV: 'repeat'
     });
-
+      // Создаем саму текстуру
     const texture = device.createTexture({
-      size:[imageBitmap.width,imageBitmap.height,1],
+      size:[imageBitmap.width,imageBitmap.height,1], //??
       format:'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING |
              GPUTextureUsage.COPY_DST |
              GPUTextureUsage.RENDER_ATTACHMENT
     });
 
+    //передаем данные о текстуре и данных текстуры в очередь
     device.queue.copyExternalImageToTexture(
       {source: imageBitmap},
       {texture: texture},
       [imageBitmap.width,imageBitmap.height]);
     //--------------------------------------------------
+
     const uniformBindGroup = device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
         entries: [{
@@ -276,25 +283,29 @@ async function main() {
 
     device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+    device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); 
  
 // Animation   
-let time_old=0; 
- async function animate(time) {
+ let time_old=0; 
+ let angle = 0;
+ function frame(time) {
       
       //-----------------TIME-----------------------------
       //console.log(time);
-      let dt=time-time_old;
-      time_old=time;
+     let dt=time-time_old;
+     time_old=time;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
+      // 
+       //console.log(angle);
+       glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
+       glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.001);
+       glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.001);
       //--------------------------------------------------
 
-      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+      device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
+      device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
 
@@ -310,8 +321,8 @@ let time_old=0;
         colorAttachments: [
           {
             view: textureView,
-            loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
-            storeOp: "store", //ХЗ
+            loadValue:{ r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
+            storeOp: "store", //ХЗ           
           },],
           depthStencilAttachment: {
             view: depthTexture.createView(),
@@ -333,9 +344,9 @@ let time_old=0;
       device.queue.submit([commandEncoder.finish()]);
 
 
-      window.requestAnimationFrame(animate);
+      window.requestAnimationFrame(frame);
     };
-    animate(0);
+    frame(0);
   }
 
   main();

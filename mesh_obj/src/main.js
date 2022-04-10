@@ -135,7 +135,7 @@ async function main() {
     glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
     glMatrix.mat4.identity(PROJMATRIX);
-    let fovy = 40 * Math.PI / 180;
+    let fovy = 25 * Math.PI / 180;
     glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
 
     //****************** BUFFER ********************//
@@ -360,8 +360,8 @@ let time_old=0;
       //--------------------------------------------------
      
      //------------------MATRIX EDIT---------------------
-     glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.0005);
-     glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
+     glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.0003);
+     glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0001);
      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
      //--------------------------------------------------
 

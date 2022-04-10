@@ -6,15 +6,15 @@ async function main() {
     const shader = {
       vertex: `
       struct Uniform {
-       pMatrix : mat4x4<f32>;
-       vMatrix : mat4x4<f32>;
-       mMatrix : mat4x4<f32>;
+       pMatrix : mat4x4<f32>,
+       vMatrix : mat4x4<f32>,
+       mMatrix : mat4x4<f32>,
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
          
       struct Output {
-          @builtin(position) Position : vec4<f32>;
-          @location(0) vColor : vec4<f32>;
+          @builtin(position) Position : vec4<f32>,
+          @location(0) vColor : vec4<f32>,
       };
 
       @stage(vertex)
@@ -120,7 +120,8 @@ async function main() {
     context.configure({
       device: device,
       format: format,
-      size: size
+      size: size,
+      compositingAlphaMode :"opaque",
     });
 
 
@@ -232,13 +233,45 @@ async function main() {
         }]
     });
 
+    let textureView = context.getCurrentTexture().createView();
+    
+    let depthTexture = device.createTexture({
+      size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    }); 
+
+
+    const renderPassDescription = {
+      colorAttachments: [
+        {
+          view: textureView,
+          //loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
+          clearValue: {r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+          //loadValue: {r: 0.5, g: 0.5, b: 0.5, a: 1.0},
+          loadOp: 'clear',        
+          storeOp: "store", //ХЗ
+        },],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+          //depthLoadValue: 1.0,
+          depthLoadOp :"clear",
+          depthClearValue :1.0,
+          depthStoreOp: "store",
+         // stencilLoadValue: 0,
+          //stencilStoreOp: "store",
+          //stencilLoadOp: "clear"
+          //tencilClearValue: 
+      }
+    };
+
 
     device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
  
 // Animation   
 let time_old=0; 
- async function animate(time) {
+  function animate(time) {
       
       //-----------------TIME-----------------------------
       //console.log(time);
@@ -248,8 +281,8 @@ let time_old=0;
      
       //------------------MATRIX EDIT---------------------
       glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
+      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.002);
+      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.001);
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
@@ -258,28 +291,16 @@ let time_old=0;
 
 
       const commandEncoder = device.createCommandEncoder();
-      const textureView = context.getCurrentTexture().createView();
-      const depthTexture = device.createTexture({
-        size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-        format: "depth24plus",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT
-      });  
+      textureView = context.getCurrentTexture().createView();
+      renderPassDescription.colorAttachments[0].view = textureView;
+      
+      // depthTexture = device.createTexture({
+      //   size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+      //   format: "depth24plus",
+      //   usage: GPUTextureUsage.RENDER_ATTACHMENT
+      // });  
   
-      const renderPass = commandEncoder.beginRenderPass({
-        colorAttachments: [
-          {
-            view: textureView,
-            loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
-            storeOp: "store", //ХЗ
-          },],
-          depthStencilAttachment: {
-            view: depthTexture.createView(),
-            depthLoadValue: 1.0,
-            depthStoreOp: "store",
-            stencilLoadValue: 0,
-            stencilStoreOp: "store"
-        }
-      });
+      const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
       
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
@@ -287,12 +308,12 @@ let time_old=0;
       renderPass.setBindGroup(0, uniformBindGroup);
       //renderPass.draw(6, 1, 0, 0);
       renderPass.drawIndexed(cube_index.length);
-      renderPass.endPass();
+      renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);
 
 
-      window.requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
     };
     animate(0);
   }

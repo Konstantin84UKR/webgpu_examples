@@ -85,7 +85,7 @@ async function main() {
 
     //---------------------------------------------------
     let CUBE = {}; 
-    await loadJSON(CUBE,'./res/model.json');
+    await loadJSON(CUBE,'./res/Model.json');
     
     let mesh = CUBE.mesh.meshes[0];
 
