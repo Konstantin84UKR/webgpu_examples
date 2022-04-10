@@ -80,7 +80,7 @@ async function main() {
     `,
     };
 
-    //---------------------------------------------------
+    //-------------------------------------------------
     let CUBE = {}; 
     //await loadJSON(CUBE,'./res/cube.json');
     //await loadJSON(CUBE,'./res/Model.json');
