@@ -13,7 +13,7 @@ const webGPU_Start = async()=>{
     const device = await adapter.requestDevice(); // Получаем логическое устройство ГПУ
     const context = canvas.getContext("webgpu"); // Контекст Канваса
 
-    const format = context.getPreferredFormat(adapter); // формат данных в которых храняться пиксели в физическом устройстве 
+    const format = navigator.gpu.getPreferredCanvasFormat(); // формат данных в которых храняться пиксели в физическом устройстве 
 
     context.configure({     // конфигурируем контекстр указываем логическое устройство и формат хранения данных
         device: device,
@@ -23,55 +23,42 @@ const webGPU_Start = async()=>{
 
     // текст шейлеров 
     const wglsShader = {
-        // vertex:`
-        // [[stage(vertex)]]
-        // fn main([[builtin(vertex_index)]] VertexIndex: u32) -> [[builtin(position)]] vec4<f32> {
-        //     var pos = array<vec2<f32>, 3>(
-        //         vec2<f32>(0.0, 0.5),
-        //         vec2<f32>(-0.5, -0.5),
-        //         vec2<f32>(0.5, -0.5));
-        //     return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
-        // }`,
-
         vertex:`
-        @stage(vertex)
-        fn main(@builtin(vertex_index) VertexIndex: u32) -> @builtin(position) vec4<f32> {
-            var pos = array<vec2<f32>, 3>(
-                vec2<f32>(0.0, 0.5),
-                vec2<f32>(-0.5, -0.5),
-                vec2<f32>(0.5, -0.5));
+        @vertex
+        fn vertex_main(
+        @builtin(vertex_index) VertexIndex : u32
+        ) -> @builtin(position) vec4<f32> {
+        var pos = array<vec2<f32>, 3>(
+            vec2(0.0, 0.5),
+            vec2(-0.5, -0.5),
+            vec2(0.5, -0.5)
+        );
+
             return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
         }`,
 
-
-        // fragment:`        
-        // [[stage(fragment)]]
-        // fn main() -> [[location(0)]] vec4<f32> {
-        //     return vec4<f32>(1.0,0.5,0.0,1.0);
-        // }`};
-
-
         fragment:`
-         @stage(fragment)
-         fn main() -> @location(0) vec4<f32> {
-         return vec4<f32>(0.4, 0.4, 0.8, 1.0);
+            @fragment
+            fn fragment_main() -> @location(0) vec4<f32> {
+            return vec4<f32>(1.0,0.5,0.0,1.0);
         }`};
         
         // настраеваем объект pipeline
         // указываем текст шейдеров и точку входа в программу
         // 
         const pipeline = device.createRenderPipeline({
+            layout: "auto",
             vertex: {
                 module: device.createShaderModule({                    
                     code: wglsShader.vertex
                 }),
-                entryPoint: "main"
+                entryPoint: "vertex_main"
             },
             fragment: {
                 module: device.createShaderModule({                    
                     code: wglsShader.fragment
                 }),
-                entryPoint: "main",
+                entryPoint: "fragment_main",
                 targets: [{
                     format: format
                 }]

@@ -6,20 +6,20 @@ async function main() {
     const shader = {
       vertex: `
       struct Uniform {
-       pMatrix : mat4x4<f32>,
-       vMatrix : mat4x4<f32>,
-       mMatrix : mat4x4<f32>,
+        pMatrix : mat4x4<f32>,
+        vMatrix : mat4x4<f32>,
+        mMatrix : mat4x4<f32>,
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
-         
+        
       struct Output {
           @builtin(position) Position : vec4<f32>,
           @location(0) vColor : vec4<f32>,
       };
 
-      @stage(vertex)
+      @vertex
         fn main(@location(0) pos: vec4<f32>, @location(1) color: vec4<f32>) -> Output {
-           
+        
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.vColor = color;
@@ -29,7 +29,7 @@ async function main() {
     `,
 
       fragment: `
-      @stage(fragment)
+      @fragment
       fn main(@location(0) vColor: vec4<f32>) -> @location(0) vec4<f32> {
       return vColor;
     }
@@ -112,7 +112,7 @@ async function main() {
     ];
 
     //const format = "bgra8unorm";
-    const format = context.getPreferredFormat(adapter); // формат данных в которых храняться пиксели в физическом устройстве 
+   const format = navigator.gpu.getPreferredCanvasFormat(); // формат данных в которых храняться пиксели в физическом устройстве 
 
     //** конфигурируем контекст подключаем логическое устройсво  */
     //** формат вывода */
@@ -171,6 +171,7 @@ async function main() {
     //** primitive указываем тип примитива для отрисовки*/
     //** depthStencil настраиваем буффер глубины*/
     const pipeline = device.createRenderPipeline({
+      layout: "auto",
       vertex: {
         module: device.createShaderModule({
           code: shader.vertex,

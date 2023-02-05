@@ -36,7 +36,7 @@ async function main() {
           @location(0) vUV : vec2<f32>,
       };
 
-      @stage(vertex)
+      @vertex
         fn main(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>) -> Output {
            
             var output: Output;
@@ -51,7 +51,7 @@ async function main() {
       @binding(1) @group(0) var textureSampler : sampler;
       @binding(2) @group(0) var textureData : texture_2d<f32>;
 
-      @stage(fragment)
+      @fragment
       fn main(@location(0) vUV: vec2<f32>) -> @location(0) vec4<f32> {
       let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vUV)).rgb;
       return vec4<f32>(textureColor, 1.0);
@@ -90,7 +90,7 @@ async function main() {
     ];
 
     //const format = "bgra8unorm";
-    const format = context.getPreferredFormat(adapter); // формат данных в которых храняться пиксели в физическом устройстве 
+    const format = navigator.gpu.getPreferredCanvasFormat();  // формат данных в которых храняться пиксели в физическом устройстве 
 
     //** конфигурируем контекст подключаем логическое устройсво  */
     //** формат вывода */
@@ -160,6 +160,7 @@ async function main() {
     //** primitive указываем тип примитива для отрисовки*/
     //** depthStencil настраиваем буффер глубины*/
     const pipeline = device.createRenderPipeline({
+      layout: "auto",
       vertex: {
         module: device.createShaderModule({
           code: shader.vertex,
