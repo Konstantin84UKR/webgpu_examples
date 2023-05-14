@@ -34,12 +34,12 @@ YouTube : https://www.youtube.com/playlist?list=PLzt2B3kMUwK_MH-9-Hr2r9yhszZQct9
 
 // ** MULTPLE OBJECTS - INSTANCE **
 
-12) mul_obj : https://konstantin84ukr.github.io/webgpu_examples/multple_objects/
+12) mult_obj : https://konstantin84ukr.github.io/webgpu_examples/multple_objects/
 
-13) mul_obj_offset : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset/
+13) mult_obj_offset : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset/
 
-14) mul_offset_dimamic : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset_dimamic/
+14) mult_offset_dimamic : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset_dimamic/
 
-15) mul_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/
+15) mult_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/
 
 // -----------------------------
