@@ -21,3 +21,11 @@ mesh : https://konstantin84ukr.github.io/webgpu_examples/mesh/
 phong : https://konstantin84ukr.github.io/webgpu_examples/phong/
 
 mesh_obj : https://konstantin84ukr.github.io/webgpu_examples/mesh_obj/
+
+multple_objects : https://konstantin84ukr.github.io/webgpu_examples/multple_objects/
+
+multple_objects_offset : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset/
+
+multple_objects_offset_dimamic : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_offset_dimamic/
+
+multple_objects_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/
