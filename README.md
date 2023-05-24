@@ -44,6 +44,6 @@ YouTube : https://www.youtube.com/playlist?list=PLzt2B3kMUwK_MH-9-Hr2r9yhszZQct9
 
 // -----------------------------
 
-16) mesh_obj : https://konstantin84ukr.github.io/webgpu_examples/shadow/
+16) shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
 
-17) mesh_obj : https://konstantin84ukr.github.io/webgpu_examples/FirstApp/
+17) FirstApp : https://konstantin84ukr.github.io/webgpu_examples/FirstApp/
