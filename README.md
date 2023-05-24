@@ -43,3 +43,5 @@ YouTube : https://www.youtube.com/playlist?list=PLzt2B3kMUwK_MH-9-Hr2r9yhszZQct9
 15) mult_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/
 
 // -----------------------------
+
+16) mesh_obj : https://konstantin84ukr.github.io/webgpu_examples/shadow/
