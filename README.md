@@ -47,3 +47,5 @@ YouTube : https://www.youtube.com/playlist?list=PLzt2B3kMUwK_MH-9-Hr2r9yhszZQct9
 16) shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
 
 17) FirstApp : https://konstantin84ukr.github.io/webgpu_examples/FirstApp/
+
+18) quad_image : https://konstantin84ukr.github.io/webgpu_examples/quad_image/
