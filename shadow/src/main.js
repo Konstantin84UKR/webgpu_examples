@@ -98,7 +98,7 @@ async function main() {
      
       @binding(0) @group(1) var shadowMap : texture_depth_2d;  
       @binding(1) @group(1) var shadowSampler : sampler_comparison;
-      @binding(2) @group(1) var<uniform> test : vec4<f32>;  
+      @binding(2) @group(1) var<uniform> test : vec3<f32>;  
      
 
       @fragment
@@ -143,7 +143,7 @@ async function main() {
         let H:vec3<f32> = normalize(L + V);
       
         let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
-        let specular = pow(max(dot(N, H),0.0),50.0);
+        let specular = pow(max(dot(N, H),0.0),100.0);
         let ambient:vec3<f32> = vec3<f32>(test.x, 0.1, 0.1);
       
         let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (specularColor * specular * shadow); 
@@ -165,6 +165,13 @@ async function main() {
      const cube_uv = new Float32Array(mesh.texturecoords[0]);
      const cube_index = new Uint32Array(mesh.faces.flat());
      const cube_normal = new Float32Array(mesh.normals);
+
+     let plane = CUBE.mesh.meshes[1];
+     const plane_vertex = new Float32Array(plane.vertices);
+     const plane_uv = new Float32Array(plane.texturecoords[0]);
+     const plane_index = new Uint32Array(plane.faces.flat());
+     const plane_normal = new Float32Array(plane.normals); 
+
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
@@ -209,16 +216,16 @@ async function main() {
     let VIEWMATRIX_SHADOW = mat4.identity(); 
     let PROJMATRIX_SHADOW = mat4.identity();
         
-    VIEWMATRIX = mat4.lookAt([0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    VIEWMATRIX = mat4.lookAt([0.0, 5.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
     PROJMATRIX = mat4.identity();
     let fovy = 40 * Math.PI / 180;
     PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
-
-    VIEWMATRIX_SHADOW = mat4.lookAt([0.0, 10.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-    PROJMATRIX_SHADOW = mat4.ortho(-3, 3, -3, 3, 1, 35);
-
-    let eyePosition = [0.0, 0.0, 1.0];
+        
+    let eyePosition = [10, 10, 10.0];
+    VIEWMATRIX_SHADOW = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    PROJMATRIX_SHADOW = mat4.ortho(-6, 6, -6, 6, 1, 35);
+   
     let lightPosition = new Float32Array([5.0, 5.0, 5.0]);
 
     //****************** BUFFER ********************//
@@ -271,6 +278,51 @@ async function main() {
 
     new Uint32Array(indexBuffer.getMappedRange()).set(cube_index);
     indexBuffer.unmap();
+
+    //****************** PLANE
+    const plane_vertexBuffer = device.createBuffer({
+      size: plane_vertex.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      mappedAtCreation: true
+    });
+
+    //загружаем данные в буффер */
+    new Float32Array(plane_vertexBuffer.getMappedRange()).set(plane_vertex);
+    // передаем буфер в управление ГПУ */
+    plane_vertexBuffer.unmap();
+
+    //****************** BUFFER  uvBuffer
+    const plane_uvBuffer = device.createBuffer({
+      size: plane_uv.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      mappedAtCreation: true
+    });
+    //загружаем данные в буффер */
+    new Float32Array(plane_uvBuffer.getMappedRange()).set(plane_uv);
+    // передаем буфер в управление ГПУ */
+    plane_uvBuffer.unmap();
+
+    //****************** BUFFER  normalBuffer
+    const plane_normalBuffer = device.createBuffer({
+      size: plane_normal.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      mappedAtCreation: true
+    });
+    //загружаем данные в буффер */
+    new Float32Array(plane_normalBuffer.getMappedRange()).set(plane_normal);
+    // передаем буфер в управление ГПУ */
+    plane_normalBuffer.unmap();
+
+    //****************** BUFFER  indexBuffer
+    const plane_indexBuffer = device.createBuffer({
+      size: plane_index.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true
+    });
+
+    new Uint32Array(plane_indexBuffer.getMappedRange()).set(plane_index);
+    plane_indexBuffer.unmap();
+
 
     //*********************************************//
     //** настраиваем конвейер рендера 
@@ -535,7 +587,7 @@ async function main() {
     device.queue.writeBuffer(uniformBuffershadow, 64, VIEWMATRIX_SHADOW); // следуюшая записать в буфер с отступом (offset = 64)
     device.queue.writeBuffer(uniformBuffershadow, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
-    device.queue.writeBuffer(fragmentUniformBuffer1, 0, new Float32Array(eyePosition));
+    device.queue.writeBuffer(fragmentUniformBuffer1, 0, new Float32Array(1.0,1.0,1.0));
 
 
     const renderPassDescription = {
@@ -578,9 +630,9 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.001);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
 
       //--------------------------------------------------
 
@@ -602,6 +654,14 @@ let time_old=0;
       renderPassShadow.setIndexBuffer(indexBuffer, "uint32");
       renderPassShadow.setBindGroup(0, shadowGroup);
       renderPassShadow.drawIndexed(cube_index.length);
+
+      renderPassShadow.setVertexBuffer(0, plane_vertexBuffer);
+      renderPassShadow.setVertexBuffer(1, plane_uvBuffer);
+      renderPassShadow.setVertexBuffer(2, plane_normalBuffer);
+      renderPassShadow.setIndexBuffer(plane_indexBuffer, "uint32");
+      renderPassShadow.setBindGroup(0, shadowGroup);
+      renderPassShadow.drawIndexed(plane_index.length);
+
       renderPassShadow.end();
      // MAIN 
 
@@ -617,8 +677,15 @@ let time_old=0;
       renderPass.setIndexBuffer(indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setBindGroup(1, uniformBindGroup1);
-      //renderPass.draw(6, 1, 0, 0);
       renderPass.drawIndexed(cube_index.length);
+
+      renderPass.setVertexBuffer(0, plane_vertexBuffer);
+      renderPass.setVertexBuffer(1, plane_uvBuffer);
+      renderPass.setVertexBuffer(2, plane_normalBuffer);
+      renderPass.setIndexBuffer(plane_indexBuffer, "uint32");
+      renderPass.setBindGroup(0, uniformBindGroup);
+      renderPass.setBindGroup(1, uniformBindGroup1);
+      renderPass.drawIndexed(plane_index.length);
       renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);
