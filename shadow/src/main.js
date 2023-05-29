@@ -1,5 +1,11 @@
 
-import * as Matrix from "./gl-matrix.js";
+//import * as Matrix from "./gl-matrix.js";
+//import * as Matrix from "./wgpu-matrix.module.js";
+import {
+  mat4,
+} from './wgpu-matrix.module.js';
+
+console.log(mat4);
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -162,8 +168,8 @@ async function main() {
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 640;
-    canvas.height = 480;
+    canvas.width = 600;
+    canvas.height = 400;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();
@@ -196,22 +202,21 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX = glMatrix.mat4.create(); 
-    let PROJMATRIX = glMatrix.mat4.create();
+    let MODELMATRIX = mat4.identity();
+    let VIEWMATRIX = mat4.identity(); 
+    let PROJMATRIX = mat4.identity();
 
-    let VIEWMATRIX_SHADOW = glMatrix.mat4.create(); 
-    let PROJMATRIX_SHADOW = glMatrix.mat4.create();
+    let VIEWMATRIX_SHADOW = mat4.identity(); 
+    let PROJMATRIX_SHADOW = mat4.identity();
         
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    VIEWMATRIX = mat4.lookAt([0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
-    glMatrix.mat4.identity(PROJMATRIX);
+    PROJMATRIX = mat4.identity();
     let fovy = 40 * Math.PI / 180;
-    glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
+    PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
-
-    glMatrix.mat4.lookAt(VIEWMATRIX_SHADOW, [0.0, 25.0, 25.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-    glMatrix.mat4.ortho(PROJMATRIX_SHADOW, -3, 3, -3, 3, 5, 40);
+    VIEWMATRIX_SHADOW = mat4.lookAt([0.0, 10.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    PROJMATRIX_SHADOW = mat4.ortho(-3, 3, -3, 3, 1, 35);
 
     let eyePosition = [0.0, 0.0, 1.0];
     let lightPosition = new Float32Array([5.0, 5.0, 5.0]);
@@ -573,9 +578,9 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.001);
+      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
+      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
 
       //--------------------------------------------------
 
