@@ -1,6 +1,4 @@
 
-import * as Matrix from "./gl-matrix.js";
-
 import {
   mat4,
 } from './wgpu-matrix.module.js';
@@ -61,8 +59,7 @@ async function main() {
       // Move normal to view space
       var muv : vec2<f32> = (uniforms.vMatrix * vec4<f32>(normalize(vNormal), 0.0)).xy * 0.5 + vec2<f32>(0.5, 0.5);
       // read texture inverting Y value
-      
-      let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, muv.y))).rgb;
+      let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, 1.0 - muv.y))).rgb;
       return vec4<f32>(textureColor, 1.0);
     }`;
 
@@ -240,7 +237,7 @@ async function main() {
 
     //-------------------- TEXTURE ---------------------
     let img = new Image();
-    img.src = './res/green.jpg'; //'./tex/yachik.jpg';
+    img.src = './res/matcap8.jpg'; //'./res/green.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);
