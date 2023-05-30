@@ -67,6 +67,7 @@ async function main() {
     let CUBE = {}; 
     //await loadJSON(CUBE,'./res/cube.json');
     await loadJSON(CUBE,'./res/Model.json');
+    //await loadJSON(CUBE,'./res/teapot.json');
 
     let mesh = CUBE.mesh.meshes[0];
 
@@ -237,7 +238,7 @@ async function main() {
 
     //-------------------- TEXTURE ---------------------
     let img = new Image();
-    img.src = './res/matcap8.jpg'; //'./res/green.jpg';
+    img.src = './res/green.jpg'; //'./res/matcap8.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);
