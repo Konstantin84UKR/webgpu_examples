@@ -1,6 +1,11 @@
 
 import * as Matrix from "./gl-matrix.js";
 
+import {
+  mat4,
+} from './wgpu-matrix.module.js';
+console.log(mat4);
+
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
   //var model;
@@ -19,11 +24,10 @@ async function loadJSON(result,modelURL) {
   xhr.send();
 }
 
-
 async function main() {
     ///**  Шейдеры тут все понятно более мение. */  
-    const shader = {
-      vertex: `
+    const shader = 
+       `
       struct Uniform {
        pMatrix : mat4x4<f32>,
        vMatrix : mat4x4<f32>,
@@ -34,30 +38,33 @@ async function main() {
       struct Output {
           @builtin(position) Position : vec4<f32>,
           @location(0) vUV : vec2<f32>,
+          @location(1) vNormal : vec3<f32>,
       };
 
       @vertex
-        fn main(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>) -> Output {
+        fn main_vertex(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>, @location(2) normal: vec3<f32>) -> Output {
            
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.vUV = uv;
+            output.vNormal = normalize((uniforms.mMatrix * vec4<f32>(normal, 0.0)).xyz); // Normal in model space
 
             return output;
         }
-    `,
-
-      fragment: `
+   
       @binding(1) @group(0) var textureSampler : sampler;
       @binding(2) @group(0) var textureData : texture_2d<f32>;
 
       @fragment
-      fn main(@location(0) vUV: vec2<f32>) -> @location(0) vec4<f32> {
-      let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vUV)).rgb;
+      fn main_fragment(@location(0) vUV: vec2<f32>, @location(1) vNormal: vec3<f32>) -> @location(0) vec4<f32> {
+      
+      // Move normal to view space
+      var muv : vec2<f32> = (uniforms.vMatrix * vec4<f32>(normalize(vNormal), 0.0)).xy * 0.5 + vec2<f32>(0.5, 0.5);
+      // read texture inverting Y value
+      
+      let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, muv.y))).rgb;
       return vec4<f32>(textureColor, 1.0);
-    }
-    `,
-    };
+    }`;
 
     //---------------------------------------------------
     let CUBE = {}; 
@@ -68,6 +75,7 @@ async function main() {
 
      const cube_vertex = new Float32Array(mesh.vertices);
      const cube_uv = new Float32Array(mesh.texturecoords[0]);
+     const cube_normal = new Float32Array(mesh.normals);
      const cube_index = new Uint32Array(mesh.faces.flat());
     //---------------------------------------------------
   
@@ -88,7 +96,7 @@ async function main() {
       canvas.clientWidth * devicePixelRatio ,
       canvas.clientHeight * devicePixelRatio ,
     ];
-
+   
     //const format = "bgra8unorm";
     const format = navigator.gpu.getPreferredCanvasFormat();  // формат данных в которых храняться пиксели в физическом устройстве 
 
@@ -105,26 +113,24 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX = glMatrix.mat4.create(); 
-    let PROJMATRIX = glMatrix.mat4.create();
+    let MODELMATRIX = mat4.identity();
+    let VIEWMATRIX = mat4.identity(); 
+    let PROJMATRIX = mat4.identity();
     
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-
-    glMatrix.mat4.identity(PROJMATRIX);
+    VIEWMATRIX = mat4.lookAt([0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+  
     let fovy = 40 * Math.PI / 180;
-    glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
+    PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
     //** который будет в будушем загружен в данный буффер */
     //** указываем размер  буффера в байтах */
-    //** usage ХЗ */
     //** mappedAtCreation если true значить буфер доступен для записи с ЦПУ */
     //** это нужно для того что бы не было гонки между ЦПУ и ГПУ */
     const vertexBuffer = device.createBuffer({
       size: cube_vertex.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  можно писать в буффер
       mappedAtCreation: true
     });
     //загружаем данные в буффер */
@@ -134,7 +140,7 @@ async function main() {
 
     const uvBuffer = device.createBuffer({
       size: cube_uv.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST можно писать в буффер
       mappedAtCreation: true
     });
     //загружаем данные в буффер */
@@ -142,6 +148,16 @@ async function main() {
     // передаем буфер в управление ГПУ */
     uvBuffer.unmap();
 
+    const normalBuffer = device.createBuffer({
+      label : "normalBuffer",
+      size: cube_normal.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      mappedAtCreation: true
+    });
+    //загружаем данные в буффер */
+    new Float32Array(normalBuffer.getMappedRange()).set(cube_normal);
+    // передаем буфер в управление ГПУ */
+    normalBuffer.unmap();
 
     const indexBuffer = device.createBuffer({
       size: cube_index.byteLength,
@@ -163,9 +179,9 @@ async function main() {
       layout: "auto",
       vertex: {
         module: device.createShaderModule({
-          code: shader.vertex,
+          code: shader,
         }),
-        entryPoint: "main",
+        entryPoint: "main_vertex",
         buffers: [
             {
               arrayStride: 4*3,
@@ -182,34 +198,23 @@ async function main() {
                 format: "float32x2",
                 offset: 0
                 }] 
+            },
+            {
+              arrayStride: 4*3,
+                attributes: [{
+                shaderLocation: 2,
+                format: "float32x3",
+                offset: 0
+                }] 
             }
       ]     
-      
-      
-      // buffers: [
-      //   {
-      //     arrayStride: 4*(3+2),
-      //         attributes: [{
-      //         shaderLocation: 0,
-      //         format: "float32x3",
-      //         offset: 0
-      //       },{
-              
-      //           shaderLocation: 1,
-      //           format: "float32x2",
-      //           offset: 12
-      //           }         
-      //     ] 
-      //   }
-      //  ]   
-
-      
+          
     },
       fragment: {
         module: device.createShaderModule({
-          code: shader.fragment,
+          code: shader,
         }),
-        entryPoint: "main",
+        entryPoint: "main_fragment",
         targets: [
           {
             format: format,
@@ -235,7 +240,7 @@ async function main() {
 
     //-------------------- TEXTURE ---------------------
     let img = new Image();
-    img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
+    img.src = './res/green.jpg'; //'./tex/yachik.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);
@@ -297,9 +302,8 @@ async function main() {
       colorAttachments: [
         {
           view: undefined, //  Assigned later
-         // loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 }, //background color
           storeOp: "store", //ХЗ
-          clearValue: {r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+          clearValue: {r: 0.3, g: 0.4, b: 0.5, a: 1.0 },
           loadOp: 'clear',       
         },],
         depthStencilAttachment: {
@@ -319,14 +323,14 @@ let time_old=0;
       
       //-----------------TIME-----------------------------
       //console.log(time);
-      let dt = time-time_old;
+      let dt = time - time_old;
       time_old = time;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.001);
+      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
@@ -339,13 +343,13 @@ let time_old=0;
   
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
 
-
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, uvBuffer);
+      renderPass.setVertexBuffer(2, normalBuffer);
       renderPass.setIndexBuffer(indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
-      //renderPass.draw(6, 1, 0, 0);
+     
       renderPass.drawIndexed(cube_index.length);
       renderPass.end();
   

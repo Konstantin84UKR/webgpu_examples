@@ -1,6 +1,3 @@
-
-//import * as Matrix from "./gl-matrix.js";
-//import * as Matrix from "./wgpu-matrix.module.js";
 import {
   mat4,
 } from './wgpu-matrix.module.js';
@@ -24,7 +21,6 @@ async function loadJSON(result,modelURL) {
   }
   xhr.send();
 }
-
 
 async function main() {
     ///**  Шейдеры тут все понятно более мение. */  
@@ -144,7 +140,7 @@ async function main() {
       
         let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
         let specular = pow(max(dot(N, H),0.0),100.0);
-        let ambient:vec3<f32> = vec3<f32>(test.x, 0.1, 0.1);
+        let ambient:vec3<f32> = vec3<f32>(test.x + 0.1, 0.2, 0.2);
       
         let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (specularColor * specular * shadow); 
         // let finalColor:vec3<f32> =  textureColor * (shadow * ambient); 
@@ -210,6 +206,7 @@ async function main() {
     //---create uniform data
    
     let MODELMATRIX = mat4.identity();
+    let MODELMATRIX_PLANE = mat4.identity();
     let VIEWMATRIX = mat4.identity(); 
     let PROJMATRIX = mat4.identity();
 
@@ -639,13 +636,14 @@ let time_old=0;
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
       // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
-     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
+      //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
       device.queue.writeBuffer(uniformBuffershadow, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
 
       const commandEncoder = device.createCommandEncoder();
 
-     // SHADOW
+      // SHADOW
+    
       const renderPassShadow = commandEncoder.beginRenderPass(renderPassDescriptionShadow);
       renderPassShadow.setPipeline(shadowPipeline);
       renderPassShadow.setVertexBuffer(0, vertexBuffer);
@@ -669,7 +667,8 @@ let time_old=0;
       renderPassDescription.colorAttachments[0].view = textureView;  
     
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
-      
+       
+
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, uvBuffer);
@@ -678,7 +677,7 @@ let time_old=0;
       renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setBindGroup(1, uniformBindGroup1);
       renderPass.drawIndexed(cube_index.length);
-
+    
       renderPass.setVertexBuffer(0, plane_vertexBuffer);
       renderPass.setVertexBuffer(1, plane_uvBuffer);
       renderPass.setVertexBuffer(2, plane_normalBuffer);
