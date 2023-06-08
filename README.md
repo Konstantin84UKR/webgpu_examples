@@ -20,6 +20,8 @@ texture_mipmap_on_GPU : https://konstantin84ukr.github.io/webgpu_examples/textur
 
 texture_import_canvas : https://konstantin84ukr.github.io/webgpu_examples/texture_import_canvas/
 
+quad_image : https://konstantin84ukr.github.io/webgpu_examples/quad_image/
+
 postEffect : https://konstantin84ukr.github.io/webgpu_examples/postEffect/
 
 // ** MESH **
@@ -45,8 +47,6 @@ mult_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_object
 shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
 
 FirstApp : https://konstantin84ukr.github.io/webgpu_examples/FirstApp/
-
-quad_image : https://konstantin84ukr.github.io/webgpu_examples/quad_image/
 
 cubeMap : https://konstantin84ukr.github.io/webgpu_examples/cube_Map/
 
