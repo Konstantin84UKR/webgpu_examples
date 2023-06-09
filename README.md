@@ -56,3 +56,5 @@ matcapMSAA : https://konstantin84ukr.github.io/webgpu_examples/matcapMSAA/
 
 normalMap : https://konstantin84ukr.github.io/webgpu_examples/normalMap/
 
+PBR : https://konstantin84ukr.github.io/webgpu_examples/PBR/
+
