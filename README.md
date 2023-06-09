@@ -52,5 +52,7 @@ cubeMap : https://konstantin84ukr.github.io/webgpu_examples/cube_Map/
 
 matcap : https://konstantin84ukr.github.io/webgpu_examples/matcap/
 
+matcapMSAA : https://konstantin84ukr.github.io/webgpu_examples/matcapMSAA/
+
 normalMap : https://konstantin84ukr.github.io/webgpu_examples/normalMap/
 
