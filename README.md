@@ -42,6 +42,12 @@ mult_offset_dimamic : https://konstantin84ukr.github.io/webgpu_examples/multple_
 
 mult_inctance : https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/
 
+// ** COMPUTE **
+
+compute : https://konstantin84ukr.github.io/webgpu_examples/compute/
+
+computeBall : https://konstantin84ukr.github.io/webgpu_examples/computeBall/
+
 // -----------------------------
 
 shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
@@ -57,4 +63,6 @@ matcapMSAA : https://konstantin84ukr.github.io/webgpu_examples/matcapMSAA/
 normalMap : https://konstantin84ukr.github.io/webgpu_examples/normalMap/
 
 PBR : https://konstantin84ukr.github.io/webgpu_examples/PBR/
+
+
 
