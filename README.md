@@ -48,6 +48,8 @@ compute : https://konstantin84ukr.github.io/webgpu_examples/compute/
 
 computeBall : https://konstantin84ukr.github.io/webgpu_examples/computeBall/
 
+computeBalls : https://konstantin84ukr.github.io/webgpu_examples/computeBalls/
+
 // -----------------------------
 
 shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
