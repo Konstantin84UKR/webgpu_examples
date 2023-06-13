@@ -2,7 +2,7 @@ import {
   mat4,
 } from './wgpu-matrix.module.js';
 
-console.log(mat4);
+import { Camera } from '../../common/camera/camera.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -218,6 +218,9 @@ async function main() {
     PROJMATRIX = mat4.identity();
     let fovy = 40 * Math.PI / 180;
     PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
+
+    let camera = new Camera(canvas);
+    camera.setPosition([0.0, 5.0, 10.0]);
         
     let eyePosition = [10, 10, 10.0];
     VIEWMATRIX_SHADOW = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
@@ -447,7 +450,7 @@ async function main() {
 
     // create uniform buffer and layout
     const uniformBuffer = device.createBuffer({
-        size: 64 + 64 + 64,
+        size: 64 + 64 + 64 + 64,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });   
 
@@ -462,7 +465,7 @@ async function main() {
     });
 
     const uniformBuffershadow = device.createBuffer({
-      size: 64 + 64 + 64,
+      size: 64 + 64 + 64 + 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
   });   
 
@@ -502,7 +505,7 @@ async function main() {
             resource: {
               buffer: uniformBuffershadow,
               offset: 0,
-              size: 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+              size: 64 + 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX +  MODELMATRIX_PLANE // Каждая матрица занимает 64 байта
           }
         }]
     })
@@ -540,7 +543,7 @@ async function main() {
             resource: {
                 buffer: uniformBuffershadow,
                 offset: 0,
-                size: 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+              size: 64 + 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX + + MODELMATRIX_PLANE// Каждая матрица занимает 64 байта
             }
           }          
         ]
@@ -572,8 +575,8 @@ async function main() {
   });
 
 
-    device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-    device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+    device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+    device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
     device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
 
@@ -633,10 +636,9 @@ let time_old=0;
 
       //--------------------------------------------------
 
-      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+      device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+      device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
-      //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
       device.queue.writeBuffer(uniformBuffershadow, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
 
@@ -652,7 +654,7 @@ let time_old=0;
       renderPassShadow.setIndexBuffer(indexBuffer, "uint32");
       renderPassShadow.setBindGroup(0, shadowGroup);
       renderPassShadow.drawIndexed(cube_index.length);
-
+   
       renderPassShadow.setVertexBuffer(0, plane_vertexBuffer);
       renderPassShadow.setVertexBuffer(1, plane_uvBuffer);
       renderPassShadow.setVertexBuffer(2, plane_normalBuffer);
@@ -667,7 +669,7 @@ let time_old=0;
       renderPassDescription.colorAttachments[0].view = textureView;  
     
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
-       
+      
 
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
