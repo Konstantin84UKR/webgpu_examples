@@ -1,4 +1,37 @@
 
+function click(ev, gl, canvas, a_Position) {
+
+    console.log('part_1___  ev.clientX = ' + ev.clientX + "  ev.clientY = " + ev.clientY);
+
+    var x = ev.clientX;
+    var y = ev.clientY;
+
+    var rect = ev.target.getBoundingClientRect();
+
+    console.log('part_2___ rect.left = ' + rect.left + "   canvas.width/2 = " + canvas.width / 2);
+
+    x = ((x - rect.left) - canvas.width / 2) / (canvas.width / 2);
+    y = ((canvas.height / 2) - (y - rect.top)) / (canvas.height / 2);
+
+    g_points.push(x);
+    g_points.push(y);
+
+    console.log('part_3____ x = ' + x + " y = " + y);
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    var len = g_points.length;
+    console.log('g_points.length ' + g_points.length);
+    for (i = 0; i < len; i += 2) {
+        console.log('onmousedown_DRAWING__POINT_' + i / 2 + ' x = ' + g_points[i] + "  y = " + g_points[i + 1]);
+        gl.vertexAttrib3f(a_Position, g_points[i], g_points[i + 1], 0.0);
+        gl.drawArrays(gl.POINTS, 0, 1);
+    }
+
+    console.log('____');
+
+}
+
 //let gpu;
 const webGPU_Start = async () => {
 
@@ -28,8 +61,10 @@ const webGPU_Start = async () => {
                 pos : vec2<f32>,
                 vel : vec2<f32>,
         }
+      
 
         @group(0) @binding(0) var<storage, read> data: array<Particle>;
+       
 
         struct VertexOutput {
           @builtin(position) Position : vec4<f32>,
@@ -67,7 +102,7 @@ const webGPU_Start = async () => {
           output.Position = vec4<f32>(pos[VertexIndex] + positionInstance, 0.0, 1.0);
           output.color = vec3(
             lengthVelInstance * 3.0 , 
-            positionInstance.x * lengthVelInstance,  
+            (positionInstance.y * 0.5) + 0.5 * length(velInstance),  
             1.0 - lengthVelInstance * 3.0);
           return output;
         }
@@ -91,12 +126,19 @@ const webGPU_Start = async () => {
               }
 
               struct Uniforms {
-                dTime : f32
+                dTime : f32               
               }
+
+              struct Mouse {
+                x : f32, 
+                y : f32,             
+              }
+
 
               @group(0) @binding(0) var<storage, read> particlesA: Particles;
               @group(0) @binding(1) var<storage, read_write> particlesB: Particles;
               @group(0) @binding(2) var<uniform> uniforms : Uniforms;
+              @group(0) @binding(3) var<uniform> mouse : Mouse;
         
               @compute @workgroup_size(64) fn computeSomething(
                 @builtin(global_invocation_id) id: vec3<u32>
@@ -109,17 +151,26 @@ const webGPU_Start = async () => {
                 let index = id.x;
                 var vPos = particlesA.particles[index].pos;
                 var vVel = particlesA.particles[index].vel;
+              
 
                 let friction : f32 = 0.999;
-                var newPos = vPos + vVel * 1.0 * uniforms.dTime;
-                var newVel = vVel;
+                var newPos : vec2<f32> = vPos + vVel * 1.0 * uniforms.dTime;
+                var newVel : vec2<f32> = vVel + vec2<f32>(0.0, - 0.000);
 
+                let distanceMouse : f32 =  distance(newPos, vec2<f32>(mouse.x, mouse.y)); 
+
+                //let distanceMouse1 : f32 = distance(vPos, vec2<f32>(0, 0)); 
                 
+                if(distanceMouse < 0.2) {
+                   newVel =  newVel + ((vPos - vec2<f32>(mouse.x, mouse.y)) * 0.005);
+                   // newVel =  newVel + vec2<f32>(0.0, 0.001);
+                }              
+
                 /////////////////////////////////////////////////////////
 
                 var posNext : vec2<f32>;
                 var velNext : vec2<f32>;
-                
+               
                 for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
                     if (i == index) {
                         continue;
@@ -130,12 +181,25 @@ const webGPU_Start = async () => {
                     
                     if (distance(posNext, vPos)< .01) {
                        
+                       let distanceForce : f32 = distance(posNext, newPos);
+                       
                        if(distance(posNext, vPos) > distance(posNext, newPos)){
-                        
-                            newVel.x = -vVel.x;
-                            newVel.y = -vVel.y;          
-                          
+                            
+                            let forceVector1 : vec2<f32> = normalize(vPos - posNext);  
+                            let forceVector2 : vec2<f32> = normalize(vVel);  
+                           
+                            var force : f32 = dot((vVel + forceVector1) ,(vVel));
+                            newVel = (forceVector1 + forceVector2) * length(vVel);
                             newPos = vPos;
+                            
+                            particlesB.particles[index].pos = newPos; 
+                            particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
+
+                            //particlesB.particles[i].pos = posNext; 
+                            //particlesB.particles[i].vel = vec2<f32>(0.0, 1.0);
+
+                            continue;
+
                        }                                                                
                     }
                     
@@ -218,12 +282,37 @@ const webGPU_Start = async () => {
     });
 
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
+
+    // ------------------ MOUSE -----------------
+
+    const inputMouse = new Float32Array([0,0]);
+    const bufferMouse = device.createBuffer({
+        label: 'buffer Mouse',
+        size: inputMouse.byteLength,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+
+    device.queue.writeBuffer(bufferMouse, 0, inputMouse);
+
+    let mouse = { x: -2, y: 2 };
+    canvas.onmousemove = (event) => {
+        mouse.x = (event.layerX / 640) * 2.0 - 1.0;
+        mouse.y = ((event.layerY / 640) * 2.0 - 1.0) * -1.0;
+    };
+
+    function updateInputParams() {
+        device.queue.writeBuffer(bufferMouse, 0, new Float32Array([mouse.x, mouse.y]));
+    }
+    updateInputParams();    
+
+    //--------------------------------------------
+
     //const input = new Float32Array([0, 0, 0, 0, 0]);
-    const numParticles = 1000;
+    const numParticles = 4000;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
-        input[4 * i + 0] = 0;
-        input[4 * i + 1] = 0;
+        input[4 * i + 0] = (Math.random() * (2) - 1) * 0.9;
+        input[4 * i + 1] = (Math.random() * (2) - 1) * 0.9;
         input[4 * i + 2] = (Math.random() * (2) - 1) * 0.01;
         input[4 * i + 3] = (Math.random() * (2) - 1) * 0.01;
     }
@@ -263,7 +352,8 @@ const webGPU_Start = async () => {
         entries: [
             { binding: 0, resource: { buffer: workBuffer_A } },  
             { binding: 1, resource: { buffer: workBuffer_B } }, 
-            { binding: 2, resource: { buffer: bufferUniform } },           
+            { binding: 2, resource: { buffer: bufferUniform } },  
+            { binding: 3, resource: { buffer: bufferMouse } },           
         ],
     });
 
@@ -275,7 +365,8 @@ const webGPU_Start = async () => {
         entries: [
             { binding: 0, resource: { buffer: workBuffer_B } }, 
             { binding: 1, resource: { buffer: workBuffer_A } },
-            { binding: 2, resource: { buffer: bufferUniform } },              
+            { binding: 2, resource: { buffer: bufferUniform } }, 
+            { binding: 3, resource: { buffer: bufferMouse } },          
         ],
     });
     
@@ -318,6 +409,9 @@ const webGPU_Start = async () => {
             buffer: workBuffer_A,
             bindGroupRender: bindGroupRender_B
         }];
+
+
+
    
 
 
@@ -334,7 +428,7 @@ async function animate(time) {
      //--------------------------------------------------
     device.queue.writeBuffer(bufferUniform, 0, new Float32Array([1.0]));
      //------------------MATRIX EDIT---------------------
-     
+    updateInputParams();  
      //--------------------------------------------------
     
 
@@ -394,3 +488,4 @@ async function animate(time) {
 }
 
 webGPU_Start();
+
