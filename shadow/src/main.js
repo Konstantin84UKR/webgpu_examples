@@ -171,8 +171,8 @@ async function main() {
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 600;
-    canvas.height = 400;
+    canvas.width = 1200;
+    canvas.height = 800;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();
