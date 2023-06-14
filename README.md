@@ -50,6 +50,8 @@ computeBall : https://konstantin84ukr.github.io/webgpu_examples/computeBall/
 
 computeParticles : https://konstantin84ukr.github.io/webgpu_examples/computeParticles/
 
+computeParticlesFromImage : https://konstantin84ukr.github.io/webgpu_examples/computeParticlesFromImage/
+
 // -----------------------------
 
 shadowMap : https://konstantin84ukr.github.io/webgpu_examples/shadow/
