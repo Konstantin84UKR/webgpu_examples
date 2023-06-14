@@ -35,7 +35,7 @@ function click(ev, gl, canvas, a_Position) {
 async function loadImageData(numParticles) {
     //Создаем картинку и загрудаем в нее данные из файла
     let img = new Image();
-    img.src = '../../common/asset/texture/webgpu.png'; //'./tex/yachik.jpg';
+    img.src = './res/webgpu.png'; //'./tex/yachik.jpg';
     await img.decode();
 
     const imageBitmap = await createImageBitmap(img);
