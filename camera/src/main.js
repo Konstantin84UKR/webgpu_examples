@@ -2,7 +2,10 @@
 import {
   mat4,
 } from './wgpu-matrix.module.js';
-console.log(mat4);
+//console.log(mat4);
+
+import { Camera } from '../../common/camera/camera.js';
+console.log(Camera);
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -78,8 +81,8 @@ async function main() {
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 1200;
-    canvas.height = 800;
+    canvas.width = 640;
+    canvas.height = 480;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();
@@ -94,8 +97,6 @@ async function main() {
       canvas.clientWidth * devicePixelRatio ,
       canvas.clientHeight * devicePixelRatio ,
     ];
-
-   
    
     //const format = "bgra8unorm";
     const format = navigator.gpu.getPreferredCanvasFormat();  // формат данных в которых храняться пиксели в физическом устройстве 
@@ -103,7 +104,6 @@ async function main() {
     //** конфигурируем контекст подключаем логическое устройсво  */
     //** формат вывода */
     //** размер вывода */
-    const sampleCount = 4;
     context.configure({
       device: device,
       format: format,
@@ -118,11 +118,14 @@ async function main() {
     let VIEWMATRIX = mat4.identity(); 
     let PROJMATRIX = mat4.identity();
     
-    VIEWMATRIX = mat4.lookAt([0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    // VIEWMATRIX = mat4.lookAt([0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
   
-    let fovy = 40 * Math.PI / 180;
-    PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
+    // let fovy = 40 * Math.PI / 180;
+    // PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
+    let camera = new Camera(canvas);
+    VIEWMATRIX = camera.vMatrix;
+    PROJMATRIX = camera.pMatrix;
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
     //** который будет в будушем загружен в данный буффер */
@@ -177,7 +180,6 @@ async function main() {
     //** primitive указываем тип примитива для отрисовки*/
     //** depthStencil настраиваем буффер глубины*/
     const pipeline = device.createRenderPipeline({
-      label: "pipeline main",
       layout: "auto",
       vertex: {
         module: device.createShaderModule({
@@ -226,9 +228,6 @@ async function main() {
       primitive: {
         topology: "triangle-list",
         //topology: "point-list",
-      }, 
-      multisample: {
-        count: sampleCount,
       },
       depthStencil:{
         format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
@@ -293,30 +292,20 @@ async function main() {
     });
 
 
-    device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-    device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+  device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+  device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
     device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-      sampleCount,
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT
     });  
-  
-    const textureMSAA = device.createTexture({
-      size: [canvas.width, canvas.height],
-      sampleCount,
-      format: format,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-    const textureView = textureMSAA.createView();
 
     const renderPassDescription =  {
       colorAttachments: [
         {
-          view: textureView, //  Assigned later
-          resolveTarget: undefined,
+          view: undefined, //  Assigned later
           storeOp: "store", //ХЗ
           clearValue: {r: 0.3, g: 0.4, b: 0.5, a: 1.0 },
           loadOp: 'clear',       
@@ -330,7 +319,7 @@ async function main() {
          // stencilStoreOp: "store"
       }
     };
-  
+
 
 // Animation   
 let time_old=0; 
@@ -343,18 +332,18 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
-      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
-      device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
+      device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+      device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
+      // device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
       const commandEncoder = device.createCommandEncoder();
-         
-      renderPassDescription.colorAttachments[0].resolveTarget = context.getCurrentTexture().createView();
+      const textureView = context.getCurrentTexture().createView();
+      renderPassDescription.colorAttachments[0].view = textureView;
   
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
 

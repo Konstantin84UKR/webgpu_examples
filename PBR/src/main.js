@@ -274,7 +274,7 @@ async function main() {
         
         let NdotL:f32 = max(dot(N,L),0.);
         let ambient:vec3<f32> = vec3<f32>(0.1, 0.2, 0.3) * 0.03; // No PBR
-        let Lo:vec3<f32> = (kD * (textureBaseColor * shadow * texturAO )/ PI + specular + ambient) * radiance * NdotL;
+        let Lo:vec3<f32> = (kD * (textureBaseColor * shadow * texturAO )/ PI + (specular * shadow) + ambient) * radiance * NdotL;
 
 
         // let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
@@ -317,8 +317,8 @@ async function main() {
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 1200 * 1.2;
-    canvas.height = 720 * 1.2;
+    canvas.width = 1200;
+    canvas.height = 720;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();

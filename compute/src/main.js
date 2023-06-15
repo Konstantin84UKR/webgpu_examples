@@ -51,11 +51,17 @@ const webGPU_Start = async () => {
               @group(0) @binding(0) var<storage, read> data: array<f32>;
               @group(0) @binding(1) var<storage, read_write> data1: array<f32>;
         
-              @compute @workgroup_size(2) fn computeSomething(
+              @compute @workgroup_size(64) fn computeSomething(
                 @builtin(global_invocation_id) id: vec3<u32>
               ) {
+                
+                if (id.x >= u32(arrayLength(&data))) {
+                    return;
+                }
+
                 let i = id.x;
                 data1[i] = data[i] * 1.0 + f32(i);
+                //data1[i] =  data[i] * 0.0 + f32(i);
               }
             `,
     });
@@ -143,7 +149,6 @@ const webGPU_Start = async () => {
             { binding: 1, resource: { buffer: workBuffer } },             
         ],
     });
-
     
 
     // Animation   
@@ -171,7 +176,7 @@ let time_old=0;
 
     computePass.setPipeline(pipelineCompute);
     computePass.setBindGroup(0, bindGroupCompute);
-    computePass.dispatchWorkgroups(input.length);
+    computePass.dispatchWorkgroups(input.length); //5 input.length
     computePass.end();
 
     encoder.copyBufferToBuffer(workBuffer1, 0, resultBuffer, 0, resultBuffer.size);
@@ -197,7 +202,7 @@ let time_old=0;
     });
     computePass1.setPipeline(pipelineCompute);
     computePass1.setBindGroup(0, bindGroupCompute1);
-    computePass1.dispatchWorkgroups(1);
+    computePass1.dispatchWorkgroups(18);
     computePass1.end();
 
     encoder1.copyBufferToBuffer(workBuffer, 0, resultBuffer, 0, resultBuffer.size);
@@ -206,11 +211,11 @@ let time_old=0;
 
     // Read the results
     await resultBuffer.mapAsync(GPUMapMode.READ);
-    result = new Float32Array(resultBuffer.getMappedRange().slice());
+    let result2 = new Float32Array(resultBuffer.getMappedRange().slice());
     resultBuffer.unmap();
 
-    console.log('input', input);
-    console.log('result', result);
+    //console.log('input', input);
+    console.log('result', result2);
 
     const encoderRender = device.createCommandEncoder({
         label: 'doubling encoder',
@@ -234,6 +239,31 @@ let time_old=0;
 //      window.requestAnimationFrame(animate);
 //    };
 //    animate(0);
+    drawCanvas2D(input, result, result2 );
+
+    inputOnHTML('input',input);
+    inputOnHTML('result', result);
+    inputOnHTML('result2', result2);
 }
 
 webGPU_Start();
+
+
+function drawCanvas2D(input, result, result2) {
+    var ctx = document.getElementById('canvas2D').getContext('2d');
+  
+    ctx.font = "22px serif";
+    ctx.fillStyle = "rgba(50, 100, 200, 0.5)";
+    ctx.fillText("input  " + input, 10, 50);
+    ctx.fillText("result  " + result, 10, 80);
+    ctx.fillText("result2  " + result2, 10, 110);
+}
+
+function inputOnHTML(id, input){
+        
+    const elementInput = document.getElementById(id);
+   
+    if (elementInput) {      
+        elementInput.textContent = '' + id + ' = ' + input;
+    }   
+}
