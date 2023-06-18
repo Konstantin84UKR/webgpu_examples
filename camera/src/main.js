@@ -337,6 +337,8 @@ let time_old=0;
       // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
+
+      camera.setDeltaTime(dt);
       device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
       device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
       // device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
