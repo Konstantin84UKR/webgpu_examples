@@ -6,37 +6,49 @@ export class Camera {
     constructor(canvas) {
         this.canvas = canvas;
 
-        this.speedCamera = 0.5;
+        this.speedCamera = 0.01;
       
        
         this.fovy = 40 * Math.PI / 180;
-        this.eye = vec3.create(0.0, 0.0, 10.0); //Traditional X,Y,Z 3d position
-        this.look = vec3.create(0.0, 0.0, -1.0);
-              
-         
        
-        this.front = vec3.create(0.0, 0.0, -1.0);        	//How much to scale a mesh. Having a 1 means no scaling is done.
-        this.up = vec3.create(0.0, 1.0, 0.0); 	//Hold rotation values based on degrees, Object will translate it to radians
-        this.right = vec3.create(1.0, 0.0, 0.0);;
-        this.upWorld = vec3.create(0.0, 1.0, 0.0); 
-        this.look = vec3.create(0.0, 0.0, -1.0); 
+        this.eye = vec3.create(0.0, 0.0, 10.0); //Traditional X,Y,Z 3d position
+        this.front = vec3.create(0.0, 0.0, -1.0); 
+        this.upWorld = vec3.create(0.0, 1.0, 0.0);
+        this.right = vec3.cross(this.front, this.upWorld);
+        this.up = vec3.cross(this.right, this.front);
+        
+        // console.log(this.up);
+        // console.log(this.right);
+        // this.updateCameraVectors();
+        console.log(this.front);
+        console.log(this.up);
+        console.log(this.right);
+              
+        this.look = vec3.add(this.eye, this.front);
+       
+        // this.front = vec3.create(0.0, 0.0, -1.0);        	//How much to scale a mesh. Having a 1 means no scaling is done.
+        // console.log(this.front);
+        // this.up = vec3.create(0.0, 1.0, 0.0); 	//Hold rotation values based on degrees, Object will translate it to radians
+        // this.right = vec3.create(1.0, 0.0, 0.0);;
+        // this.upWorld = vec3.create(0.0, 1.0, 0.0); 
+        // //this.look = vec3.create(0.0, 0.0, -1.0); 
 
-        this.q = quat.identity(); 
+        // this.q = quat.identity(); 
 
-        this.sensitivity = 0.5;
-        this.yaw = 0.0;
+        // this.sensitivity = 0.5;
+        this.yaw = 90.0 * Math.PI / 180;//-90.0*Math.PI/180;
+        //this.yaw = 0.0;//-90.0*Math.PI/180;
         this.pitch = 0.0;//-90.0*Math.PI/180;
 
-        this.m = mat4.create();            // m = new mat4
-        mat4.identity(this.m);   
-        this.axis = vec3.create(0.0, 0.0, 0.0); 
-
-       
-        // this.sensitivity = 0.5;
+        // this.m = mat4.create();            // m = new mat4
+        // mat4.identity(this.m);   
+        // this.axis = vec3.create(0.0, 0.0, 0.0); 
+   
+        this.deltaTime = 1.0;
 
         this.drag = false;
-        this.old_x = 0.0;
-        this.old_y = 0.0;
+        this.old_x = undefined;
+        this.old_y = undefined;
         this.dX = 0.0;
         this.dY = 0.0;
 
@@ -62,6 +74,10 @@ export class Camera {
         this.update();
     }
 
+    setDeltaTime(t) {
+        this.deltaTime = t;
+    }
+
     lookAt() {
         // glMatrix.vec3.add(this.look, this.front, this.eye);
         // //glMatrix.vec3.normalize(this.look,this.look); 
@@ -70,8 +86,8 @@ export class Camera {
 
     update() {
 
-        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 25);
-        this.vMatrix = mat4.lookAt(this.eye, this.look, this.upWorld); 
+        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 100);
+        this.vMatrix = mat4.lookAt(this.eye, this.look, this.up); 
        
        // this.front = mat4.getAxis(this.vMatrix, 2);
         //this.updateCameraVectors();
@@ -80,29 +96,10 @@ export class Camera {
     }
 
     updateCameraVectors() {
-        // let frontTemp = glMatrix.vec3.create();
-        // frontTemp[0] = Math.cos(this.yaw) * Math.cos(this.pitch);
-        // frontTemp[1] = Math.sin(this.pitch);
-        // frontTemp[2] = Math.sin(this.yaw) * Math.cos(this.pitch);
-        // glMatrix.vec3.negate(frontTemp, frontTemp);
-        // glMatrix.vec3.normalize(this.front, frontTemp);
-
-        // glMatrix.mat4.identity(this.transformMatFront);
-
-        // glMatrix.vec3.cross(this.right, this.front, this.upWorld);
-        // glMatrix.vec3.cross(this.up, this.right, this.front);
-       
-        this.front = vec3.clone(this.axis);
-        this.front = vec3.normalize(this.front);
-             
+ 
         this.look = vec3.add(this.eye, this.front);
-
         this.right = vec3.cross(this.front, this.upWorld);
-        this.right = vec3.normalize(this.right);
-       
-        this.up = vec3.cross(this.front, this.right);
-        this.up = vec3.normalize(this.up);
-
+        this.up = vec3.cross(this.right, this.front);
 
     }
 
@@ -120,30 +117,68 @@ export class Camera {
             case "A":
                 temp = vec3.cross(this.up, this.front);
                 temp = vec3.normalize(temp);
-                temp = vec3.negate(temp);
+                //temp = vec3.negate(temp);
                 break;
             case "D":
                 temp = vec3.cross(this.up, this.front);
                 temp = vec3.normalize(temp);
-                //temp = vec3.negate(temp);
+                temp = vec3.negate(temp);
                 break;
             default:
                 this.eye = vec3.add(this.eye, temp);
             break;
         }
-        temp = vec3.scale(temp, this.speedCamera);
+        temp = vec3.scale(temp, this.speedCamera * this.deltaTime);
         this.eye = vec3.add(this.eye, temp);
         this.look = vec3.add(this.look, temp);
+
+        console.log("this.front = " + this.front);
       
+        this.update();
+    }
+
+    rotate_eye(key) {
+
+        this.dX = 0;
+        this.dY = 0;
+        
+        
+
+        let speedRotate = 0.01;
+        switch (key) {
+            case "ArrowRight":
+                this.dX = (this.canvas.width * speedRotate) / this.canvas.width * Math.PI;
+                break;
+            case "ArrowLeft":
+                this.dX = (this.canvas.width * -speedRotate) / this.canvas.width * Math.PI;
+                break;
+            case "ArrowUp":
+                this.dY = (this.canvas.height * -speedRotate) / this.canvas.height * Math.PI;
+                break;
+            case "ArrowDown":
+                this.dY = (this.canvas.height * speedRotate) / this.canvas.height * Math.PI;
+                break;
+            default:
+                this.dX = 0;
+                this.dY = 0;
+            break;
+        }
+    
+       
+        this.yaw -= this.dX;
+        this.pitch -= this.dY; 
+        
+        this.upDateRotate();
+        this.updateCameraVectors();
         this.update();
     }
 
     onkeydown(e) {
 
-        // if (e.key === "w") { this.translate_eye('W')}
-        // if (e.key === "s") { this.translate_eye('S')}
-        // if (e.key === "a") { this.translate_eye('A')}
-        // if (e.key === "d") { this.translate_eye('D')}
+        if (e.key === "ArrowRight") { this.rotate_eye('ArrowRight') }
+        if (e.key === "ArrowLeft") { this.rotate_eye('ArrowLeft') }
+        if (e.key === "ArrowUp") { this.rotate_eye('ArrowUp') }
+        if (e.key === "ArrowDown") { this.rotate_eye('ArrowDown') }
 
     };
 
@@ -153,6 +188,12 @@ export class Camera {
         if (e.key === "s") { this.translate_eye('S') }
         if (e.key === "a") { this.translate_eye('A') }
         if (e.key === "d") { this.translate_eye('D') }
+
+
+        if (e.key === "ArrowRight") { this.rotate_eye('ArrowRight') }
+        if (e.key === "ArrowLeft") { this.rotate_eye('ArrowLeft') }
+        if (e.key === "ArrowUp") { this.rotate_eye('ArrowUp') }
+        if (e.key === "ArrowDown") { this.rotate_eye('ArrowDown') }
 
     }; 
 
@@ -164,7 +205,13 @@ export class Camera {
         // console.log('mouseDown');
          if(e.which == 2){
              this.drag = true;
-             this.old_x = e.pageX, this.old_y = e.pageY;
+             //if (this.old_x == undefined){
+                 this.old_x = e.pageX;
+                 
+             //}
+             if (this.old_y == undefined) {
+                 this.old_y = e.pageY;
+             }
              e.preventDefault();
              return false;
          }
@@ -174,6 +221,9 @@ export class Camera {
     mouseUp(e) {
         if (e.which == 2) {
             this.drag = false;
+            this.old_x = undefined;
+            this.old_y = undefined;
+           // this.updateCameraVectors();
         }
     }
 
@@ -182,12 +232,17 @@ export class Camera {
             return false;
         } else {
 
-            this.dX = ((e.pageX - this.old_x) * 2 * Math.PI / this.canvas.width) * 0.5;
-            this.dY = ((e.pageY - this.old_y) * 2 * Math.PI / this.canvas.height) * 0.5;
+
+            this.dX = 0.5 * (e.pageX - this.old_x) / this.canvas.width  * Math.PI;
+            this.dY = 0.5 * (e.pageY - this.old_y) / this.canvas.height * Math.PI;
+                     
+            this.yaw -= this.dX; 
+            this.pitch -= this.dY; 
+
             this.old_x = e.pageX;
             this.old_y = e.pageY;
-
-            // this.updateCameraVectors();
+     
+                    
             this.upDateRotate();
             this.updateCameraVectors();
             this.update();
@@ -204,24 +259,20 @@ export class Camera {
 
 
     upDateRotate() {
-        // glMatrix.mat4.rotate(this.transformMatFront, this.transformMatFront, -this.dX, this.up);
-        // glMatrix.mat4.rotate(this.transformMatFront, this.transformMatFront, -this.dY, this.right);
-        // glMatrix.vec3.transformMat4(this.front, this.front, this.transformMatFront);
-
-        // const m = mat4.create();            // m = new mat4
-        // mat4.identity(m);                   // m = identity
-       // mat4.translate(m, [1, 2, 3], m);    // m *= translation([1, 2, 3])
-        mat4.rotateX(this.vMatrix, -this.dY, this.m);  // m *= rotationX(Math.PI * 0.5)
-        mat4.rotateY(this.vMatrix, -this.dX, this.m); 
        
-        this.axis = mat4.getAxis(this.vMatrix, 2);
-        this.axis = vec3.negate(this.axis);
-       // console.log('this.axis = ' + this.axis);
-       // this.front = vec3.normalize(this.axis);
-        ///this.front = vec3.transformQuat(this.front, this.q);
+        if (this.pitch > Math.PI * 0.49) {
+            this.pitch = Math.PI * 0.49;
+        }
+        if (this.pitch < Math.PI * -0.49) {
+            this.pitch = Math.PI * -0.49;
+        }
 
-        // glMatrix.vec3.normalize(this.front, this.front);
+        this.front[0] += Math.cos(-this.yaw) * Math.cos(this.pitch);
+        this.front[1] += Math.sin(this.pitch);
+        this.front[2] += Math.sin(-this.yaw) * Math.cos(this.pitch);
+
+        this.front = vec3.normalize(this.front);
+        
     }
-
 
 }
