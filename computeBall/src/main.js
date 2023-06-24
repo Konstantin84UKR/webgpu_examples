@@ -33,24 +33,39 @@ const webGPU_Start = async () => {
         @builtin(vertex_index) VertexIndex : u32
         ) -> @builtin(position) vec4<f32> {
        
-          var pos = array<vec2<f32>, 6*4>(
-              vec2( 0.0,  0.0), vec2( 0.1, 0.0), vec2(0.066, 0.066),
-              vec2( 0.0,  0.0), vec2(0.066, 0.066), vec2(0.0,  0.1),
+          
+          let a:f32 = 1.0 * 0.1;
+          let b:f32 = 0.71 * 0.1;  
+          let c:f32 = 0.923 * 0.1;  
+          let d:f32 = 0.382 * 0.1;  
 
-              vec2( 0.0,  0.0), vec2( 0.0, 0.1), vec2(-0.066, 0.066),
-              vec2( 0.0,  0.0), vec2(-0.066, 0.066), vec2(-0.1,  0.0),
+        var pos = array<vec2<f32>, 6*4*2>(
+              vec2( 0.0,  0.0), vec2( a, 0.0), vec2(c, d),
+              vec2( 0.0,  0.0), vec2(c, d), vec2(b,  b),
 
-              vec2( 0.0,  0.0), vec2( -0.1, 0.0), vec2(-0.066, -0.066),
-              vec2( 0.0,  0.0), vec2(-0.066, -0.066), vec2(0.0,  -0.1),
+              vec2( 0.0,  0.0), vec2(b,  b), vec2(d,  c),
+              vec2( 0.0,  0.0), vec2(d,  c), vec2(0.0,  a),
 
-              vec2( 0.0,  0.0), vec2(0.0,  -0.1), vec2(0.066, -0.066),
-              vec2( 0.0,  0.0), vec2(0.066, -0.066), vec2(0.1,  0.0),
+              vec2( 0.0,  0.0), vec2( 0.0, a), vec2(-d, c),
+              vec2( 0.0,  0.0), vec2(-d, c), vec2(-b, b),
+
+              vec2( 0.0,  0.0), vec2(-b, b), vec2(-c, d),
+              vec2( 0.0,  0.0), vec2(-c, d), vec2(-a,  0.0),
+
+
+              vec2( 0.0,  0.0), vec2( -a, 0.0), vec2(-c, -d),
+              vec2( 0.0,  0.0), vec2(-c, -d), vec2(-b, -b),
+
+              vec2( 0.0,  0.0), vec2(-b, -b), vec2(-d, -c),
+              vec2( 0.0,  0.0), vec2(-d, -c), vec2(0.0, -a),
+
+              vec2( 0.0,  0.0), vec2(0.0, -a), vec2(d, -c),
+              vec2( 0.0,  0.0), vec2(d, -c), vec2(b, -b),
+
+              vec2( 0.0,  0.0), vec2(b, -b), vec2(c, -d),
+              vec2( 0.0,  0.0), vec2(c, -d), vec2(a, 0.0),
+
           );
-
-        //   var pos = array<vec2<f32>, 6>(
-        //       vec2( 0.1,  0.1), vec2( 0.1, -0.1), vec2(-0.1, -0.1),
-        //       vec2( 0.1,  0.1), vec2(-0.1, -0.1), vec2(-0.1,  0.1),
-        //   );
 
           return vec4<f32>(pos[VertexIndex].x + data[0], pos[VertexIndex].y + data[1], 0.0, 1.0);
         }`,
@@ -156,7 +171,7 @@ const webGPU_Start = async () => {
             }]
         },
         primitive: {
-            topology: "triangle-list", // что будем рисовать точки - треугольники - линии
+            topology: "triangle-list", // что будем рисовать точки - треугольники - линии "line-list","triangle-list"
         }
     });
 
@@ -343,7 +358,7 @@ async function animate(time) {
     });
     renderPass.setPipeline(pipeline); // подключаем наш pipeline
     renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
-    renderPass.draw(6*4);
+    renderPass.draw(6*4 * 2);
     renderPass.end();
 
     device.queue.submit([encoderRender.finish()]);

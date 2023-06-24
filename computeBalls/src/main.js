@@ -42,21 +42,38 @@ const webGPU_Start = async () => {
         @builtin(instance_index) InstanceIndex : u32,
         ) -> VertexOutput {
        
-          let a:f32 = 1.0 * 0.05;
-          let b:f32 = 0.71 * 0.05;  
+          let scaleBall:f32 = 0.05; 
+          let a:f32 = 1.0 * scaleBall;
+          let b:f32 = 0.71 * scaleBall;  
+          let c:f32 = 0.923 * scaleBall;  
+          let d:f32 = 0.382 * scaleBall;  
 
-          var pos = array<vec2<f32>, 6*4>(
-              vec2( 0.0,  0.0), vec2( a, 0.0), vec2(b, b),
-              vec2( 0.0,  0.0), vec2(b, b), vec2(0.0,  a),
+        var pos = array<vec2<f32>, 6*4*2>(
+              vec2( 0.0,  0.0), vec2( a, 0.0), vec2(c, d),
+              vec2( 0.0,  0.0), vec2(c, d), vec2(b,  b),
 
-              vec2( 0.0,  0.0), vec2( 0.0, a), vec2(-b, b),
-              vec2( 0.0,  0.0), vec2(-b, b), vec2(-a,  0.0),
+              vec2( 0.0,  0.0), vec2(b,  b), vec2(d,  c),
+              vec2( 0.0,  0.0), vec2(d,  c), vec2(0.0,  a),
 
-              vec2( 0.0,  0.0), vec2( -a, 0.0), vec2(-b, -b),
-              vec2( 0.0,  0.0), vec2(-b, -b), vec2(0.0,  -a),
+              vec2( 0.0,  0.0), vec2( 0.0, a), vec2(-d, c),
+              vec2( 0.0,  0.0), vec2(-d, c), vec2(-b, b),
 
-              vec2( 0.0,  0.0), vec2(0.0,  -a), vec2(b, -b),
-              vec2( 0.0,  0.0), vec2(b, -b), vec2(a,  0.0),
+              vec2( 0.0,  0.0), vec2(-b, b), vec2(-c, d),
+              vec2( 0.0,  0.0), vec2(-c, d), vec2(-a,  0.0),
+
+
+              vec2( 0.0,  0.0), vec2( -a, 0.0), vec2(-c, -d),
+              vec2( 0.0,  0.0), vec2(-c, -d), vec2(-b, -b),
+
+              vec2( 0.0,  0.0), vec2(-b, -b), vec2(-d, -c),
+              vec2( 0.0,  0.0), vec2(-d, -c), vec2(0.0, -a),
+
+              vec2( 0.0,  0.0), vec2(0.0, -a), vec2(d, -c),
+              vec2( 0.0,  0.0), vec2(d, -c), vec2(b, -b),
+
+              vec2( 0.0,  0.0), vec2(b, -b), vec2(c, -d),
+              vec2( 0.0,  0.0), vec2(c, -d), vec2(a, 0.0),
+
           );
      
           let positionInstance = data[InstanceIndex].pos; 
@@ -390,7 +407,7 @@ async function animate(time) {
     });
     renderPass.setPipeline(pipeline); // подключаем наш pipeline
     renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
-    renderPass.draw(6 * 4, numParticles);
+    renderPass.draw(6 * 4 * 2, numParticles);
     renderPass.end();
 
     device.queue.submit([encoderRender.finish()]);
