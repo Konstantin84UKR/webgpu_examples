@@ -42,8 +42,8 @@ const webGPU_Start = async () => {
         @builtin(instance_index) InstanceIndex : u32,
         ) -> VertexOutput {
        
-          let a:f32 = 1.0 * 0.01;
-          let b:f32 = 0.71 * 0.01;  
+          let a:f32 = 1.0 * 0.05;
+          let b:f32 = 0.71 * 0.05;  
 
           var pos = array<vec2<f32>, 6*4>(
               vec2( 0.0,  0.0), vec2( a, 0.0), vec2(b, b),
@@ -117,24 +117,31 @@ const webGPU_Start = async () => {
                 
                 /////////////////////////////////////////////////////////
 
-                var posNext : vec2<f32>;
-                var velNext : vec2<f32>;
+                var posBall2 : vec2<f32>;
+                var velBall2 : vec2<f32>;
                 
                 for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
                     if (i == index) {
                         continue;
                     }
 
-                posNext = particlesA.particles[i].pos.xy;
-                velNext = particlesA.particles[i].vel.xy;
+                    posBall2 = particlesA.particles[i].pos.xy;
+                    velBall2 = particlesA.particles[i].vel.xy;
                     
-                    if (distance(posNext, vPos)< .01) {
+                    if (distance(posBall2, vPos)< .1) {
                        
-                       if(distance(posNext, vPos) > distance(posNext, newPos)){
-                        
-                            newVel.x = -vVel.x;
-                            newVel.y = -vVel.y;          
-                          
+                       if(distance(posBall2, vPos) > distance(posBall2, newPos)){
+                                                 
+                            var dir = vPos - posBall2;
+                            var d = length(dir);
+                            dir = normalize(dir);
+                                               
+                            var v1 = dot(newVel, dir);
+                            var v2 = dot(velBall2, dir);
+                            var v = (v1 + v2 - (v1 - v2) * 1.0) * 0.5;
+               
+                            newVel = newVel + dir * (v - v1);
+                                                   
                             newPos = vPos;
                        }                                                                
                     }
@@ -219,11 +226,11 @@ const webGPU_Start = async () => {
 
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
     //const input = new Float32Array([0, 0, 0, 0, 0]);
-    const numParticles = 1000;
+    const numParticles = 50;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
-        input[4 * i + 0] = 0;
-        input[4 * i + 1] = 0;
+        input[4 * i + 0] = (Math.random() * (2) - 1) * .9;
+        input[4 * i + 1] = (Math.random() * (2) - 1) * 0.9;
         input[4 * i + 2] = (Math.random() * (2) - 1) * 0.01;
         input[4 * i + 3] = (Math.random() * (2) - 1) * 0.01;
     }

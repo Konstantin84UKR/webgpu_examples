@@ -7,8 +7,7 @@ export class Camera {
         this.canvas = canvas;
 
         this.speedCamera = 0.01;
-      
-       
+          
         this.fovy = 40 * Math.PI / 180;
        
         this.eye = vec3.create(0.0, 0.0, 10.0); //Traditional X,Y,Z 3d position
@@ -16,33 +15,16 @@ export class Camera {
         this.upWorld = vec3.create(0.0, 1.0, 0.0);
         this.right = vec3.cross(this.front, this.upWorld);
         this.up = vec3.cross(this.right, this.front);
-        
-        // console.log(this.up);
-        // console.log(this.right);
-        // this.updateCameraVectors();
+   
         console.log(this.front);
         console.log(this.up);
         console.log(this.right);
               
         this.look = vec3.add(this.eye, this.front);
-       
-        // this.front = vec3.create(0.0, 0.0, -1.0);        	//How much to scale a mesh. Having a 1 means no scaling is done.
-        // console.log(this.front);
-        // this.up = vec3.create(0.0, 1.0, 0.0); 	//Hold rotation values based on degrees, Object will translate it to radians
-        // this.right = vec3.create(1.0, 0.0, 0.0);;
-        // this.upWorld = vec3.create(0.0, 1.0, 0.0); 
-        // //this.look = vec3.create(0.0, 0.0, -1.0); 
-
-        // this.q = quat.identity(); 
-
-        // this.sensitivity = 0.5;
+  
         this.yaw = 90.0 * Math.PI / 180;//-90.0*Math.PI/180;
-        //this.yaw = 0.0;//-90.0*Math.PI/180;
         this.pitch = 0.0;//-90.0*Math.PI/180;
-
-        // this.m = mat4.create();            // m = new mat4
-        // mat4.identity(this.m);   
-        // this.axis = vec3.create(0.0, 0.0, 0.0); 
+   
    
         this.deltaTime = 1.0;
 
@@ -51,10 +33,7 @@ export class Camera {
         this.old_y = undefined;
         this.dX = 0.0;
         this.dY = 0.0;
-
-
-        // this.lookAt();
-
+       
         window.addEventListener("keydown", this.onkeydown.bind(this), false);
         window.addEventListener("keypress", this.onkeypress.bind(this), false);
         window.addEventListener("keyup", this.onkeyup.bind(this), false);
@@ -141,30 +120,26 @@ export class Camera {
 
         this.dX = 0;
         this.dY = 0;
-        
-        
-
-        let speedRotate = 0.01;
+             
         switch (key) {
             case "ArrowRight":
-                this.dX = (this.canvas.width * speedRotate) / this.canvas.width * Math.PI;
+                this.dX = (this.canvas.width * this.speedCamera) / this.canvas.width * Math.PI;
                 break;
             case "ArrowLeft":
-                this.dX = (this.canvas.width * -speedRotate) / this.canvas.width * Math.PI;
+                this.dX = (this.canvas.width * -this.speedCamera) / this.canvas.width * Math.PI;
                 break;
             case "ArrowUp":
-                this.dY = (this.canvas.height * -speedRotate) / this.canvas.height * Math.PI;
+                this.dY = (this.canvas.height * -this.speedCamera) / this.canvas.height * Math.PI;
                 break;
             case "ArrowDown":
-                this.dY = (this.canvas.height * speedRotate) / this.canvas.height * Math.PI;
+                this.dY = (this.canvas.height * this.speedCamera) / this.canvas.height * Math.PI;
                 break;
             default:
                 this.dX = 0;
                 this.dY = 0;
             break;
         }
-    
-       
+           
         this.yaw -= this.dX;
         this.pitch -= this.dY; 
         
