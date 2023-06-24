@@ -127,17 +127,18 @@ const webGPU_Start = async () => {
                 var vPos = particlesA.particles[index].pos;
                 var vVel = particlesA.particles[index].vel;
 
-                let friction : f32 = 0.999;
+                let friction : f32 = 0.99;
                 var newPos = vPos + vVel * 1.0 * uniforms.dTime;
-                var newVel = vVel;
-
+                var newVel = vVel * friction + vec2<f32>(0.0, -0.000);
                 
                 /////////////////////////////////////////////////////////
-
+                
                 var posBall2 : vec2<f32>;
                 var velBall2 : vec2<f32>;
                 
-                for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
+
+               
+                    for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
                     if (i == index) {
                         continue;
                     }
@@ -145,10 +146,11 @@ const webGPU_Start = async () => {
                     posBall2 = particlesA.particles[i].pos.xy;
                     velBall2 = particlesA.particles[i].vel.xy;
                     
-                    if (distance(posBall2, vPos)< .1) {
+                    if (distance(posBall2, vPos) < .1) {
                        
-                       if(distance(posBall2, vPos) > distance(posBall2, newPos)){
-                                                 
+                      if(distance(posBall2, vPos) > distance(posBall2, newPos)){
+                                               
+                            
                             var dir = vPos - posBall2;
                             var d = length(dir);
                             dir = normalize(dir);
@@ -157,44 +159,49 @@ const webGPU_Start = async () => {
                             var v2 = dot(velBall2, dir);
                             var v = (v1 + v2 - (v1 - v2) * 1.0) * 0.5;
                
-                            newVel = newVel + dir * (v - v1);
+                            newVel = vVel + dir * (v - v1);
                                                    
                             newPos = vPos;
-                       }                                                                
+                            
+                      }                                                                
                     }
                     
-                }
+                 } 
+               
+               
 
                 ////////////////////////////////////////////////////////
 
                 if(newPos.x > (0.9)){
-                   newPos.x = vPos.x; 
+                  
                    newVel.x = vVel.x * -0.95 ;
                    newPos = newPos + newVel;
                 }
 
                 if(newPos.x < (-0.9)){
-                   newPos.x = vPos.x;
+                
                    newVel.x = vVel.x * -0.95 ; 
                    newPos = newPos + newVel;
                 }
 
                 if(newPos.y > (0.9)){
-                   newPos.y = vPos.y; 
+                
                    newVel.y = vVel.y *-0.95 ;
                    newPos = newPos + newVel;
                 }
                 
-                if(newPos.y < (-0.9)){
-                   newPos.y = vPos.y;
+                if(newPos.y < (-0.95)){
+                 
                    newVel.y = vVel.y * -0.95; 
                    newPos = newPos + newVel;
+                   if(length(newVel) < 0.001 ){
+                     newPos.y = -0.95;
+                     newVel.y = 0.0;
+                   } 
                 }
-                             
-
                 particlesB.particles[index].pos = newPos; 
-                particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
-                                
+                particlesB.particles[index].vel = newVel + vec2<f32>(0.0, -0.000); 
+                                               
               }
             `,
     });
@@ -246,10 +253,10 @@ const webGPU_Start = async () => {
     const numParticles = 50;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
-        input[4 * i + 0] = (Math.random() * (2) - 1) * .9;
-        input[4 * i + 1] = (Math.random() * (2) - 1) * 0.9;
-        input[4 * i + 2] = (Math.random() * (2) - 1) * 0.01;
-        input[4 * i + 3] = (Math.random() * (2) - 1) * 0.01;
+        input[4 * i + 0] = (Math.random() * (2) - 1) * 0.5;
+        input[4 * i + 1] = (Math.random() * (2) - 1) * 0.5;
+        input[4 * i + 2] = (Math.random() * (2) - 1) * 0.1;
+        input[4 * i + 3] = (Math.random() * (2) - 1) * 0.1; //(Math.random() * (2) - 1) * 0.1
     }
     console.log('Particle Count:', numParticles);
     //console.log('input', input);

@@ -24,20 +24,29 @@ const webGPU_Start = async () => {
     // текст шейлеров 
     const wglsShader = {
         vertex: `
-            
+        struct Particle {
+                pos : vec2<f32>,
+                vel : vec2<f32>,
+              }   
 
-        @group(0) @binding(0) var<storage, read> data: array<f32>;
+        @group(0) @binding(0) var<storage, read> data:  array<Particle>;
+
+         struct VertexOutput {
+          @builtin(position) Position : vec4<f32>,
+          @location(0) color : vec3<f32>          
+        }      
 
         @vertex
         fn vertex_main(
-        @builtin(vertex_index) VertexIndex : u32
-        ) -> @builtin(position) vec4<f32> {
+        @builtin(vertex_index) VertexIndex : u32 ,
+        @builtin(instance_index) InstanceIndex : u32,
+        ) -> VertexOutput{
        
-          
-          let a:f32 = 1.0 * 0.1;
-          let b:f32 = 0.71 * 0.1;  
-          let c:f32 = 0.923 * 0.1;  
-          let d:f32 = 0.382 * 0.1;  
+          let scale:f32 =  0.1;
+          let a:f32 = 1.0 * scale;
+          let b:f32 = 0.71 * scale;  
+          let c:f32 = 0.923 * scale;  
+          let d:f32 = 0.382 * scale;  
 
         var pos = array<vec2<f32>, 6*4*2>(
               vec2( 0.0,  0.0), vec2( a, 0.0), vec2(c, d),
@@ -67,13 +76,25 @@ const webGPU_Start = async () => {
 
           );
 
-          return vec4<f32>(pos[VertexIndex].x + data[0], pos[VertexIndex].y + data[1], 0.0, 1.0);
+            let lengthVelInstance = length(data[InstanceIndex].vel) * 10.0;
+            
+            var output : VertexOutput;
+            output.Position = vec4<f32>(pos[VertexIndex].x + data[InstanceIndex].pos[0], // x
+                                        pos[VertexIndex].y + data[InstanceIndex].pos[1], // y
+                                        0.0, 1.0); // zw
+            
+            output.color = vec3(
+                lengthVelInstance, 
+                0.0,  
+                1.0 - lengthVelInstance);
+
+            return output;
         }`,
 
         fragment: `
             @fragment
-            fn fragment_main() -> @location(0) vec4<f32> {
-            return vec4<f32>(1.0,0.5,0.0,1.0);
+            fn fragment_main(@location(0) color: vec3<f32>) -> @location(0) vec4<f32> {
+            return vec4<f32>(color,1.0);
         }`};
 
     const moduleСompute = device.createShaderModule({
@@ -101,7 +122,7 @@ const webGPU_Start = async () => {
                 @builtin(global_invocation_id) id: vec3<u32>
               ) {
 
-                if (id.x >= u32(4)) {
+                if (id.x >= u32(arrayLength(&particlesA.particles))) {
                    return;
                 }
 
@@ -110,42 +131,37 @@ const webGPU_Start = async () => {
                 var vVel = particlesA.particles[index].vel;
 
                 let friction : f32 = 0.99;
-                var newPos = vPos + vVel * 1.0 * uniforms.dTime;
-                var newVel = vVel;
+                var newPos = vPos + vVel * uniforms.dTime;
+                var newVel = vVel * friction;
 
-                if(newPos.x > (1.0 - 0.1)){
-                   newPos.x = vPos.x; 
-                   newVel.x = vVel.x * -1.0 ;
-                   newPos = newPos + newVel;
+                let radiusBall : f32 = 0.1;
+                let gravity : vec2<f32> =  vec2<f32>(0.0, - 0.001);
+                
+                if(newPos.x > (1.0 - radiusBall)){
+                   newVel.x = -vVel.x;
+                   newPos = vPos + newVel;
                 }
-                if(newPos.x < (-1.0 + 0.1)){
-                   newPos.x = vPos.x;
-                   newVel.x = vVel.x * -1.0 ; 
-                   newPos = newPos + newVel;
+                if(newPos.x < (-1.0 + radiusBall)){
+                   newVel.x = -vVel.x; 
+                   newPos = vPos + newVel;
                 }
 
-                if(newPos.y > (1.0 - 0.1)){
-                   newPos.y = vPos.y; 
-                   newVel.y = vVel.y * -1.0 ;
-                   newPos = newPos + newVel;
-                }
-                if(newPos.y < (-1.0 + 0.1)){
-                   newPos.y = vPos.y;
-                   newVel.y = vVel.y * -1.0; 
-                   newPos = newPos + newVel;
+                if(newPos.y > (1.0 - radiusBall)){
+                   newVel.y = -vVel.y;
+                   newPos = vPos + newVel;
                 }
                 
-                if(newPos.x < -0.9){
-                    newVel.x = -0.9;
+                if(newPos.y < (-1.0 + radiusBall)){
+                   newVel.y = vVel.y * -0.9;
+                   newPos = vPos + newVel;
+                   if(length(newVel) < 0.01 ){
+                     newPos.y = -0.9;
+                   }                   
                 }
-
-                 if(newPos.y < -.9){
-                    newVel.y = -.9;
-                }
-
-                particlesB.particles[index].pos = newPos; 
-                particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
-                                
+                                            
+                particlesB.particles[index].pos = newPos;  
+                particlesB.particles[index].vel = newVel  + gravity; 
+                                              
               }
             `,
     });
@@ -185,7 +201,7 @@ const webGPU_Start = async () => {
         },
     });
 
-    const inputTime = new Float32Array([0]);
+    const inputTime = new Float32Array([1.0]);
     const bufferUniform = device.createBuffer({
         label: 'buffer Position',
         size: inputTime.byteLength,
@@ -193,14 +209,15 @@ const webGPU_Start = async () => {
     });
 
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
-    //const input = new Float32Array([0, 0, 0, 0, 0]);
-    const numParticles = 2;
+    
+    
+    const numParticles = 10;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
-        input[4 * i + 0] = 0;
-        input[4 * i + 1] = 0;
-        input[4 * i + 2] = 2 * (Math.random() - 0.5) * 0.1;
-        input[4 * i + 3] = 2 * (Math.random() - 0.5) * 0.1;
+        input[4 * i + 0] = 2 * (Math.random() - 0.5) * 0.9; //pos
+        input[4 * i + 1] = 2 * (Math.random() - 0.5) * 0.9;
+        input[4 * i + 2] = 2 * (Math.random() - 0.5) * 0.3; //vel
+        input[4 * i + 3] = 2 * (Math.random() - 0.5) * 0.3;
     }
     console.log('Particle Count:', numParticles);
 
@@ -257,13 +274,13 @@ const webGPU_Start = async () => {
  
     //-------------------------------------------------------------
 
-    const bufferPosition = device.createBuffer({
-        label: 'buffer Position',
-        size: input.byteLength,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    });
+    // const bufferPosition = device.createBuffer({
+    //     label: 'buffer Position',
+    //     size: input.byteLength,
+    //     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    // });
 
-    device.queue.writeBuffer(bufferPosition, 0, input);
+    // device.queue.writeBuffer(bufferPosition, 0, input);
 
     const bindGroupRender_A = device.createBindGroup({
         label: 'bindGroup for bindGroupRender',
@@ -301,17 +318,14 @@ let time_old = 0;
 let t = 0;
 async function animate(time) {
      
-//      //-----------------TIME-----------------------------
+    //-----------------TIME-----------------------------
     //console.log(time);
      let dt = time - time_old;
      time_old = time;
-    //console.log(dt);
+     //console.log(dt);
      //--------------------------------------------------
-    device.queue.writeBuffer(bufferUniform, 0, new Float32Array([1.0]));
-     //------------------MATRIX EDIT---------------------
+     device.queue.writeBuffer(bufferUniform, 0, new Float32Array([dt * 0.05]));
      
-     //--------------------------------------------------
-    
 
      //Encode commands to do the computation
     const encoder = device.createCommandEncoder({
@@ -324,7 +338,7 @@ async function animate(time) {
 
     computePass.setPipeline(pipelineCompute);
     computePass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroup);
-    computePass.dispatchWorkgroups(input.length);
+    computePass.dispatchWorkgroups(Math.ceil(numParticles / 64));
     computePass.end();
 
     encoder.copyBufferToBuffer(bindGroupsCompute[t % 2].buffer, 0, resultBuffer, 0, resultBuffer.size);
@@ -339,7 +353,7 @@ async function animate(time) {
     // console.log('input', input);
     // console.log('result', result);
      
-    ++t;
+    
     // //--------------------------------------------------
     //device.queue.writeBuffer(bufferPosition, 0, result);
 
@@ -358,11 +372,11 @@ async function animate(time) {
     });
     renderPass.setPipeline(pipeline); // подключаем наш pipeline
     renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
-    renderPass.draw(6*4 * 2);
+    renderPass.draw(64, numParticles);
     renderPass.end();
 
     device.queue.submit([encoderRender.finish()]);
-
+    ++t;
       window.requestAnimationFrame(animate);
     };
     animate(0);
