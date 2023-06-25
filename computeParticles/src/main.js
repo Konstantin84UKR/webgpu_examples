@@ -153,7 +153,7 @@ const webGPU_Start = async () => {
                 var vVel = particlesA.particles[index].vel;
               
 
-                let friction : f32 = 0.999;
+                let friction : f32 = 0.99;
                 var newPos : vec2<f32> = vPos + vVel * 1.0 * uniforms.dTime;
                 var newVel : vec2<f32> = vVel + vec2<f32>(0.0, - 0.000);
 
@@ -185,18 +185,30 @@ const webGPU_Start = async () => {
                        
                        if(distance(posNext, vPos) > distance(posNext, newPos)){
                             
-                            let forceVector1 : vec2<f32> = normalize(vPos - posNext);  
-                            let forceVector2 : vec2<f32> = normalize(vVel);  
+                        //     let forceVector1 : vec2<f32> = normalize(vPos - posNext);  
+                        //     let forceVector2 : vec2<f32> = normalize(vVel);  
                            
-                            var force : f32 = dot((vVel + forceVector1) ,(vVel));
-                            newVel = (forceVector1 + forceVector2) * length(vVel);
-                            newPos = vPos;
+                        //     var force : f32 = dot((vVel + forceVector1) ,(vVel));
+                        //     newVel = (forceVector1 + forceVector2) * length(vVel);
+                        //     newPos = vPos;
                             
-                            particlesB.particles[index].pos = newPos; 
-                            particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
+                        //     particlesB.particles[index].pos = newPos; 
+                        //     particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
+                          
 
-                            //particlesB.particles[i].pos = posNext; 
-                            //particlesB.particles[i].vel = vec2<f32>(0.0, 1.0);
+                        //    continue;
+
+                            var dir = vPos - posNext;
+                            var d = length(dir);
+                            dir = normalize(dir);
+                                               
+                            var v1 = dot(newVel, dir);
+                            var v2 = dot(velNext, dir);
+                            var v = (v1 + v2 - (v1 - v2) * 1.0) * 0.5;
+               
+                            newVel = newVel + dir * (v - v1);
+                                                   
+                            newPos = vPos;
 
                             continue;
 
