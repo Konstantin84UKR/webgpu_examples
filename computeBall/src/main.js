@@ -27,7 +27,8 @@ const webGPU_Start = async () => {
         struct Particle {
                 pos : vec2<f32>,
                 vel : vec2<f32>,
-              }   
+                radius : vec4<f32>,
+                }   
 
         @group(0) @binding(0) var<storage, read> data:  array<Particle>;
 
@@ -42,7 +43,8 @@ const webGPU_Start = async () => {
         @builtin(instance_index) InstanceIndex : u32,
         ) -> VertexOutput{
        
-          let scale:f32 =  0.1;
+          let scale:f32 = data[InstanceIndex].radius[0];
+          // let scale:f32 =  0.1;
           let a:f32 = 1.0 * scale;
           let b:f32 = 0.71 * scale;  
           let c:f32 = 0.923 * scale;  
@@ -84,9 +86,9 @@ const webGPU_Start = async () => {
                                         0.0, 1.0); // zw
             
             output.color = vec3(
-                lengthVelInstance, 
-                0.0,  
-                1.0 - lengthVelInstance);
+                lengthVelInstance + data[InstanceIndex].radius[1], 
+                data[InstanceIndex].radius[2],  
+                1.0 - lengthVelInstance) + data[InstanceIndex].radius[3];
 
             return output;
         }`,
@@ -104,6 +106,7 @@ const webGPU_Start = async () => {
               struct Particle {
                 pos : vec2<f32>,
                 vel : vec2<f32>,
+                radius : vec4<f32>,
               }
               
               struct Particles {
@@ -129,12 +132,12 @@ const webGPU_Start = async () => {
                 let index = id.x;
                 var vPos = particlesA.particles[index].pos;
                 var vVel = particlesA.particles[index].vel;
-
+               
                 let friction : f32 = 0.99;
                 var newPos = vPos + vVel * uniforms.dTime;
                 var newVel = vVel * friction;
 
-                let radiusBall : f32 = 0.1;
+                let radiusBall : f32 =  particlesA.particles[index].radius[0];
                 let gravity : vec2<f32> =  vec2<f32>(0.0, - 0.001);
                 
                 if(newPos.x > (1.0 - radiusBall)){
@@ -154,13 +157,14 @@ const webGPU_Start = async () => {
                 if(newPos.y < (-1.0 + radiusBall)){
                    newVel.y = vVel.y * -0.9;
                    newPos = vPos + newVel;
-                   if(length(newVel) < 0.01 ){
-                     newPos.y = -0.9;
+                   if(length(newVel) < radiusBall  ){
+                     newPos.y = -1.0 + radiusBall;
                    }                   
                 }
                                             
                 particlesB.particles[index].pos = newPos;  
                 particlesB.particles[index].vel = newVel  + gravity; 
+                particlesB.particles[index].radius = particlesA.particles[index].radius; 
                                               
               }
             `,
@@ -211,13 +215,19 @@ const webGPU_Start = async () => {
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
     
     
-    const numParticles = 10;
-    const input = new Float32Array(numParticles * 4);
+    const numParticles = 200;
+    const input = new Float32Array(numParticles * 8);
     for (let i = 0; i < numParticles; ++i) {
-        input[4 * i + 0] = 2 * (Math.random() - 0.5) * 0.9; //pos
-        input[4 * i + 1] = 2 * (Math.random() - 0.5) * 0.9;
-        input[4 * i + 2] = 2 * (Math.random() - 0.5) * 0.3; //vel
-        input[4 * i + 3] = 2 * (Math.random() - 0.5) * 0.3;
+        input[8 * i + 0] = 2 * (Math.random() - 0.5) * 0.9; //pos
+        input[8 * i + 1] = 2 * (Math.random() - 0.5) * 0.9;
+        
+        input[8 * i + 2] = 2 * (Math.random() - 0.5) * 0.3; //vel
+        input[8 * i + 3] = 2 * (Math.random() - 0.5) * 0.3;
+     
+        input[8 * i + 4] = Math.random() * 0.05 + 0.01; //scale
+        input[8 * i + 5] = Math.random() * 0.3; //aline
+        input[8 * i + 6] = Math.random() * 0.7;
+        input[8 * i + 7] = Math.random() * 0.3;
     }
     console.log('Particle Count:', numParticles);
 
@@ -350,8 +360,8 @@ async function animate(time) {
     let result = new Float32Array(resultBuffer.getMappedRange().slice());
     resultBuffer.unmap();
 
-    // console.log('input', input);
-    // console.log('result', result);
+     console.log('input', input);
+     console.log('result', result);
      
     
     // //--------------------------------------------------
