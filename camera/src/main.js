@@ -95,8 +95,8 @@ async function main() {
 
     //const meshGeometry = new RectangleGeometry(2,1,8,8);
     //const meshGeometry = new BoxGeometry(2,3,4,2,3,4);
-    //const meshGeometry = new SphereGeometry(2,16,8,1,1,0,2);
-    const meshGeometry = new SphereGeometry(2);
+    const meshGeometry = new SphereGeometry(2,16,8,1,1,0,2);
+    //const meshGeometry = new SphereGeometry(2);
  
     const cube_vertex = new Float32Array(meshGeometry.vertices);
     const cube_uv = new Float32Array(meshGeometry.uvs);
@@ -358,9 +358,9 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
 
