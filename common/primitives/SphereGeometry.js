@@ -35,14 +35,15 @@ export class SphereGeometry {
                 this.vertices.push(x, y, z);
 
                 // Calculate texture coordinates
-                this.uvs.push(u, 1 - v); // Invert v-axis to match the typical convention
+                this.uvs.push(u, v); // Invert v-axis to match the typical convention
 
                 // Calculate normal vector
                 const normal = [x, y, z];
                 this.normals.push(...normal);
 
                 // Calculate tangent vector (same for all vertices)
-                this.tangents.push(-radius * Math.sin(phi), 0, radius * Math.cos(phi)); // Assuming the tangent vector points along the positive X-axis
+                let tangent  = [radius * Math.sin(phi), 0, radius * Math.cos(phi)];
+                this.tangents.push(...tangent); // Assuming the tangent vector points along the positive X-axis
 
                 if (iy < heightSegments && ix < widthSegments) {
                     const currentIndex = ix + iy * (widthSegments + 1);

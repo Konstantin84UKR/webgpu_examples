@@ -51,7 +51,7 @@ async function main() {
            
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
-            output.vUV = uv;
+            output.vUV = uv * 1.0;
             output.vNormal   =  uniforms.mMatrix * vec4<f32>(normal,1.0);
 
             return output;
@@ -108,8 +108,8 @@ async function main() {
     //  const cube_normal = new Float32Array(mesh.normals);
 
    //const meshGeometry = new RectangleGeometry(4, 4, 2, 2);
-   //const meshGeometry = new BoxGeometry(2, 3, 4, 1, 1, 1);
-   const meshGeometry = new SphereGeometry(2, 16, 8, 1, 1, 0, 2);
+   const meshGeometry = new BoxGeometry(4, 4, 6, 2, 2, 2);
+   //const meshGeometry = new SphereGeometry(2, 16, 8, 1, 1, 0, 2);
    //const meshGeometry = new SphereGeometry(2);
 
    const cube_vertex = new Float32Array(meshGeometry.vertices);
@@ -404,8 +404,8 @@ let time_old=0;
      
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
+     // MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0001);
+     // MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
 

@@ -177,7 +177,7 @@ async function main() {
       
       @binding(1) @group(0) var textureSampler : sampler;
       @binding(2) @group(0) var textureDataBaseColor : texture_2d<f32>; 
-      @binding(3) @group(0) var<uniform> uniforms : Uniforms;  
+      @binding(3) @group(0) var <uniform> uniforms : Uniforms;  
       @binding(5) @group(0) var textureDataNormal : texture_2d<f32>;  
       @binding(6) @group(0) var textureDataRoughness : texture_2d<f32>; 
       @binding(7) @group(0) var textureDataMetallic : texture_2d<f32>;  
@@ -727,6 +727,7 @@ function createTextureFromSource(device, source, options = {}) {
   const texture = device.createTexture({
     format: 'rgba8unorm',
     mipLevelCount: options.mips ? numMipLevels(source.width, source.height) : 1,
+   // mipLevelCount:  1,
     size: [source.width, source.height],
     usage:  GPUTextureUsage.TEXTURE_BINDING |
             GPUTextureUsage.COPY_DST | // мы можем писать данные в текстуру

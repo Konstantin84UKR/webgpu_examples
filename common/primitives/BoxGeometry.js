@@ -25,25 +25,26 @@ export class BoxGeometry {
         // build each side of the box geometry  //Генерируем каждую грань куба отдельно
 
         // px
-        this.buildPlane(1, 0, 0, this.depth, this.height, this.depthSegments, this.heightSegments, this.width * 0.5);
-        // // nx
-        this.buildPlane(-1, 0, 0, this.depth, this.height, this.depthSegments, this.heightSegments, this.width * -0.5);
-        // // py
-        this.buildPlane(0, 1, 0, this.width, this.depth, this.widthSegments, this.depthSegments, this.height * 0.5);
-        // // ny
-        this.buildPlane(0, -1, 0, this.width, this.depth, this.widthSegments, this.depthSegments, this.height * -0.5);
-        // nz
-        this.buildPlane(0, 0, -1, this.width, this.height, this.widthSegments, this.heightSegments, this.depth * 0.5);
+        this.buildPlane(1, 0, 0, this.depth, this.height, this.depthSegments, this.heightSegments, this.width, 1, false);
+        // nx
+        this.buildPlane(-1, 0, 0, this.depth, this.height, this.depthSegments, this.heightSegments, this.width, -1, true);
+        // py
+        this.buildPlane(0, 1, 0, this.width, this.depth, this.widthSegments, this.depthSegments, this.height, -1, true);
+        // ny
+        this.buildPlane(0, -1, 0, this.width, this.depth, this.widthSegments, this.depthSegments, this.height, 1, false);
         // pz
-        this.buildPlane(0, 0, 1, this.width, this.height, this.widthSegments, this.heightSegments, this.depth * -0.5);     
+        this.buildPlane(0, 0, 1, this.width, this.height, this.widthSegments, this.heightSegments, this.depth, 1, true);
+        // nz
+        this.buildPlane(0, 0, -1, this.width, this.height, this.widthSegments, this.heightSegments, this.depth, -1,false);     
        
     }
 
 
-    buildPlane(nx, ny, nz, width, height, segmentsX, segmentsY, depth){
+    buildPlane(nx, ny, nz, width, height, segmentsX, segmentsY, depth, positive, ccw){
 
         const verticesLength = this.vertices.length/3;
-        const positiveDepth = depth < 0 ? true : false;
+        const positiveDepth = positive < 0 ? false : true;
+  
 
         for (let j = 0; j <= segmentsY; j++) {
             for (let i = 0; i <= segmentsX; i++) {
@@ -56,31 +57,54 @@ export class BoxGeometry {
                 const y = -height / 2 + j * stepY;
                 const z = 0; // Assuming the rectangle lies in the XY plane
 
-                //+-X;
-                if ((nx == 1 && ny == 0 && nz == 0) || (nx == -1 && ny == 0 && nz == 0)) {
-                    this.vertices.push(z + depth, y, x); 
-                } 
-                //+-Y;
-                else if ((nx == 0 && ny == 1 && nz == 0) || (nx == 0 && ny == -1 && nz == 0)) {
-                    this.vertices.push(x, z + depth, y); 
-                } 
-                //+-Z;
-                else if ((nx == 0 && ny == 0 && nz == 1) || (nx == 0 && ny == 0 && nz == -1)) {
-                    this.vertices.push(x, y, z - depth);
-                }
-               
                 // Calculate texture coordinates
                 const u = i / segmentsX;
                 const v = j / segmentsY;
 
-                this.uvs.push(u, v);
+                //+-X;
+                if ((nx == 1 && ny == 0 && nz == 0) || (nx == -1 && ny == 0 && nz == 0)) {
+                    this.vertices.push(z + depth * positive * 0.5, y, x); 
+                   
+                    this.normals.push(1 * positive, 0, 0); // Assuming the normal vector points along the positive Z-axis 0, 0, 1
+                    this.tangents.push(0, 0, -1 * positive); // Assuming the tangent vector points along the positive X-axis 1, 0, 0
+                    
+                    if (ccw) {
+                        this.uvs.push(u, 1 -v);
+                    } else {
+                        this.uvs.push(1 - u, 1 - v);
+                    }
+                } 
+                //+-Y;
+                else if ((nx == 0 && ny == 1 && nz == 0) || (nx == 0 && ny == -1 && nz == 0)) {
+                    this.vertices.push(x, z + depth * positive * 0.5, y); 
+                   
+                    this.normals.push(0, 1 * positive, 0); // Assuming the normal vector points along the positive Z-axis 0, 0, 1
+                    this.tangents.push(-1 * positive, 0, 0); // Assuming the tangent vector points along the positive X-axis 1, 0, 0
+                    
+                    if (ccw) {
+                        this.uvs.push(u, 1 - v);
+                    } else {
+                        this.uvs.push(1 - u,1 - v);
+                    }
+                } 
+                //+-Z;
+                else if ((nx == 0 && ny == 0 && nz == 1) || (nx == 0 && ny == 0 && nz == -1)) {
+                    this.vertices.push(x, y, z + depth * positive * 0.5);
+               
+                    this.normals.push(0, 0, 1 * positive); // Assuming the normal vector points along the positive Z-axis 0, 0, 1
+                    this.tangents.push(1 * positive, 0, 0); // Assuming the tangent vector points along the positive X-axis 1, 0, 0
+                    
+                    if (ccw) {
+                        this.uvs.push(u, 1 - v);
+                    } else {
+                        this.uvs.push(1 - u, 1 - v);
+                    }
+                    
+                }
+                          
 
-                // Calculate normal vector (same for all vertices)
-                this.normals.push(nx, ny, nz); // Assuming the normal vector points along the positive Z-axis 0, 0, 1
-
-                // Calculate tangent vector (same for all vertices)
-                this.tangents.push(nz, ny, nx); // Assuming the tangent vector points along the positive X-axis 1, 0, 0
-
+              
+                          
 
                 // Generate vertex indices
                 if (i < segmentsX && j < segmentsY) {
@@ -88,7 +112,7 @@ export class BoxGeometry {
                     const nextIndex = currentIndex + segmentsX + 1;
 
                     // Generate indices for two triangles forming a quad
-                    if (positiveDepth){
+                    if (ccw){
                        this.indices.push(currentIndex, currentIndex + 1, nextIndex);
                         this.indices.push(currentIndex + 1, nextIndex + 1, nextIndex); 
                     }else{

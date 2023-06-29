@@ -30,13 +30,13 @@ export class RectangleGeometry {
                 const u = i / segmentsX;
                 const v = j / segmentsY;
 
-                this.uvs.push(u, v);
+                this.uvs.push(u, 1 - v);
 
                 // Calculate normal vector (same for all vertices)
-                this.normals.push(0, 0, -1); // Assuming the normal vector points along the positive Z-axis
+                this.normals.push(0, 0, 1); // Assuming the normal vector points along the positive Z-axis
 
                 // Calculate tangent vector (same for all vertices)
-                this.tangents.push(-1, 0, 0); // Assuming the tangent vector points along the positive X-axis
+                this.tangents.push(1, 0, 0); // Assuming the tangent vector points along the positive X-axis
 
                 // Generate vertex indices
                 if (i < segmentsX && j < segmentsY) {
@@ -44,11 +44,11 @@ export class RectangleGeometry {
                     const nextIndex = currentIndex + segmentsX + 1;
 
                     // Generate indices for two triangles forming a quad
-                    // this.indices.push(currentIndex, currentIndex + 1, nextIndex);
-                    // this.indices.push(currentIndex + 1, nextIndex, nextIndex + 1);
+                    this.indices.push(currentIndex, currentIndex + 1, nextIndex);
+                    this.indices.push(currentIndex + 1, nextIndex + 1, nextIndex);
 
-                    this.indices.push(currentIndex, nextIndex, currentIndex + 1);
-                    this.indices.push(currentIndex + 1, nextIndex, nextIndex + 1);
+                    // this.indices.push(currentIndex, nextIndex, currentIndex + 1);
+                    // this.indices.push(currentIndex + 1, nextIndex, nextIndex + 1);
                 }
             }
         }

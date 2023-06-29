@@ -2,6 +2,8 @@
 
 YouTube : https://www.youtube.com/playlist?list=PLzt2B3kMUwK_MH-9-Hr2r9yhszZQct9gy
 
+main : https://konstantin84ukr.github.io/webgpu_examples/
+
 triangle : https://konstantin84ukr.github.io/webgpu_examples/triangle/
 
 quad_buffer_index : https://konstantin84ukr.github.io/webgpu_examples/quad_buffer_index/
