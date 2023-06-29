@@ -215,7 +215,7 @@ const webGPU_Start = async () => {
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
     
     
-    const numParticles = 200;
+    const numParticles = 50;
     const input = new Float32Array(numParticles * 8);
     for (let i = 0; i < numParticles; ++i) {
         input[8 * i + 0] = 2 * (Math.random() - 0.5) * 0.9; //pos

@@ -165,10 +165,10 @@ export class Camera {
         if (e.key === "d") { this.translate_eye('D') }
 
 
-        if (e.key === "ArrowRight") { this.rotate_eye('ArrowRight') }
-        if (e.key === "ArrowLeft") { this.rotate_eye('ArrowLeft') }
-        if (e.key === "ArrowUp") { this.rotate_eye('ArrowUp') }
-        if (e.key === "ArrowDown") { this.rotate_eye('ArrowDown') }
+        // if (e.key === "ArrowRight") { this.rotate_eye('ArrowRight') }
+        // if (e.key === "ArrowLeft") { this.rotate_eye('ArrowLeft') }
+        // if (e.key === "ArrowUp") { this.rotate_eye('ArrowUp') }
+        // if (e.key === "ArrowDown") { this.rotate_eye('ArrowDown') }
 
     }; 
 
@@ -207,7 +207,7 @@ export class Camera {
             return false;
         } else {
 
-
+            
             this.dX = 0.5 * (e.pageX - this.old_x) / this.canvas.width  * Math.PI;
             this.dY = 0.5 * (e.pageY - this.old_y) / this.canvas.height * Math.PI;
                      

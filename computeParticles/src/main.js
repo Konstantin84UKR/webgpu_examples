@@ -1,38 +1,3 @@
-
-function click(ev, gl, canvas, a_Position) {
-
-    console.log('part_1___  ev.clientX = ' + ev.clientX + "  ev.clientY = " + ev.clientY);
-
-    var x = ev.clientX;
-    var y = ev.clientY;
-
-    var rect = ev.target.getBoundingClientRect();
-
-    console.log('part_2___ rect.left = ' + rect.left + "   canvas.width/2 = " + canvas.width / 2);
-
-    x = ((x - rect.left) - canvas.width / 2) / (canvas.width / 2);
-    y = ((canvas.height / 2) - (y - rect.top)) / (canvas.height / 2);
-
-    g_points.push(x);
-    g_points.push(y);
-
-    console.log('part_3____ x = ' + x + " y = " + y);
-
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    var len = g_points.length;
-    console.log('g_points.length ' + g_points.length);
-    for (i = 0; i < len; i += 2) {
-        console.log('onmousedown_DRAWING__POINT_' + i / 2 + ' x = ' + g_points[i] + "  y = " + g_points[i + 1]);
-        gl.vertexAttrib3f(a_Position, g_points[i], g_points[i + 1], 0.0);
-        gl.drawArrays(gl.POINTS, 0, 1);
-    }
-
-    console.log('____');
-
-}
-
-//let gpu;
 const webGPU_Start = async () => {
 
     // checkWebGPU // 
@@ -55,7 +20,7 @@ const webGPU_Start = async () => {
     });
 
     // текст шейлеров 
-    const wglsShader = 
+    const wglsShader =
         `
         struct Particle {
                 pos : vec2<f32>,
@@ -77,8 +42,9 @@ const webGPU_Start = async () => {
         @builtin(instance_index) InstanceIndex : u32,
         ) -> VertexOutput {
        
-          let a:f32 = 1.0 * 0.01;
-          let b:f32 = 0.71 * 0.01;  
+          let scale:f32 = 0.01;
+          let a:f32 = 1.0 * scale;
+          let b:f32 = 0.71 * scale;  
 
           var pos = array<vec2<f32>, 6*4>(
               vec2( 0.0,  0.0), vec2( a, 0.0), vec2(b, b),
@@ -150,74 +116,54 @@ const webGPU_Start = async () => {
 
                 let index = id.x;
                 var vPos = particlesA.particles[index].pos;
-                var vVel = particlesA.particles[index].vel;
-              
+                var vVel = particlesA.particles[index].vel;              
 
                 let friction : f32 = 0.99;
-                var newPos : vec2<f32> = vPos + vVel * 1.0 * uniforms.dTime;
+                var newPos : vec2<f32> = vPos + vVel * uniforms.dTime;
                 var newVel : vec2<f32> = vVel + vec2<f32>(0.0, - 0.000);
 
-                let distanceMouse : f32 =  distance(newPos, vec2<f32>(mouse.x, mouse.y)); 
-
-                //let distanceMouse1 : f32 = distance(vPos, vec2<f32>(0, 0)); 
+                ////////////////////////////////////////////////////////////    
                 
+                let distanceMouse : f32 =  distance(newPos, vec2<f32>(mouse.x, mouse.y)); 
+              
                 if(distanceMouse < 0.2) {
                    newVel =  newVel + ((vPos - vec2<f32>(mouse.x, mouse.y)) * 0.005);
-                   // newVel =  newVel + vec2<f32>(0.0, 0.001);
+                   //newVel =  newVel + vec2<f32>(0.0, -0.001);
                 }              
 
-                /////////////////////////////////////////////////////////
+                // // /////////////////////////////////////////////////////////
 
-                var posNext : vec2<f32>;
-                var velNext : vec2<f32>;
+                var posNextBall : vec2<f32>;
+                var velNextBall : vec2<f32>;
                
                 for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
                     if (i == index) {
                         continue;
                     }
 
-                posNext = particlesA.particles[i].pos.xy;
-                velNext = particlesA.particles[i].vel.xy;
+                posNextBall = particlesA.particles[i].pos.xy;
+                velNextBall = particlesA.particles[i].vel.xy;
+                
+                let distanceToPos : f32 = distance(posNextBall, vPos);
+                let distanceTonewPos : f32 = distance(posNextBall, newPos);
                     
-                    if (distance(posNext, vPos)< .01) {
-                       
-                       let distanceForce : f32 = distance(posNext, newPos);
-                       
-                       if(distance(posNext, vPos) > distance(posNext, newPos)){
-                            
-                        //     let forceVector1 : vec2<f32> = normalize(vPos - posNext);  
-                        //     let forceVector2 : vec2<f32> = normalize(vVel);  
-                           
-                        //     var force : f32 = dot((vVel + forceVector1) ,(vVel));
-                        //     newVel = (forceVector1 + forceVector2) * length(vVel);
-                        //     newPos = vPos;
-                            
-                        //     particlesB.particles[index].pos = newPos; 
-                        //     particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
-                          
-
-                        //    continue;
-
-                            var dir = vPos - posNext;
-                            var d = length(dir);
-                            dir = normalize(dir);
-                                               
-                            var v1 = dot(newVel, dir);
-                            var v2 = dot(velNext, dir);
-                            var v = (v1 + v2 - (v1 - v2) * 1.0) * 0.5;
-               
-                            newVel = newVel + dir * (v - v1);
-                                                   
+                   if (distanceToPos < .01) {
+                                           
+                       if(distanceToPos > distanceTonewPos){
+                   
+                            let dir = normalize(vPos - posNextBall);
+                            let v1 = dot(newVel, dir);
+                                                      
+                            newVel = newVel + dir * (-v1  * 0.5);
                             newPos = vPos;
 
                             continue;
-
                        }                                                                
                     }
                     
                 }
 
-                ////////////////////////////////////////////////////////
+                // ////////////////////////////////////////////////////////
 
                 if(newPos.x > (0.9)){
                    newPos.x = vPos.x; 
@@ -242,7 +188,7 @@ const webGPU_Start = async () => {
                    newVel.y = vVel.y * -0.95; 
                    newPos = newPos + newVel;
                 }
-                             
+                ////////////////////////////////////////////////////////                
 
                 particlesB.particles[index].pos = newPos; 
                 particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
@@ -297,7 +243,7 @@ const webGPU_Start = async () => {
 
     // ------------------ MOUSE -----------------
 
-    const inputMouse = new Float32Array([0,0]);
+    const inputMouse = new Float32Array([0, 0]);
     const bufferMouse = device.createBuffer({
         label: 'buffer Mouse',
         size: inputMouse.byteLength,
@@ -308,14 +254,14 @@ const webGPU_Start = async () => {
 
     let mouse = { x: -2, y: 2 };
     canvas.onmousemove = (event) => {
-        mouse.x = (event.layerX / 640) * 2.0 - 1.0;
-        mouse.y = ((event.layerY / 640) * 2.0 - 1.0) * -1.0;
+        mouse.x = (event.layerX / canvas.width) * 2.0 - 1.0;
+        mouse.y = ((event.layerY / canvas.height) * 2.0 - 1.0) * -1.0;
     };
 
     function updateInputParams() {
         device.queue.writeBuffer(bufferMouse, 0, new Float32Array([mouse.x, mouse.y]));
     }
-    updateInputParams();    
+    updateInputParams();
 
     //--------------------------------------------
 
@@ -353,7 +299,7 @@ const webGPU_Start = async () => {
     const resultBuffer = device.createBuffer({
         label: 'result buffer',
         size: input.byteLength,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST ,
+        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
 
     // Setup a bindGroup to tell the shader which
@@ -362,27 +308,27 @@ const webGPU_Start = async () => {
         label: 'bindGroup for work buffer A',
         layout: pipelineCompute.getBindGroupLayout(0),
         entries: [
-            { binding: 0, resource: { buffer: workBuffer_A } },  
-            { binding: 1, resource: { buffer: workBuffer_B } }, 
-            { binding: 2, resource: { buffer: bufferUniform } },  
-            { binding: 3, resource: { buffer: bufferMouse } },           
+            { binding: 0, resource: { buffer: workBuffer_A } },
+            { binding: 1, resource: { buffer: workBuffer_B } },
+            { binding: 2, resource: { buffer: bufferUniform } },
+            { binding: 3, resource: { buffer: bufferMouse } },
         ],
     });
 
-       // Setup a bindGroup to tell the shader which
+    // Setup a bindGroup to tell the shader which
     // buffer to use for the computation
     const bindGroupCompute_B = device.createBindGroup({
         label: 'bindGroup for work buffer B',
         layout: pipelineCompute.getBindGroupLayout(0),
         entries: [
-            { binding: 0, resource: { buffer: workBuffer_B } }, 
+            { binding: 0, resource: { buffer: workBuffer_B } },
             { binding: 1, resource: { buffer: workBuffer_A } },
-            { binding: 2, resource: { buffer: bufferUniform } }, 
-            { binding: 3, resource: { buffer: bufferMouse } },          
+            { binding: 2, resource: { buffer: bufferUniform } },
+            { binding: 3, resource: { buffer: bufferMouse } },
         ],
     });
-    
- 
+
+
     //-------------------------------------------------------------
 
     const bufferPosition = device.createBuffer({
@@ -397,7 +343,7 @@ const webGPU_Start = async () => {
         label: 'bindGroup for bindGroupRender',
         layout: pipeline.getBindGroupLayout(0),
         entries: [
-            { binding: 0, resource: { buffer: workBuffer_B } },            
+            { binding: 0, resource: { buffer: workBuffer_B } },
         ],
     });
 
@@ -424,77 +370,77 @@ const webGPU_Start = async () => {
 
 
 
-   
-
-
     // Animation   
-let time_old = 0; 
-let t = 0;
-async function animate(time) {
-     
-//      //-----------------TIME-----------------------------
-    //console.log(time);
-     let dt = time - time_old;
-     time_old = time;
-    //console.log(dt);
-     //--------------------------------------------------
-    device.queue.writeBuffer(bufferUniform, 0, new Float32Array([1.0]));
-     //------------------MATRIX EDIT---------------------
-    updateInputParams();  
-     //--------------------------------------------------
-    
+    let time_old = 0;
+    let t = 0;
+    const speed = 0.05;
+    async function animate(time) {
 
-     //Encode commands to do the computation
-    const encoder = device.createCommandEncoder({
-        label: 'doubling encoder',
-    });
+        //      //-----------------TIME-----------------------------
+        //console.log(time);
+        let dt = time - time_old;
+        time_old = time;
+        //console.log(dt);
+        //--------------------------------------------------
+        device.queue.writeBuffer(bufferUniform, 0, new Float32Array([dt * speed]));
+        //------------------MATRIX EDIT---------------------
+        updateInputParams();
+        //--------------------------------------------------
 
-    const computePass = encoder.beginComputePass({
-        label: 'doubling compute pass',
-    });
 
-    computePass.setPipeline(pipelineCompute);
-    computePass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroup);
-    computePass.dispatchWorkgroups(Math.ceil(numParticles / 64));
-    computePass.end();
+        //Encode commands to do the computation
+        const encoder = device.createCommandEncoder({
+            label: 'doubling encoder',
+        });
 
-    encoder.copyBufferToBuffer(bindGroupsCompute[t % 2].buffer, 0, resultBuffer, 0, resultBuffer.size);
+        const computePass = encoder.beginComputePass({
+            label: 'doubling compute pass',
+        });
 
-    device.queue.submit([encoder.finish()]);
+        computePass.setPipeline(pipelineCompute);
+        computePass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroup);
+        computePass.dispatchWorkgroups(Math.ceil(numParticles / 64));
+        computePass.end();
 
-    // Read the results
-    await resultBuffer.mapAsync(GPUMapMode.READ);
-    let result = new Float32Array(resultBuffer.getMappedRange().slice());
-    resultBuffer.unmap();
+        encoder.copyBufferToBuffer(bindGroupsCompute[t % 2].buffer, 0, resultBuffer, 0, resultBuffer.size);
 
-    //console.log('input', input);
-    // console.log('result', result);
-     
-    ++t;
-    // //--------------------------------------------------
-    //device.queue.writeBuffer(bufferPosition, 0, result);
+        device.queue.submit([encoder.finish()]);
 
-    const encoderRender = device.createCommandEncoder({
-        label: 'doubling encoder',
-    });
+        // Read the results
+        await resultBuffer.mapAsync(GPUMapMode.READ);
+        let result = new Float32Array(resultBuffer.getMappedRange().slice());
+        resultBuffer.unmap();
 
-    const textureView = context.getCurrentTexture().createView(); // тектура к которой привязан контекст
-    const renderPass = encoderRender.beginRenderPass({  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
-        colorAttachments: [{
-            view: textureView,
-            clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-            loadOp: 'clear',
-            storeOp: 'store' //хз
-        }]
-    });
-    renderPass.setPipeline(pipeline); // подключаем наш pipeline
-    renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
-    renderPass.draw(6 * 4, numParticles);
-    renderPass.end();
+        // console.log('input', input);
+        // console.log('result', result);
 
-    device.queue.submit([encoderRender.finish()]);
 
-      window.requestAnimationFrame(animate);
+        //--------------------------------------------------
+        
+        const encoderRender = device.createCommandEncoder({
+            label: 'doubling encoder',
+        });
+
+        const textureView = context.getCurrentTexture().createView(); // тектура к которой привязан контекст
+        const renderPass = encoderRender.beginRenderPass({  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
+            colorAttachments: [{
+                view: textureView,
+                clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+                loadOp: 'clear',
+                storeOp: 'store' //хз
+            }]
+        });
+        renderPass.setPipeline(pipeline); // подключаем наш pipeline
+        renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
+        renderPass.draw(6 * 4, numParticles);
+        renderPass.end();
+
+        device.queue.submit([encoderRender.finish()]);
+
+
+        ++t;
+        window.requestAnimationFrame(animate);
+
     };
     animate(0);
 }

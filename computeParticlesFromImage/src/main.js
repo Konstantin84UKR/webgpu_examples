@@ -1,37 +1,4 @@
 
-function click(ev, gl, canvas, a_Position) {
-
-    console.log('part_1___  ev.clientX = ' + ev.clientX + "  ev.clientY = " + ev.clientY);
-
-    var x = ev.clientX;
-    var y = ev.clientY;
-
-    var rect = ev.target.getBoundingClientRect();
-
-    console.log('part_2___ rect.left = ' + rect.left + "   canvas.width/2 = " + canvas.width / 2);
-
-    x = ((x - rect.left) - canvas.width / 2) / (canvas.width / 2);
-    y = ((canvas.height / 2) - (y - rect.top)) / (canvas.height / 2);
-
-    g_points.push(x);
-    g_points.push(y);
-
-    console.log('part_3____ x = ' + x + " y = " + y);
-
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    var len = g_points.length;
-    console.log('g_points.length ' + g_points.length);
-    for (i = 0; i < len; i += 2) {
-        console.log('onmousedown_DRAWING__POINT_' + i / 2 + ' x = ' + g_points[i] + "  y = " + g_points[i + 1]);
-        gl.vertexAttrib3f(a_Position, g_points[i], g_points[i + 1], 0.0);
-        gl.drawArrays(gl.POINTS, 0, 1);
-    }
-
-    console.log('____');
-
-}
-
 async function loadImageData(numParticles) {
     //Создаем картинку и загрудаем в нее данные из файла
     let img = new Image();
@@ -40,7 +7,6 @@ async function loadImageData(numParticles) {
 
     const imageBitmap = await createImageBitmap(img);
 
-    //const canvasData = document.getElementById('canvas2D');
     const canvasData = document.createElement('canvas');
     
     canvasData.width = imageBitmap.width;
@@ -52,22 +18,24 @@ async function loadImageData(numParticles) {
     const data = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height).data;
 
     //console.log(data);
-    const width = imageBitmap.width
+    const width = imageBitmap.width;
+    const height = imageBitmap.height;
     let pixels = [];
-    for (let i = 3; i < data.length; i+=4) {
-        
-        const x = (i / 4) % width;
-        const y = Math.floor((i/4)/width);
+    for (let i = 0; i < data.length; i+=4) {
+      
+        if(data[i+3] > 0){
 
-        if(data[i] > 5){
+            const x = (i / 4) % width; //  
+            const y = Math.floor((i / 4) / height);
+
             pixels.push(
                 {   //pos
-                    x : (x / width - 0.5) * 1.8, 
-                    y: (0.5 - y / width) * 1.8,
+                    x: (x / width - 0.5) * 2.0, // -1 +1
+                    y: (0.5 - y / height) * 2.0,
                     //color
-                    r: data[i-3]/245, 
-                    g: data[i - 2] / 245, 
-                    b: data[i - 1] / 245,      
+                    r: data[i + 0] / 245, 
+                    g: data[i + 1] / 245, 
+                    b: data[i + 2] / 245,      
                 }
                 );
         }        
@@ -79,10 +47,14 @@ async function loadImageData(numParticles) {
        
         let randomPixels = pixels[Math.floor(Math.random() * pixels.length)];
 
-        position[8 * index + 0] = randomPixels.x + (Math.random() - 0.5) * 0.01;
-        position[8 * index + 1] = randomPixels.y + (Math.random() - 0.5) * 0.01;
+        // position[8 * index + 0] = randomPixels.x + (Math.random() - 0.5) * 0.01;
+        // position[8 * index + 1] = randomPixels.y + (Math.random() - 0.5) * 0.01;
+        position[8 * index + 0] = randomPixels.x ;
+        position[8 * index + 1] = randomPixels.y ;
         position[8 * index + 2] = (Math.random() - 0.5) * 0.001;
         position[8 * index + 3] = (Math.random() - 0.5) * 0.001;
+        // position[8 * index + 2] = 0;
+        // position[8 * index + 3] = 0;
         
         //color
         position[8 * index + 4] = randomPixels.r;
@@ -142,21 +114,38 @@ const webGPU_Start = async () => {
         @builtin(instance_index) InstanceIndex : u32,
         ) -> VertexOutput {
        
-          let a:f32 = 1.0 * 0.01;
-          let b:f32 = 0.71 * 0.01;  
+          let scale:f32 =  0.01;
+          let a:f32 = 1.0 * scale;
+          let b:f32 = 0.71 * scale;  
+          let c:f32 = 0.923 * scale;  
+          let d:f32 = 0.382 * scale;  
 
-          var pos = array<vec2<f32>, 6*4>(
-              vec2( 0.0,  0.0), vec2( a, 0.0), vec2(b, b),
-              vec2( 0.0,  0.0), vec2(b, b), vec2(0.0,  a),
+        var pos = array<vec2<f32>, 6*4*2>(
+              vec2( 0.0,  0.0), vec2( a, 0.0), vec2(c, d),
+              vec2( 0.0,  0.0), vec2(c, d), vec2(b,  b),
 
-              vec2( 0.0,  0.0), vec2( 0.0, a), vec2(-b, b),
-              vec2( 0.0,  0.0), vec2(-b, b), vec2(-a,  0.0),
+              vec2( 0.0,  0.0), vec2(b,  b), vec2(d,  c),
+              vec2( 0.0,  0.0), vec2(d,  c), vec2(0.0,  a),
 
-              vec2( 0.0,  0.0), vec2( -a, 0.0), vec2(-b, -b),
-              vec2( 0.0,  0.0), vec2(-b, -b), vec2(0.0,  -a),
+              vec2( 0.0,  0.0), vec2( 0.0, a), vec2(-d, c),
+              vec2( 0.0,  0.0), vec2(-d, c), vec2(-b, b),
 
-              vec2( 0.0,  0.0), vec2(0.0,  -a), vec2(b, -b),
-              vec2( 0.0,  0.0), vec2(b, -b), vec2(a,  0.0),
+              vec2( 0.0,  0.0), vec2(-b, b), vec2(-c, d),
+              vec2( 0.0,  0.0), vec2(-c, d), vec2(-a,  0.0),
+
+
+              vec2( 0.0,  0.0), vec2( -a, 0.0), vec2(-c, -d),
+              vec2( 0.0,  0.0), vec2(-c, -d), vec2(-b, -b),
+
+              vec2( 0.0,  0.0), vec2(-b, -b), vec2(-d, -c),
+              vec2( 0.0,  0.0), vec2(-d, -c), vec2(0.0, -a),
+
+              vec2( 0.0,  0.0), vec2(0.0, -a), vec2(d, -c),
+              vec2( 0.0,  0.0), vec2(d, -c), vec2(b, -b),
+
+              vec2( 0.0,  0.0), vec2(b, -b), vec2(c, -d),
+              vec2( 0.0,  0.0), vec2(c, -d), vec2(a, 0.0),
+
           );
      
           let positionInstance = data[InstanceIndex].pos; 
@@ -167,11 +156,6 @@ const webGPU_Start = async () => {
           var output : VertexOutput;
           output.Position = vec4<f32>(pos[VertexIndex] + positionInstance, 0.0, 1.0);
        
-        //   output.color = vec3(
-        //     lengthVelInstance * 3.0 , 
-        //     (positionInstance.y * 0.5) + 0.5 * length(velInstance),  
-        //     1.0 - lengthVelInstance * 3.0);
-
           output.color = mix(colorInstance, vec3( lengthVelInstance * 100.0 , 0.0, 1.0 - lengthVelInstance * 100.0), lengthVelInstance * 2);  
 
           return output;
@@ -223,23 +207,19 @@ const webGPU_Start = async () => {
                 let index = id.x;
                 var vPos = particlesA.particles[index].pos;
                 var vVel = particlesA.particles[index].vel;
-               
-                              
+                                            
 
                 let friction : f32 = 0.999;
-                var newPos : vec2<f32> = vPos + vVel * 1.0 * uniforms.dTime;
-                var newVel : vec2<f32> = vVel + vec2<f32>(0.0, - 0.000);
+                var newPos : vec2<f32> = vPos + vVel * uniforms.dTime;
+                var newVel : vec2<f32> = vVel;
                
                 let distanceMouse : f32 =  distance(newPos, vec2<f32>(mouse.x, mouse.y)); 
-
-                //let distanceMouse1 : f32 = distance(vPos, vec2<f32>(0, 0)); 
-                
+                           
                 if(distanceMouse < 0.2) {
-                   newVel =  newVel + ((vPos - vec2<f32>(mouse.x, mouse.y)) * 0.001);
-                   // newVel =  newVel + vec2<f32>(0.0, 0.001);
+                   newVel =  newVel + ((vPos - vec2<f32>(mouse.x, mouse.y)) * 0.001);                  
                 }    
                 
-                //Finaly Origin
+                //Origin
                 var fPos = imageData.particles[index].pos;
                 var fVel = imageData.particles[index].vel;
                 var fColor = imageData.particles[index].color;
@@ -253,36 +233,31 @@ const webGPU_Start = async () => {
 
                 /////////////////////////////////////////////////////////
 
-                var posNext : vec2<f32>;
-                var velNext : vec2<f32>;
+                var posNextBall : vec2<f32>;
+                var velNextBall : vec2<f32>;
                
                 for (var i = 0u; i < arrayLength(&particlesA.particles); i++) {
                     if (i == index) {
                         continue;
                     }
 
-                posNext = particlesA.particles[i].pos.xy;
-                velNext = particlesA.particles[i].vel.xy;
+                posNextBall = particlesA.particles[i].pos.xy;
+                velNextBall = particlesA.particles[i].vel.xy;
+                
+                let distanceToPos : f32 = distance(posNextBall, vPos);
+                let distanceTonewPos : f32 = distance(posNextBall, newPos);
                     
-                    if (distance(posNext, vPos)< .01) {
-                       
-                       let distanceForce : f32 = distance(posNext, newPos);
-                       
-                       if(distance(posNext, vPos) > distance(posNext, newPos)){
-                            
-                            let forceVector1 : vec2<f32> = normalize(vPos - posNext);  
-                            let forceVector2 : vec2<f32> = normalize(vVel);  
-                           
-                            var force : f32 = dot((vVel + forceVector1) ,(vVel));
-                            newVel = (forceVector1 + forceVector2) * length(vVel);
+                   if (distanceToPos < .01) {
+                                           
+                       if(distanceToPos > distanceTonewPos){
+                   
+                            let dir = normalize(vPos - posNextBall);
+                            let v1 = dot(newVel, dir);
+                                                      
+                            newVel = newVel + dir * (-v1  * 0.5);
                             newPos = vPos;
-                            
-                            particlesB.particles[index].pos = newPos; 
-                            particlesB.particles[index].vel = newVel * friction + vec2<f32>(0.0, - 0.0);
-                           // particlesB.particles[index].color = fColor;
 
                             continue;
-
                        }                                                                
                     }
                     
@@ -290,25 +265,25 @@ const webGPU_Start = async () => {
 
                 ////////////////////////////////////////////////////////
 
-                if(newPos.x > (0.9)){
+                if(newPos.x > (1.0)){
                    newPos.x = vPos.x; 
                    newVel.x = vVel.x * -0.95 ;
                    newPos = newPos + newVel;
                 }
 
-                if(newPos.x < (-0.9)){
+                if(newPos.x < (-1.0)){
                    newPos.x = vPos.x;
                    newVel.x = vVel.x * -0.95 ; 
                    newPos = newPos + newVel;
                 }
 
-                if(newPos.y > (0.9)){
+                if(newPos.y > (1.0)){
                    newPos.y = vPos.y; 
                    newVel.y = vVel.y *-0.95 ;
                    newPos = newPos + newVel;
                 }
                 
-                if(newPos.y < (-0.9)){
+                if(newPos.y < (-1.0)){
                    newPos.y = vPos.y;
                    newVel.y = vVel.y * -0.95; 
                    newPos = newPos + newVel;
@@ -571,7 +546,7 @@ async function animate(time) {
     });
     renderPass.setPipeline(pipeline); // подключаем наш pipeline
     renderPass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroupRender);
-    renderPass.draw(6 * 4, numParticles);
+    renderPass.draw(6 * 4 * 2, numParticles);
     renderPass.end();
 
     device.queue.submit([encoderRender.finish()]);
