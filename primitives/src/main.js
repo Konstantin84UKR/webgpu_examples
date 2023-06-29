@@ -1,5 +1,9 @@
 
-import * as Matrix from "./gl-matrix.js";
+import {
+  mat4,
+} from '../../common/wgpu-matrix.module.js';
+
+import { Camera } from '../../common/camera/camera.js';
 
 import { RectangleGeometry } from '../../common/primitives/RectangleGeometry.js';
 import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
@@ -65,7 +69,7 @@ async function main() {
       @binding(3) @group(0) var<uniform> uniforms : Uniforms;
 
       @fragment
-      fn main(@location(0) vPosition: vec4<f32>, @location(1) vUV: vec2<f32>, @location(2) vNormal:  vec4<f32>) -> @location(0) vec4<f32> {
+      fn main(@builtin(front_facing) is_front: bool,@location(0) vPosition: vec4<f32>, @location(1) vUV: vec2<f32>, @location(2) vNormal:  vec4<f32>) -> @location(0) vec4<f32> {
         
         let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
 
@@ -81,8 +85,13 @@ async function main() {
         let ambient:vec3<f32> = vec3<f32>(0.3, 0.4, 0.5);
       
         let finalColor:vec3<f32> =  textureColor * (diffuse + ambient) + specularColor * specular; 
-             
-        return vec4<f32>(finalColor, 1.0);
+        
+        if(is_front){
+           return vec4<f32>(finalColor, 1.0);
+        }else {
+           return vec4<f32>(1.0,0.0,0.0, 1.0);
+        }   
+        
     }
     `,
     };
@@ -100,8 +109,8 @@ async function main() {
 
    //const meshGeometry = new RectangleGeometry(4, 4, 2, 2);
    //const meshGeometry = new BoxGeometry(2, 3, 4, 1, 1, 1);
-   // const meshGeometry = new SphereGeometry(2, 16, 8, 1, 1, 0, 2);
-   const meshGeometry = new SphereGeometry(2);
+   const meshGeometry = new SphereGeometry(2, 16, 8, 1, 1, 0, 2);
+   //const meshGeometry = new SphereGeometry(2);
 
    const cube_vertex = new Float32Array(meshGeometry.vertices);
    const cube_uv = new Float32Array(meshGeometry.uvs);
@@ -144,18 +153,21 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX = glMatrix.mat4.create(); 
-    let PROJMATRIX = glMatrix.mat4.create();
-    //let NORMALMATRIX = glMatrix.mat4.create();
+    let MODELMATRIX = mat4.identity();
+    let VIEWMATRIX = mat4.identity();
+    let PROJMATRIX = mat4.identity();
     
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    let camera = new Camera(canvas);
+    VIEWMATRIX = camera.vMatrix;
+    PROJMATRIX = camera.pMatrix;
+    
+    // glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
-    glMatrix.mat4.identity(PROJMATRIX);
-    let fovy = 40 * Math.PI / 180;
-    glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
+    // glMatrix.mat4.identity(PROJMATRIX);
+    // let fovy = 40 * Math.PI / 180;
+    // glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
 
-    let eyePosition = [0.0, 0.0, 1.0];
+    let eyePosition = camera.eye;
     let lightPosition = new Float32Array([0.0, 1.0, 1.0]);
 
     //****************** BUFFER ********************//
@@ -264,7 +276,7 @@ async function main() {
       primitive: {
         topology: "triangle-list",
         //topology: "point-list",
-        cullMode: 'back',  //'back'  'front'  
+        //cullMode: 'back',  //'back'  'front'  
         frontFace: 'ccw' //'ccw' 'cw'
       },
       depthStencil:{
@@ -346,12 +358,12 @@ async function main() {
     });
 
 
-    device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-    device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+    device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+    device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
     device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
 
-    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition));
+    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(camera.eye));
     device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
 
 
@@ -391,21 +403,16 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
-
-      
-      // glMatrix.mat4.identity(NORMALMATRIX);
-      // glMatrix.mat4.invert(NORMALMATRIX,MODELMATRIX);
-      // glMatrix.mat4.transpose(NORMALMATRIX,NORMALMATRIX);
-
+      MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
+      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
-      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
-      device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
-     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
+
+      camera.setDeltaTime(dt);
+      device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+      device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
+      device.queue.writeBuffer(uniformBuffer, 64 + 64, MODELMATRIX); // и так дале прибавляем 64 к offset
     
 
 
