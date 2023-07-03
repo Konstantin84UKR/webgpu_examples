@@ -3,29 +3,31 @@ import {
 } from '../../camera/src/wgpu-matrix.module.js';
 
 export class Camera {
-    constructor(canvas) {
+    constructor(canvas, eye = vec3.create(0.0, 0.0, 10.0), front = vec3.create(0.0, 0.0, -1.0),) {
         this.canvas = canvas;
 
         this.speedCamera = 0.01;
-          
+
         this.fovy = 40 * Math.PI / 180;
-       
-        this.eye = vec3.create(0.0, 0.0, 10.0); //Traditional X,Y,Z 3d position
-        this.front = vec3.create(0.0, 0.0, -1.0); 
+
+        this.eye = eye;
+        this.front = front;
         this.upWorld = vec3.create(0.0, 1.0, 0.0);
         this.right = vec3.cross(this.front, this.upWorld);
         this.up = vec3.cross(this.right, this.front);
-   
-        console.log(this.front);
-        console.log(this.up);
-        console.log(this.right);
-              
+
+        this.worldMatrix = mat4.identity();
+
+        // console.log(this.front);
+        // console.log(this.up);
+        // console.log(this.right);
+
         this.look = vec3.add(this.eye, this.front);
-  
+
         this.yaw = 90.0 * Math.PI / 180;//-90.0*Math.PI/180;
         this.pitch = 0.0;//-90.0*Math.PI/180;
-   
-   
+
+
         this.deltaTime = 1.0;
 
         this.drag = false;
@@ -33,7 +35,7 @@ export class Camera {
         this.old_y = undefined;
         this.dX = 0.0;
         this.dY = 0.0;
-       
+
         window.addEventListener("keydown", this.onkeydown.bind(this), false);
         window.addEventListener("keypress", this.onkeypress.bind(this), false);
         window.addEventListener("keyup", this.onkeyup.bind(this), false);
@@ -46,10 +48,10 @@ export class Camera {
         this.update();
     }
 
-    setPosition(v){
+    setPosition(v) {
         this.eye = vec3.create(v[0], v[1], v[2]);
         //this.look = vec3.create(v[0], v[1], v[2]);
-      
+
         this.update();
     }
 
@@ -65,29 +67,45 @@ export class Camera {
 
     update() {
 
-        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 100);
-        this.vMatrix = mat4.lookAt(this.eye, this.look, this.up); 
-       
-       // this.front = mat4.getAxis(this.vMatrix, 2);
-        //this.updateCameraVectors();
-       
+        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);
+        this.vMatrix = mat4.lookAt(this.eye, this.look, this.up);
+
+        // this.front = mat4.getAxis(this.vMatrix, 2);
+        // this.updateCameraVectors();
+
+
+    }
+
+    getMatrixWorld() {
+        this.updateCameraVectors();
+
 
     }
 
     updateCameraVectors() {
- 
+
         this.look = vec3.add(this.eye, this.front);
         this.right = vec3.cross(this.front, this.upWorld);
         this.up = vec3.cross(this.right, this.front);
+
+        const Fz = vec3.normalize(this.front); 
+        const Rx = vec3.normalize(this.right);
+        const Uy = vec3.normalize(this.up);      
+
+        this.worldMatrix = mat4.create(
+            Rx[0], Rx[1], Rx[2], this.eye[0],
+            Uy[0], Uy[1], Uy[2], this.eye[1], 
+            Fz[0], Fz[1], Fz[2], this.eye[2], 
+            0, 0, 0, 1);
 
     }
 
 
     translate_eye(key) {
-        let temp = vec3.create(0,0,0);
+        let temp = vec3.create(0, 0, 0);
         switch (key) {
             case "W":
-                temp = vec3.clone(this.front);              
+                temp = vec3.clone(this.front);
                 break;
             case "S":
                 temp = vec3.clone(this.front);
@@ -105,14 +123,14 @@ export class Camera {
                 break;
             default:
                 this.eye = vec3.add(this.eye, temp);
-            break;
+                break;
         }
         temp = vec3.scale(temp, this.speedCamera * this.deltaTime);
         this.eye = vec3.add(this.eye, temp);
         this.look = vec3.add(this.look, temp);
 
         console.log("this.front = " + this.front);
-      
+
         this.update();
     }
 
@@ -120,7 +138,7 @@ export class Camera {
 
         this.dX = 0;
         this.dY = 0;
-             
+
         switch (key) {
             case "ArrowRight":
                 this.dX = (this.canvas.width * this.speedCamera) / this.canvas.width * Math.PI;
@@ -137,12 +155,12 @@ export class Camera {
             default:
                 this.dX = 0;
                 this.dY = 0;
-            break;
+                break;
         }
-           
+
         this.yaw -= this.dX;
-        this.pitch -= this.dY; 
-        
+        this.pitch -= this.dY;
+
         this.upDateRotate();
         this.updateCameraVectors();
         this.update();
@@ -170,27 +188,27 @@ export class Camera {
         // if (e.key === "ArrowUp") { this.rotate_eye('ArrowUp') }
         // if (e.key === "ArrowDown") { this.rotate_eye('ArrowDown') }
 
-    }; 
+    };
 
     onkeyup(e) {
     }
-   
+
 
     mouseDown(e) {
         // console.log('mouseDown');
-         if(e.which == 2){
-             this.drag = true;
-             //if (this.old_x == undefined){
-                 this.old_x = e.pageX;
-                 
-             //}
-             if (this.old_y == undefined) {
-                 this.old_y = e.pageY;
-             }
-             e.preventDefault();
-             return false;
-         }
-       
+        if (e.which == 2) {
+            this.drag = true;
+            //if (this.old_x == undefined){
+            this.old_x = e.pageX;
+
+            //}
+            if (this.old_y == undefined) {
+                this.old_y = e.pageY;
+            }
+            e.preventDefault();
+            return false;
+        }
+
     }
 
     mouseUp(e) {
@@ -198,7 +216,7 @@ export class Camera {
             this.drag = false;
             this.old_x = undefined;
             this.old_y = undefined;
-           // this.updateCameraVectors();
+            // this.updateCameraVectors();
         }
     }
 
@@ -207,17 +225,17 @@ export class Camera {
             return false;
         } else {
 
-            
-            this.dX = 0.5 * (e.pageX - this.old_x) / this.canvas.width  * Math.PI;
+
+            this.dX = 0.5 * (e.pageX - this.old_x) / this.canvas.width * Math.PI;
             this.dY = 0.5 * (e.pageY - this.old_y) / this.canvas.height * Math.PI;
-                     
-            this.yaw -= this.dX; 
-            this.pitch -= this.dY; 
+
+            this.yaw -= this.dX;
+            this.pitch -= this.dY;
 
             this.old_x = e.pageX;
             this.old_y = e.pageY;
-     
-                    
+
+
             this.upDateRotate();
             this.updateCameraVectors();
             this.update();
@@ -234,7 +252,7 @@ export class Camera {
 
 
     upDateRotate() {
-       
+
         if (this.pitch > Math.PI * 0.49) {
             this.pitch = Math.PI * 0.49;
         }
@@ -247,7 +265,7 @@ export class Camera {
         this.front[2] += Math.sin(-this.yaw) * Math.cos(this.pitch);
 
         this.front = vec3.normalize(this.front);
-        
+
     }
 
 }

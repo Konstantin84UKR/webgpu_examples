@@ -8,6 +8,7 @@ import { Camera } from '../../common/camera/camera.js';
 import { RectangleGeometry } from '../../common/primitives/RectangleGeometry.js';
 import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
+import { CylinderGeometry } from '../../common/primitives/CylinderGeometry.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -108,9 +109,20 @@ async function main() {
     //  const cube_normal = new Float32Array(mesh.normals);
 
    //const meshGeometry = new RectangleGeometry(4, 4, 2, 2);
-   const meshGeometry = new BoxGeometry(4, 4, 6, 2, 2, 2);
+   //const meshGeometry = new BoxGeometry(4, 4, 6, 2, 2, 2);
    //const meshGeometry = new SphereGeometry(2, 16, 8, 1, 1, 0, 2);
    //const meshGeometry = new SphereGeometry(2);
+
+  // Usage example
+  const radiusTop = 1;
+  const radiusBottom = 1;
+  const height = 2;
+  const radialSegments = 16;
+  const heightSegments = 1;
+  const openEnded = false;
+  const thetaStart = 0;
+  const thetaLength = Math.PI * 2;
+  const meshGeometry = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
 
    const cube_vertex = new Float32Array(meshGeometry.vertices);
    const cube_uv = new Float32Array(meshGeometry.uvs);
@@ -274,6 +286,7 @@ async function main() {
         ],
       },
       primitive: {
+        //topology: "line-list", 
         topology: "triangle-list",
         //topology: "point-list",
         //cullMode: 'back',  //'back'  'front'  
@@ -403,9 +416,9 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
-     // MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0001);
-     // MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
+      //MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
+      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0003);
+      //MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
 

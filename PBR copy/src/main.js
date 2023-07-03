@@ -5,6 +5,7 @@ import { Camera } from '../../common/camera/camera.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
 import { RectangleGeometry } from '../../common/primitives/RectangleGeometry.js';
 import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
+import { CylinderGeometry } from '../../common/primitives/CylinderGeometry.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -299,8 +300,9 @@ async function main() {
 
 
     //const mesh1 = new BoxGeometry(2,2,2,1,1,1);
-    const mesh1 = new SphereGeometry(2);
+   // const mesh1 = new SphereGeometry(2);
     //const mesh1 = new RectangleGeometry(4, 4, 2, 2);
+  const mesh1 = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
     
 
   const plane_vertex = new Float32Array(mesh1.vertices);
@@ -1081,8 +1083,8 @@ let time_old=0;
      
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0001);
-      //MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
-      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
+       MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       camera.setDeltaTime(dt);
       //--------------------------------------------------
 
