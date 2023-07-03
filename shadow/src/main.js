@@ -220,8 +220,9 @@ async function main() {
     PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
     let camera = new Camera(canvas);
-    camera.setPosition([0.0, 5.0, 10.0]);
-        
+    camera.setPosition([0.0, 10.0, 25.0]);
+    camera.setLook([0.0, -0.5, -1.0])
+          
     let eyePosition = [10, 10, 10.0];
     VIEWMATRIX_SHADOW = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
     PROJMATRIX_SHADOW = mat4.ortho(-6, 6, -6, 6, 1, 35);
@@ -627,8 +628,9 @@ let time_old=0;
       //console.log(time);
       let dt=time-time_old;
       time_old=time;
+
       //--------------------------------------------------
-     
+     camera.setDeltaTime(dt);
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
       // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);

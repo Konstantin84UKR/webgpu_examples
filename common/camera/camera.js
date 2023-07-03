@@ -54,6 +54,12 @@ export class Camera {
 
         this.update();
     }
+    setLook(v) {
+       
+        this.front = vec3.create(v[0], v[1], v[2]);
+        this.updateCameraVectors()
+        this.update();
+    }
 
     setDeltaTime(t) {
         this.deltaTime = t;
