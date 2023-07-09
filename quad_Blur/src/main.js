@@ -1,7 +1,28 @@
-// import {
-//     mat4,
-// } from '../../common/wgpu-matrix.module.js';
+// Запускаем 32 потока в одном WorkGroupID. Эти потоки имеют доступ к обшей памяти.
+// в по ID WorkGroup опредеряем начальный (baseIndex) пиксель с которого будем читать данные с текстуры. 
+// Дальше кадым потоком читаем область тестурв размером 4*4 пикселя. 
 
+
+//  var<workgroup> tile : array<array<vec3<f32>, 128>, 4>;
+//  r идем как есть а "C" шагаем через 4 
+//
+//     1 поток      2 поток       3 поток          32 поток 
+// r1 |0 0 0 0|    |0 0 0 0|     |0 0 0 0|        |0 0 0 0|   всего 128 ячейки
+// r2 |0 0 0 0|    |0 0 0 0|     |0 0 0 0|   =>   |0 0 0 0|
+// r3 |0 0 0 0|    |0 0 0 0|     |0 0 0 0|        |0 0 0 0|
+// r4 |0 0 0 0|    |0 0 0 0|     |0 0 0 0|        |0 0 0 0|
+
+
+//  workgroupBarrier(); // Ждем все 32 потока что бы cформировать общую область памяти с которой будем читать данные для BLUR
+
+// Читаем данные и3 TILE Если онипопадают в область для размытия (TODO)
+// тогла Читаем соседние пиксели по горизонтали и делим наколичество пикселей размытия
+// так мы получаем усредненый цвет
+
+// Пишем в текстура что получилось.
+
+// На следуюшей итерации меняем X и Y местами
+// Размытие идеи уде не по горизонтале, а по вертикале.
 
 
 //let gpu;
@@ -43,7 +64,7 @@ const webGPU_Start = async () => {
     // Создаем саму текстуру
     const textureImage = device.createTexture({
         size: [imageBitmap.width, imageBitmap.height, 1], //??
-        format: format, 
+        format: format,
         usage: GPUTextureUsage.TEXTURE_BINDING |
             GPUTextureUsage.COPY_DST |
             GPUTextureUsage.RENDER_ATTACHMENT
@@ -60,75 +81,102 @@ const webGPU_Start = async () => {
     const moduleСompute = device.createShaderModule({
         label: 'compute module',
         code: `
+                 
+            struct Params {
+               filterDim : i32,
+               blockDim : u32,
+            }
 
-            //   struct Particle {
-            //     pos : vec2<f32>,
-            //     vel : vec2<f32>,
-            //     radius : vec4<f32>,
-            //   }
+            struct Flip {
+               value : u32,
+            }
+            
               
-            //   struct Particles {
-            //      particles : array<Particle>,
-            //   }
+            @group(0) @binding(1) var inputTex : texture_2d<f32>;
+            @group(0) @binding(2) var outputTex : texture_storage_2d<rgba8unorm, write>;
+            @group(0) @binding(3) var<uniform> flip : Flip;
 
-            //   struct Uniforms {
-            //     dTime : f32
-            //   }
+            @group(1) @binding(0) var samp : sampler;
+            @group(1) @binding(1) var<uniform> params : Params;
 
-            //   @group(0) @binding(0) var<storage, read> particlesA: Particles;
-            //   @group(0) @binding(1) var<storage, read_write> particlesB: Particles;
-            //   @group(0) @binding(2) var<uniform> uniforms : Uniforms;              
-              
-              @group(0) @binding(1) var inputTex : texture_2d<f32>;
-              @group(0) @binding(2) var outputTex : texture_storage_2d<rgba8unorm, write>;
-              @group(0) @binding(3) var samp : sampler;
-
-              var<workgroup> tile : array<array<vec3<f32>, 128>, 4>;
+            var<workgroup> tile : array<array<vec3<f32>, 128>, 4>;
+       
         
-              @compute @workgroup_size(32) fn computeSomething(
-                @builtin(global_invocation_id) id: vec3<u32>,
-                @builtin(workgroup_id) WorkGroupID : vec3<u32>,
-              ) {
+            @compute @workgroup_size(32,1) fn computeSomething(
+               @builtin(global_invocation_id) id: vec3<u32>,
+               @builtin(workgroup_id) WorkGroupID : vec3<u32>,
+               @builtin(local_invocation_id) LocalInvocationID : vec3<u32>
+            ) {
+            
 
-                // if (id.x >= u32(arrayLength(&particlesA.particles))) {
-                //    return;
-                // }
-                let dims = vec2<u32>(textureDimensions(inputTex, 0));
-                // let baseIndex = vec2<i32>(WorkGroupID.xy * vec2(params.blockDim, 4) +
-                //                   LocalInvocationID.xy * vec2(4, 1))
-                //       - vec2(filterOffset, 0);
-                //let dims = vec2<u32>(640,640);
+            //let filterDim : i32 = 80;
+            //let blockDim : u32 = 128 - (80 - 1);
 
-                //let s = WorkGroupID.x;  //vec2<i32>
-                let i = id.x;
-                let j = id.y;
+            let filterOffset = (params.filterDim - 1) / 2;
 
-                var uv:vec2<f32> = vec2(f32(i) / f32(dims.x), f32(j) / f32(dims.y));
-                var color:vec3<f32> = (textureSampleLevel(inputTex, samp, uv, 0.0)).rgb;
+            let dims = vec2<i32>(textureDimensions(inputTex, 0));
+            let baseIndex = vec2<i32>(WorkGroupID.xy * vec2(params.blockDim, 4) + LocalInvocationID.xy * vec2(4, 1)) - vec2(filterOffset, 0);
 
-                let s = WorkGroupID.x;  //vec2<i32>
-                // let i = id.x;
-                // let j = id.y;
-                let x = i; //u32((i / 640) * 640);
-                let y = j; //u32(floor(f32(i) / f32(dims.y)));
+            //let dims = vec2<u32>(640,640);
 
-                textureStore(outputTex, vec2<u32>(x,y), vec4( 1.0 - color, 1.0));
+            for (var r = 0; r < 4; r++) {
+                for (var c = 0; c < 4; c++) {
+                    var loadIndex = baseIndex + vec2(c, r);
+                    
+                    if (flip.value != 0) {
+                        loadIndex = loadIndex.yx;
+                    }
+        
+                    tile[r][4 * LocalInvocationID.x + u32(c)] = textureSampleLevel(
+                        inputTex,
+                        samp,
+                        (vec2<f32>(loadIndex) + vec2<f32>(0.25, 0.25)) / vec2<f32>(dims),
+                        0.0
+                    ).rgb;
+                }
+            }
 
+            workgroupBarrier();
+
+
+            for (var r = 0; r < 4; r++) {
+                for (var c = 0; c < 4; c++) {
+                    var writeIndex = baseIndex + vec2(c, r);
+                    
+                    if (flip.value != 0) {
+                        writeIndex = writeIndex.yx;
+                    }
+        
+                    let center = i32(4 * LocalInvocationID.x) + c;
+                    if (center >= filterOffset &&
+                        center < 128 - filterOffset &&
+                        all(writeIndex < dims)) {
+                            var acc = vec3(0.0, 0.0, 0.0);
+                            for (var f = 0; f < params.filterDim; f++) {
+                                var i = center + f - filterOffset;
+                                acc = acc + (1.0 / f32(params.filterDim)) * tile[r][i];
+                            }
+                            textureStore(outputTex, writeIndex, vec4(acc, 1.0));
+                        }
+                    }
+                }
+            }
+
+
+            //////////////////////////////////////////////////
+            // TEST 
+            // //let s = WorkGroupID.x;  //vec2<i32>
+            // let i = id.x;
+            // let j = id.y;
+            // var uv:vec2<f32> = vec2(f32(i) / f32(dims.x), f32(j) / f32(dims.y));
+            // var color:vec3<f32> = (textureSampleLevel(inputTex, samp, uv, 0.0)).rgb;
+            
+            // // let x = i; 
+            // // let y = j; 
+            // textureStore(outputTex, vec2<u32>(i,j), vec4( 1.0 - color, 1.0));                                              
               
-                /////////////////////////////////////////////////////////////////////////////////////////////////
-              
-                // let index = id.x;
-                // var vPos = particlesA.particles[index].pos;
-                // var vVel = particlesA.particles[index].vel;
-                
-                                            
-                // particlesB.particles[index].pos = vPos;  
-                // particlesB.particles[index].vel = vVel; 
-                // particlesB.particles[index].radius = particlesA.particles[index].radius * uniforms.dTime * color.r; 
-                                              
-              }
             `,
-    });    
+    });
 
     const textures = [0, 1].map(() => {
         return device.createTexture({
@@ -163,11 +211,62 @@ const webGPU_Start = async () => {
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
 
 
-  
-    
- 
-   
-    
+    const blurParamsBuffer = device.createBuffer({
+        size: 8,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+    });
+
+    const settings = {
+        filterSize: 80,
+        iterations: 2,
+    };
+
+    const tileDim = 128;
+    const batch = [4, 4];
+
+    let blockDim = tileDim - (settings.filterSize - 1);
+    device.queue.writeBuffer(
+        blurParamsBuffer,
+        0,
+        new Uint32Array([settings.filterSize, blockDim])
+    );
+
+    const computeConstants = device.createBindGroup({
+        layout: pipelineCompute.getBindGroupLayout(1),
+        entries: [
+            {
+                binding: 0,
+                resource: sampler,
+            },
+            {
+                binding: 1,
+                resource: {
+                    buffer: blurParamsBuffer,
+                },
+            },
+        ],
+    });
+
+
+
+    const buffer0 = device.createBuffer({
+        size: 4,
+        mappedAtCreation: true,
+        usage: GPUBufferUsage.UNIFORM,
+    });
+    new Uint32Array(buffer0.getMappedRange())[0] = 0;
+    buffer0.unmap();
+
+
+    const buffer1 = device.createBuffer({
+        size: 4,
+        mappedAtCreation: true,
+        usage: GPUBufferUsage.UNIFORM,
+    });
+    new Uint32Array(buffer1.getMappedRange())[0] = 1;
+    buffer1.unmap();
+
+
     const computeBindGroup0 = device.createBindGroup({
         layout: pipelineCompute.getBindGroupLayout(0),
         entries: [
@@ -178,10 +277,12 @@ const webGPU_Start = async () => {
             {
                 binding: 2,
                 resource: textures[0].createView(),
-            },            
+            },
             {
                 binding: 3,
-                resource: sampler,
+                resource: {
+                    buffer: buffer0,
+                },
             }
         ],
     });
@@ -199,7 +300,9 @@ const webGPU_Start = async () => {
             },
             {
                 binding: 3,
-                resource: sampler,
+                resource: {
+                    buffer: buffer1,
+                },
             }
         ],
     });
@@ -217,18 +320,17 @@ const webGPU_Start = async () => {
             },
             {
                 binding: 3,
-                resource: sampler,
+                resource: {
+                    buffer: buffer0,
+                },
             }
         ],
     });
-    
 
     //-------------------------------------------------------------
-    
-
     /////////////////////////////////////////////////////////////////
     // текст шейлеров 
-   const wglsShader = {
+    const wglsShader = {
         vertex: `
       
         struct VertexOutput{
@@ -308,7 +410,7 @@ const webGPU_Start = async () => {
         primitive: {
             topology: "triangle-list", // что будем рисовать точки - треугольники - линии
         }
-    });  
+    });
 
 
     const bindGroup = device.createBindGroup({
@@ -329,57 +431,69 @@ const webGPU_Start = async () => {
     //////////////////////////------ Animation -----------------------  
     let time_old = 0;
     let t = 0;
-    async function animate(time) {
+    //async function animate(time) {
 
-        //-----------------TIME-----------------------------
-        //console.log(time);
-        // let dt = time - time_old;
-        // time_old = time;
-        //console.log(dt);
-        //--------------------------------------------------
-        const commandEncoder = device.createCommandEncoder(); //
-        //------------------  COMPUTE-----------------------
+    //-----------------TIME-----------------------------
+    //console.log(time);
+    // let dt = time - time_old;
+    // time_old = time;
+    //console.log(dt);
+    //--------------------------------------------------
+    const commandEncoder = device.createCommandEncoder(); //
+    //------------------  COMPUTE-----------------------
 
-        const computePass = commandEncoder.beginComputePass({
-            label: 'doubling compute pass',
-        });
+    const computePass = commandEncoder.beginComputePass({
+        label: 'doubling compute pass',
+    });
 
-        computePass.setPipeline(pipelineCompute);
-      //  computePass.setBindGroup(0, bindGroupsCompute[t % 2].bindGroup);
-        computePass.setBindGroup(0,computeBindGroup0);
-        computePass.dispatchWorkgroups(512);
-        computePass.setBindGroup(0, computeBindGroup1);
-        computePass.dispatchWorkgroups(512);
+    computePass.setPipeline(pipelineCompute);
+
+    computePass.setBindGroup(1, computeConstants);
+
+    computePass.setBindGroup(0, computeBindGroup0);
+    computePass.dispatchWorkgroups(
+        Math.ceil(imageBitmap.width / blockDim),
+        Math.ceil(imageBitmap.height / 4));
+    computePass.setBindGroup(0, computeBindGroup1);
+
+    for (let i = 0; i < settings.iterations - 1; ++i) {
+
+        computePass.dispatchWorkgroups(
+            Math.ceil(imageBitmap.width / blockDim),
+            Math.ceil(imageBitmap.height / 4));
         computePass.setBindGroup(0, computeBindGroup2);
-        computePass.dispatchWorkgroups(512);
 
-        computePass.end();
-        t++;
-        
-        //------------------  RENDER -----------------------
-        const textureView = context.getCurrentTexture().createView(); // тектура к которой привязан контекст
-        const renderPass = commandEncoder.beginRenderPass({  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
-            colorAttachments: [{
-                view: textureView,
-                clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-                loadOp: 'clear',
-                storeOp: 'store' //хз
-            }]
-        });
-        renderPass.setBindGroup(0, bindGroup);
-        renderPass.setPipeline(pipeline); // подключаем наш pipeline
-        renderPass.draw(6);
+        computePass.dispatchWorkgroups(
+            Math.ceil(imageBitmap.width / blockDim),
+            Math.ceil(imageBitmap.height / 4));
+    }
 
-        // renderPass.draw(3, 1, 0, 0); 
-        // undefined draw(GPUSize32 vertexCount, optional GPUSize32 instanceCount = 1,
-        // optional GPUSize32 firstVertex = 0, optional GPUSize32 firstInstance = 0);
 
-        renderPass.end();
+    computePass.end();
+    //------------------  RENDER -----------------------
+    const textureView = context.getCurrentTexture().createView(); // тектура к которой привязан контекст
+    const renderPass = commandEncoder.beginRenderPass({  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
+        colorAttachments: [{
+            view: textureView,
+            clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+            loadOp: 'clear',
+            storeOp: 'store' //хз
+        }]
+    });
+    renderPass.setBindGroup(0, bindGroup);
+    renderPass.setPipeline(pipeline); // подключаем наш pipeline
+    renderPass.draw(6);
 
-        device.queue.submit([commandEncoder.finish()]);
-        window.requestAnimationFrame(animate);
-    };
-    animate(0);
+    // renderPass.draw(3, 1, 0, 0); 
+    // undefined draw(GPUSize32 vertexCount, optional GPUSize32 instanceCount = 1,
+    // optional GPUSize32 firstVertex = 0, optional GPUSize32 firstInstance = 0);
+
+    renderPass.end();
+
+    device.queue.submit([commandEncoder.finish()]);
+    //    window.requestAnimationFrame(animate);
+    //  };
+    //  animate(0);
 }
 
 webGPU_Start();

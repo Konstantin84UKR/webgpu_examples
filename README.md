@@ -70,5 +70,8 @@ normalMap : https://konstantin84ukr.github.io/webgpu_examples/normalMap/
 
 PBR : https://konstantin84ukr.github.io/webgpu_examples/PBR/
 
+blur : https://konstantin84ukr.github.io/webgpu_examples/quad_Blur/
+
+
 
 
