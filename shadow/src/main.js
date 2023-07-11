@@ -6,8 +6,7 @@ import { Camera } from '../../common/camera/camera.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
-  //var model;
-
+ 
   xhr.open('GET', modelURL, false);
   xhr.onload = function () {
       if (xhr.status != 200) {
@@ -83,18 +82,18 @@ async function main() {
     `,
 
       fragment: `     
-      @binding(1) @group(0) var textureSampler : sampler;
-      @binding(2) @group(0) var textureData : texture_2d<f32>;   
+      @group(0) @binding(1) var textureSampler : sampler;
+      @group(0) @binding(2) var textureData : texture_2d<f32>;   
 
       struct Uniforms {
         eyePosition : vec4<f32>,
         lightPosition : vec4<f32>,       
       };
-      @binding(3) @group(0) var<uniform> uniforms : Uniforms;
+      @group(0) @binding(3) var<uniform> uniforms : Uniforms;
      
-      @binding(0) @group(1) var shadowMap : texture_depth_2d;  
-      @binding(1) @group(1) var shadowSampler : sampler_comparison;
-      @binding(2) @group(1) var<uniform> test : vec3<f32>;  
+      @group(1) @binding(0) var shadowMap : texture_depth_2d;  
+      @group(1) @binding(1) var shadowSampler : sampler_comparison;
+      @group(1) @binding(2) var<uniform> test : vec3<f32>;  
      
 
       @fragment
@@ -110,6 +109,10 @@ async function main() {
         var shadow : f32 = 0.0;
         // apply Percentage-closer filtering (PCF)
         // sample nearest 9 texels to smooth result
+
+        // выбираем 3*3 пикселей из текстуры глубины вокруг текуший координат тени.
+        // полученый результат делем на 9 что бы получить усредненый цвет.
+
         let size = f32(textureDimensions(shadowMap).x);
         for (var y : i32 = -1 ; y <= 1 ; y = y + 1) {
             for (var x : i32 = -1 ; x <= 1 ; x = x + 1) {
@@ -124,6 +127,7 @@ async function main() {
         }
         shadow = shadow / 9.0;
 
+      // Жесткие тени   
       //   shadow = textureSampleCompare(
       //     shadowMap, 
       //     shadowSampler,
@@ -155,14 +159,13 @@ async function main() {
     let CUBE = {}; 
     await loadJSON(CUBE,'./res/Model.json');
     
-    let mesh = CUBE.mesh.meshes[0];
-
+    const mesh = CUBE.mesh.meshes[0];
      const cube_vertex = new Float32Array(mesh.vertices);
      const cube_uv = new Float32Array(mesh.texturecoords[0]);
      const cube_index = new Uint32Array(mesh.faces.flat());
      const cube_normal = new Float32Array(mesh.normals);
 
-     let plane = CUBE.mesh.meshes[1];
+     const plane = CUBE.mesh.meshes[1];
      const plane_vertex = new Float32Array(plane.vertices);
      const plane_uv = new Float32Array(plane.texturecoords[0]);
      const plane_index = new Uint32Array(plane.faces.flat());
@@ -379,6 +382,8 @@ async function main() {
     }
     });
 
+    // Создаем текстуру глубины, для рендера от лица источника света. 
+    // Эта текстура будет использована для теста глубины при формировании тени.
     let shadowDepthTexture  = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
       format: "depth24plus",
@@ -443,6 +448,7 @@ async function main() {
     }
     });
 
+    // Эта теневая текстура для обычного теста глубины при рендере сцены.
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
       format: "depth24plus",
@@ -600,7 +606,7 @@ async function main() {
           storeOp: "store", //ХЗ
         },],
         depthStencilAttachment: {
-          view: depthTexture.createView(),
+          view: depthTexture.createView(),  // "Обычная" текстура глубины
           depthClearValue: 1.0,
           depthLoadOp: 'clear',
           depthStoreOp: 'store',
@@ -612,7 +618,7 @@ async function main() {
     const renderPassDescriptionShadow = {
       colorAttachments: [],
         depthStencilAttachment: {
-          view: shadowDepthView,
+          view: shadowDepthView, // текстура глубины для формирования теней
           depthClearValue: 1.0,
           depthLoadOp: 'clear',
           depthStoreOp: 'store',
@@ -647,7 +653,10 @@ let time_old=0;
       const commandEncoder = device.createCommandEncoder();
 
       // SHADOW
-    
+
+      // Первым этапом рендерим сцену с точки зрения источника света
+      // Полшучиную текстуры глубины. shadowDepthView использыем в следуюшем проходе для рисования тени.
+
       const renderPassShadow = commandEncoder.beginRenderPass(renderPassDescriptionShadow);
       renderPassShadow.setPipeline(shadowPipeline);
       renderPassShadow.setVertexBuffer(0, vertexBuffer);

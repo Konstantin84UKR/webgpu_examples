@@ -2,6 +2,8 @@ import {
   mat4,
 } from './wgpu-matrix.module.js';
 
+import { Camera } from '../../common/camera/camera.js';
+
 console.log(mat4);
 
 async function loadJSON(result,modelURL) {
@@ -77,20 +79,20 @@ async function main() {
        vMatrix : mat4x4<f32>,
        mMatrix : mat4x4<f32>,      
       };
-      @binding(0) @group(0) var<uniform> uniforms : Uniform;
+      @group(0) @binding(0) var<uniform> uniforms : Uniform;
 
       struct UniformLight {
         pMatrix : mat4x4<f32>,
         vMatrix : mat4x4<f32>,
         mMatrix : mat4x4<f32>,      
        };
-       @binding(4) @group(0) var<uniform> uniformsLight : UniformLight;
+      @group(0) @binding(4) var<uniform> uniformsLight : UniformLight;
          
       struct Output {
           @builtin(position) Position : vec4<f32>,
           @location(0) fragPosition : vec3<f32>,
           @location(1) fragUV : vec2<f32>,
-          @location(2) fragNormal : vec3<f32>,
+          //@location(2) fragNormal : vec3<f32>,
           @location(3) shadowPos : vec3<f32>,
           @location(4) fragNor : vec3<f32>,
           @location(5) fragTangent : vec3<f32>, 
@@ -109,7 +111,7 @@ async function main() {
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.fragPosition = (uniforms.mMatrix * pos).xyz;
             output.fragUV = uv;
-            output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
+            //output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
                     
               // -----NORMAL --------------------------------
               let norm : vec3<f32>  = normalize((uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz);
@@ -149,7 +151,7 @@ async function main() {
       @fragment
       fn main(@location(0) fragPosition: vec3<f32>,
        @location(1) fragUV: vec2<f32>, 
-       @location(2) fragNormal: vec3<f32>,
+       //@location(2) fragNormal: vec3<f32>,
        @location(3) shadowPos: vec3<f32>,
        @location(4) fragNor: vec3<f32>,
        @location(5) fragTangent: vec3<f32>,
@@ -278,6 +280,11 @@ async function main() {
     PROJMATRIX = mat4.identity();
     let fovy = 40 * Math.PI / 180;
     PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
+
+
+    let camera = new Camera(canvas);
+    camera.setPosition([0.0, 5.0, 10.0]);
+    camera.setLook([0.0, -0.5, -1.0])
         
     //let eyePosition = [10, 10, 10.0]; 
     let lightPosition = new Float32Array([5.0, 5.0, 5.0]);
@@ -765,7 +772,7 @@ let time_old=0;
       let dt=time-time_old;
       time_old=time;
       //--------------------------------------------------
-     
+      camera.setDeltaTime(dt);
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
       // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
@@ -773,8 +780,8 @@ let time_old=0;
 
       //--------------------------------------------------
 
-      // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-      // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+      device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+      device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
       //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
       device.queue.writeBuffer(uniformBuffershadow, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset

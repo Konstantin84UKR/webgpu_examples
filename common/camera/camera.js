@@ -113,20 +113,31 @@ export class Camera {
             case "W":
                 temp = vec3.clone(this.front);
                 break;
+            
             case "S":
                 temp = vec3.clone(this.front);
                 temp = vec3.negate(temp);
                 break;
+            
             case "A":
                 temp = vec3.cross(this.up, this.front);
-                temp = vec3.normalize(temp);
-                //temp = vec3.negate(temp);
+                temp = vec3.normalize(temp);               
                 break;
+            
             case "D":
                 temp = vec3.cross(this.up, this.front);
                 temp = vec3.normalize(temp);
                 temp = vec3.negate(temp);
                 break;
+
+            case "Q":                
+                temp = vec3.normalize(this.up);
+                temp = vec3.negate(temp);
+                break;
+
+            case "E":               
+                temp = vec3.normalize(this.up);              
+                break;        
             default:
                 this.eye = vec3.add(this.eye, temp);
                 break;
@@ -187,6 +198,9 @@ export class Camera {
         if (e.key === "s") { this.translate_eye('S') }
         if (e.key === "a") { this.translate_eye('A') }
         if (e.key === "d") { this.translate_eye('D') }
+
+        if (e.key === "q") { this.translate_eye('Q') }
+        if (e.key === "e") { this.translate_eye('E') }
 
 
         // if (e.key === "ArrowRight") { this.rotate_eye('ArrowRight') }
