@@ -111,7 +111,7 @@ async function main() {
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.fragPosition = (uniforms.mMatrix * pos).xyz;
-            output.fragUV = uv * 2.0;
+            output.fragUV = uv * 4.0;
             output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
                     
               // -----NORMAL --------------------------------
@@ -299,10 +299,10 @@ async function main() {
     //---------------------------------------------------
 
 
-    //const mesh1 = new BoxGeometry(2,2,2,1,1,1);
-   // const mesh1 = new SphereGeometry(2);
-    //const mesh1 = new RectangleGeometry(4, 4, 2, 2);
-  const mesh1 = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
+  //const mesh1 = new BoxGeometry(2,2,2,1,1,1);
+  const mesh1 = new SphereGeometry(2);
+  //const mesh1 = new RectangleGeometry(4, 4, 2, 2);
+  //const mesh1 = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
     
 
   const plane_vertex = new Float32Array(mesh1.vertices);
@@ -890,11 +890,11 @@ const generateMips = (() => {
 // 5) копируем данные из источника в текстуру (отправляем на GPU)
 // 6) Генерируем мип уровни
 
-const texture =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-albedo.png', {mips: true, flipY: false});
-const texture_NORMAL =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-normal-ogl.png', {mips: true, flipY: false});
-const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-roughness.png', {mips: true, flipY: false});
-const texture_METALLIC =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-metallic.png', {mips: true, flipY: false});
-const texture_AO =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-ao.png', {mips: true, flipY: false});
+// const texture =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-albedo.png', {mips: true, flipY: false});
+// const texture_NORMAL =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-normal-ogl.png', {mips: true, flipY: false});
+// const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-roughness.png', {mips: true, flipY: false});
+// const texture_METALLIC =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-metallic.png', {mips: true, flipY: false});
+// const texture_AO =  await createTextureFromImage(device,'./res/pbr2/rough-wet-cobble-ao.png', {mips: true, flipY: false});
 
 // const texture =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-alb.png', {mips: true, flipY: false});
 // const texture_NORMAL =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-normal.png', {mips: true, flipY: false});
@@ -914,11 +914,11 @@ const texture_AO =  await createTextureFromImage(device,'./res/pbr2/rough-wet-co
 // const texture_METALLIC =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-metal.png', {mips: true, flipY: false});
 // const texture_AO =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-ao.png', {mips: true, flipY: false});
 
-// const texture =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_albedo.png', {mips: true, flipY: false});
-// const texture_NORMAL =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_normal-ogl.png', {mips: true, flipY: false});
-// const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_roughness.png', {mips: true, flipY: false});
-// const texture_METALLIC =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_metallic.png', {mips: true, flipY: false});
-// const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_ao.png', {mips: true, flipY: false});
+const texture =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_albedo.png', {mips: true, flipY: false});
+const texture_NORMAL =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_normal-ogl.png', {mips: true, flipY: false});
+const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_roughness.png', {mips: true, flipY: false});
+const texture_METALLIC =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_metallic.png', {mips: true, flipY: false});
+const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_ao.png', {mips: true, flipY: false});
 
 
     
@@ -1083,8 +1083,8 @@ let time_old=0;
      
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
-       MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+      //MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
+      //MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       camera.setDeltaTime(dt);
       //--------------------------------------------------
 
