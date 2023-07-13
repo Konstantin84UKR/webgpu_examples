@@ -4,12 +4,9 @@ import {
 
 import { Camera } from '../../common/camera/camera.js';
 
-console.log(mat4);
-
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
-  //var model;
-
+ 
   xhr.open('GET', modelURL, false);
   xhr.onload = function () {
       if (xhr.status != 200) {
@@ -22,32 +19,6 @@ async function loadJSON(result,modelURL) {
       }
   }
   xhr.send();
-}
-
-async function loadTexture(device,url){
-
-  let img = new Image();
-  img.src = url; 
-  await img.decode();
-  
-  const imageBitmap = await createImageBitmap(img);
-
-
-  const texture = device.createTexture({
-    size:[imageBitmap.width,imageBitmap.height,1],
-    format:'rgba8unorm',
-    usage: GPUTextureUsage.TEXTURE_BINDING |
-           GPUTextureUsage.COPY_DST |
-           GPUTextureUsage.RENDER_ATTACHMENT
-  });
-
-  device.queue.copyExternalImageToTexture(
-    {source: imageBitmap},
-    {texture: texture},
-    [imageBitmap.width,imageBitmap.height]);
-
-  return texture;
-
 }
 
 async function main() {
@@ -63,11 +34,7 @@ async function main() {
       @group(0) @binding(0) var<uniform> uniforms : Uniform;
       
       @vertex
-        fn main(@location(0) pos: vec4<f32>,
-         @location(1) uv: vec2<f32>, 
-         @location(2) normal: vec3<f32> 
-         ) -> @builtin(position) vec4<f32> {
-
+        fn main(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>, @location(2) normal: vec3<f32>) -> @builtin(position) vec4<f32> {
           return uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
        }`
     };
@@ -79,53 +46,32 @@ async function main() {
        vMatrix : mat4x4<f32>,
        mMatrix : mat4x4<f32>,      
       };
-      @group(0) @binding(0) var<uniform> uniforms : Uniform;
+      @binding(0) @group(0) var<uniform> uniforms : Uniform;
 
       struct UniformLight {
         pMatrix : mat4x4<f32>,
         vMatrix : mat4x4<f32>,
         mMatrix : mat4x4<f32>,      
        };
-      @group(0) @binding(4) var<uniform> uniformsLight : UniformLight;
+       @binding(4) @group(0) var<uniform> uniformsLight : UniformLight;
          
       struct Output {
           @builtin(position) Position : vec4<f32>,
           @location(0) fragPosition : vec3<f32>,
           @location(1) fragUV : vec2<f32>,
-          //@location(2) fragNormal : vec3<f32>,
-          @location(3) shadowPos : vec3<f32>,
-          @location(4) fragNor : vec3<f32>,
-          @location(5) fragTangent : vec3<f32>, 
-          @location(6) fragBitangent : vec3<f32>         
+          @location(2) fragNormal : vec3<f32>,
+          @location(3) shadowPos : vec3<f32>          
       };
      
 
       @vertex
-        fn main(@location(0) pos: vec4<f32>, 
-        @location(1) uv: vec2<f32>, 
-        @location(2) normal: vec3<f32>, 
-        @location(3) tangent: vec3<f32>, 
-        @location(4) bitangent: vec3<f32>) -> Output {
+        fn main(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>, @location(2) normal: vec3<f32>) -> Output {
            
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.fragPosition = (uniforms.mMatrix * pos).xyz;
             output.fragUV = uv;
-            //output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
-                    
-              // -----NORMAL --------------------------------
-
-              var nMatrix : mat4x4<f32> = uniforms.mMatrix;
-              nMatrix[3] = vec4<f32>(0.0, 0.0, 0.0, 1.0); 
-  
-              let norm : vec3<f32>  = normalize((nMatrix * vec4<f32>(normal,1.0)).xyz);
-              let tang : vec3<f32> = normalize((nMatrix * vec4<f32>(tangent,1.0)).xyz);
-              let binormal : vec3<f32> = normalize((nMatrix * vec4<f32>(bitangent,1.0)).xyz);
-
-              output.fragNor  = norm; 
-              output.fragTangent  = tang; 
-              output.fragBitangent  = binormal; 
-          
+            output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
 
             let posFromLight: vec4<f32> = uniformsLight.pMatrix * uniformsLight.vMatrix * uniformsLight.mMatrix * pos;
             // Convert shadowPos XY to (0, 1) to fit texture UV
@@ -136,50 +82,37 @@ async function main() {
     `,
 
       fragment: `     
-      @binding(1) @group(0) var textureSampler : sampler;
-      @binding(2) @group(0) var textureData : texture_2d<f32>;   
-      @binding(5) @group(0) var textureDataNormal : texture_2d<f32>;  
-      @binding(6) @group(0) var textureDataSpecular : texture_2d<f32>;  
+      @group(0) @binding(1) var textureSampler : sampler;
+      @group(0) @binding(2) var textureData : texture_2d<f32>;   
 
       struct Uniforms {
         eyePosition : vec4<f32>,
         lightPosition : vec4<f32>,       
       };
-      @binding(3) @group(0) var<uniform> uniforms : Uniforms;
+      @group(0) @binding(3) var<uniform> uniforms : Uniforms;
      
-      @binding(0) @group(1) var shadowMap : texture_depth_2d;  
-      @binding(1) @group(1) var shadowSampler : sampler_comparison;
-      @binding(2) @group(1) var<uniform> test : vec3<f32>;  
+      @group(1) @binding(0) var shadowMap : texture_depth_2d;  
+      @group(1) @binding(1) var shadowSampler : sampler_comparison;
+      @group(1) @binding(2) var<uniform> test : vec3<f32>;  
      
 
       @fragment
       fn main(@location(0) fragPosition: vec3<f32>,
        @location(1) fragUV: vec2<f32>, 
-       //@location(2) fragNormal: vec3<f32>,
-       @location(3) shadowPos: vec3<f32>,
-       @location(4) fragNor: vec3<f32>,
-       @location(5) fragTangent: vec3<f32>,
-       @location(6) fragBitangent: vec3<f32>, ) -> @location(0) vec4<f32> {
+       @location(2) fragNormal: vec3<f32>,
+       @location(3) shadowPos: vec3<f32>) -> @location(0) vec4<f32> {
         
         let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
-        let i = 4.0f;
-        let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, fragUV * i)).rgb;
-        let texturSpecular:vec3<f32> = (textureSample(textureDataSpecular, textureSampler, fragUV * i)).rgb;
-        
-        var textureNormal:vec3<f32> = normalize(2.0 * (textureSample(textureDataNormal, textureSampler, fragUV * i)).rgb - 1.0);
-        var colorNormal = normalize(vec3<f32>(textureNormal.x, textureNormal.y, textureNormal.z));
-        colorNormal.y *= -1;
 
-        var tbnMatrix : mat3x3<f32> = mat3x3<f32>(
-          normalize(fragTangent), 
-          normalize(fragBitangent), 
-          normalize(fragNor));
-    
-        colorNormal = normalize(tbnMatrix * colorNormal);
+        let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, fragUV)).rgb;
         
         var shadow : f32 = 0.0;
         // apply Percentage-closer filtering (PCF)
         // sample nearest 9 texels to smooth result
+
+        // выбираем 3*3 пикселей из текстуры глубины вокруг текуший координат тени.
+        // полученый результат делем на 9 что бы получить усредненый цвет.
+
         let size = f32(textureDimensions(shadowMap).x);
         for (var y : i32 = -1 ; y <= 1 ; y = y + 1) {
             for (var x : i32 = -1 ; x <= 1 ; x = x + 1) {
@@ -193,19 +126,28 @@ async function main() {
             }
         }
         shadow = shadow / 9.0;
+
+      // Жесткие тени   
+      //   shadow = textureSampleCompare(
+      //     shadowMap, 
+      //     shadowSampler,
+      //     shadowPos.xy, 
+      //     shadowPos.z - 0.005  // apply a small bias to avoid acne
+      // );;
+
+        // let size = f32(textureDimensions(shadowMap).x);
       
-        let N:vec3<f32> = normalize(colorNormal.xyz);
+        let N:vec3<f32> = normalize(fragNormal.xyz);
         let L:vec3<f32> = normalize((uniforms.lightPosition).xyz - fragPosition.xyz);
         let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
         let H:vec3<f32> = normalize(L + V);
       
         let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
         let specular = pow(max(dot(N, H),0.0),100.0);
-        let ambient:vec3<f32> = vec3<f32>(test.x + 0.2, 0.4, 0.5);
+        let ambient:vec3<f32> = vec3<f32>(test.x + 0.1, 0.2, 0.2);
       
-        let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (texturSpecular * specular * shadow); 
-        //let finalColor:vec3<f32> =  colorNormal * 0.5 + 0.5;  //let color = N * 0.5 + 0.5;
-        //let finalColor:vec3<f32> =  texturSpecular ;  //let color = N * 0.5 + 0.5;
+        let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (specularColor * specular * shadow); 
+        // let finalColor:vec3<f32> =  textureColor * (shadow * ambient); 
              
         return vec4<f32>(finalColor, 1.0);
     }
@@ -217,28 +159,23 @@ async function main() {
     let CUBE = {}; 
     await loadJSON(CUBE,'./res/Model.json');
     
-    let mesh = CUBE.mesh.meshes[0];
-
+    const mesh = CUBE.mesh.meshes[0];
      const cube_vertex = new Float32Array(mesh.vertices);
      const cube_uv = new Float32Array(mesh.texturecoords[0]);
      const cube_index = new Uint32Array(mesh.faces.flat());
      const cube_normal = new Float32Array(mesh.normals);
-     const cube_tangent = new Float32Array(mesh.tangents);
-     const cube_bitangent = new Float32Array(mesh.bitangents);
 
-     let plane = CUBE.mesh.meshes[1];
+     const plane = CUBE.mesh.meshes[1];
      const plane_vertex = new Float32Array(plane.vertices);
      const plane_uv = new Float32Array(plane.texturecoords[0]);
      const plane_index = new Uint32Array(plane.faces.flat());
      const plane_normal = new Float32Array(plane.normals); 
-     const plane_tangent = new Float32Array(plane.tangents); 
-     const plane_bitangent = new Float32Array(plane.bitangents); 
 
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 1200 * 1.2;
-    canvas.height = 720 * 1.2;
+    canvas.width = 1200;
+    canvas.height = 800;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();
@@ -278,24 +215,22 @@ async function main() {
 
     let VIEWMATRIX_SHADOW = mat4.identity(); 
     let PROJMATRIX_SHADOW = mat4.identity();
-    let eyePosition = [3, 10, 2.0];    
-    VIEWMATRIX = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+        
+    VIEWMATRIX = mat4.lookAt([0.0, 5.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
     PROJMATRIX = mat4.identity();
     let fovy = 40 * Math.PI / 180;
     PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
-
     let camera = new Camera(canvas);
-    camera.setPosition([0.0, 5.0, 10.0]);
+    camera.setPosition([0.0, 10.0, 25.0]);
     camera.setLook([0.0, -0.5, -1.0])
-        
-    //let eyePosition = [10, 10, 10.0]; 
-    let lightPosition = new Float32Array([5.0, 5.0, 5.0]);
-    VIEWMATRIX_SHADOW = mat4.lookAt(lightPosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+          
+    let eyePosition = [10, 10, 10.0];
+    VIEWMATRIX_SHADOW = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
     PROJMATRIX_SHADOW = mat4.ortho(-6, 6, -6, 6, 1, 35);
    
-   
+    let lightPosition = new Float32Array([5.0, 5.0, 5.0]);
 
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
@@ -304,10 +239,6 @@ async function main() {
     //** usage ХЗ */
     //** mappedAtCreation если true значить буфер доступен для записи с ЦПУ */
     //** это нужно для того что бы не было гонки между ЦПУ и ГПУ */
-    
-    //******************
-    // MODEL
-    //******************
     //****************** BUFFER  vertexBuffer
     const vertexBuffer = device.createBuffer({
       size: cube_vertex.byteLength,
@@ -342,28 +273,6 @@ async function main() {
     // передаем буфер в управление ГПУ */
     normalBuffer.unmap();
 
-    //****************** BUFFER  cubeTangentBuffer
-    const cubeTangentBuffer = device.createBuffer({
-      size: cube_tangent.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-      mappedAtCreation: true
-    });
-    //загружаем данные в буффер */
-    new Float32Array(cubeTangentBuffer.getMappedRange()).set(cube_tangent);
-    // передаем буфер в управление ГПУ */
-    cubeTangentBuffer.unmap();
-
-    //****************** BUFFER  cubeBitangentlBuffer
-    const cubeBitangentlBuffer = device.createBuffer({
-      size: cube_bitangent.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-      mappedAtCreation: true
-    });
-    //загружаем данные в буффер */
-    new Float32Array(cubeBitangentlBuffer.getMappedRange()).set(cube_bitangent);
-    // передаем буфер в управление ГПУ */
-    cubeBitangentlBuffer.unmap();
-
    //****************** BUFFER  indexBuffer
     const indexBuffer = device.createBuffer({
       size: cube_index.byteLength,
@@ -374,10 +283,7 @@ async function main() {
     new Uint32Array(indexBuffer.getMappedRange()).set(cube_index);
     indexBuffer.unmap();
 
-
-    //******************
-    // PLANE
-    //******************
+    //****************** PLANE
     const plane_vertexBuffer = device.createBuffer({
       size: plane_vertex.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
@@ -410,26 +316,6 @@ async function main() {
     new Float32Array(plane_normalBuffer.getMappedRange()).set(plane_normal);
     // передаем буфер в управление ГПУ */
     plane_normalBuffer.unmap();
-
-    const planeTangentBuffer = device.createBuffer({
-      size: plane_tangent.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-      mappedAtCreation: true
-    });
-    //загружаем данные в буффер */
-    new Float32Array(planeTangentBuffer.getMappedRange()).set(plane_tangent);
-    // передаем буфер в управление ГПУ */
-    planeTangentBuffer.unmap();
-
-    const planeBitangentBuffer = device.createBuffer({
-      size: plane_bitangent.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-      mappedAtCreation: true
-    });
-    //загружаем данные в буффер */
-    new Float32Array(planeBitangentBuffer.getMappedRange()).set(plane_bitangent);
-    // передаем буфер в управление ГПУ */
-    planeBitangentBuffer.unmap();
 
     //****************** BUFFER  indexBuffer
     const plane_indexBuffer = device.createBuffer({
@@ -496,6 +382,8 @@ async function main() {
     }
     });
 
+    // Создаем текстуру глубины, для рендера от лица источника света. 
+    // Эта текстура будет использована для теста глубины при формировании тени.
     let shadowDepthTexture  = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
       format: "depth24plus",
@@ -535,23 +423,6 @@ async function main() {
                   format: "float32x3",
                   offset: 0
               }]
-          },
-          
-          {
-              arrayStride: 12,
-              attributes: [{
-                  shaderLocation: 3,
-                  format: "float32x3",
-                  offset: 0
-              }]
-          },
-          {
-              arrayStride: 12,
-              attributes: [{
-                  shaderLocation: 4,
-                  format: "float32x3",
-                  offset: 0
-              }]
           }
       ]
       },
@@ -577,6 +448,7 @@ async function main() {
     }
     });
 
+    // Эта теневая текстура для обычного теста глубины при рендере сцены.
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
       format: "depth24plus",
@@ -585,7 +457,7 @@ async function main() {
 
     // create uniform buffer and layout
     const uniformBuffer = device.createBuffer({
-        size: 64 + 64 + 64,
+        size: 64 + 64 + 64 + 64,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });   
 
@@ -600,16 +472,16 @@ async function main() {
     });
 
     const uniformBuffershadow = device.createBuffer({
-      size: 64 + 64 + 64,
+      size: 64 + 64 + 64 + 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
   });   
 
     //-------------------- TEXTURE ---------------------
-    // let img = new Image();
-    // img.src = './res/tex2_DIFFUSE.jpg'; //'./tex/yachik.jpg';
-    // await img.decode();
+    let img = new Image();
+    img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
+    await img.decode();
     
-    // const imageBitmap = await createImageBitmap(img);
+    const imageBitmap = await createImageBitmap(img);
 
     const sampler = device.createSampler({
       minFilter:'linear',
@@ -619,23 +491,18 @@ async function main() {
       addressModeV: 'repeat'
     });
 
-    // const texture = device.createTexture({
-    //   size:[imageBitmap.width,imageBitmap.height,1],
-    //   format:'rgba8unorm',
-    //   usage: GPUTextureUsage.TEXTURE_BINDING |
-    //          GPUTextureUsage.COPY_DST |
-    //          GPUTextureUsage.RENDER_ATTACHMENT
-    // });
+    const texture = device.createTexture({
+      size:[imageBitmap.width,imageBitmap.height,1],
+      format:'rgba8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING |
+             GPUTextureUsage.COPY_DST |
+             GPUTextureUsage.RENDER_ATTACHMENT
+    });
 
-    // device.queue.copyExternalImageToTexture(
-    //   {source: imageBitmap},
-    //   {texture: texture},
-    //   [imageBitmap.width,imageBitmap.height]);
-
-    let texture = await loadTexture(device,'./res/tex2_DIFFUSE.jpg');
-    let texture_NORMAL = await loadTexture(device,'./res/tex2_NORMAL.jpg');
-    let texture_SPECULAR = await loadTexture(device,'./res/tex2_SPECULAR.jpg');
-
+    device.queue.copyExternalImageToTexture(
+      {source: imageBitmap},
+      {texture: texture},
+      [imageBitmap.width,imageBitmap.height]);
     //--------------------------------------------------
     const shadowGroup = device.createBindGroup({
         label: 'Group for shadowPass',
@@ -645,7 +512,7 @@ async function main() {
             resource: {
               buffer: uniformBuffershadow,
               offset: 0,
-              size: 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+              size: 64 + 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX +  MODELMATRIX_PLANE // Каждая матрица занимает 64 байта
           }
         }]
     })
@@ -683,16 +550,8 @@ async function main() {
             resource: {
                 buffer: uniformBuffershadow,
                 offset: 0,
-                size: 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+              size: 64 + 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX + + MODELMATRIX_PLANE// Каждая матрица занимает 64 байта
             }
-          },
-          {
-            binding: 5,
-            resource: texture_NORMAL.createView()
-          },
-          {
-            binding: 6,
-            resource: texture_SPECULAR.createView()
           }          
         ]
     });
@@ -723,12 +582,12 @@ async function main() {
   });
 
 
-    device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
-    device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+    device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
+    device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
     device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
 
-    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(camera.eye));
+    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition));
     device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
 
     device.queue.writeBuffer(uniformBuffershadow, 0, PROJMATRIX_SHADOW); // пишем в начало буффера с отступом (offset = 0)
@@ -747,7 +606,7 @@ async function main() {
           storeOp: "store", //ХЗ
         },],
         depthStencilAttachment: {
-          view: depthTexture.createView(),
+          view: depthTexture.createView(),  // "Обычная" текстура глубины
           depthClearValue: 1.0,
           depthLoadOp: 'clear',
           depthStoreOp: 'store',
@@ -759,7 +618,7 @@ async function main() {
     const renderPassDescriptionShadow = {
       colorAttachments: [],
         depthStencilAttachment: {
-          view: shadowDepthView,
+          view: shadowDepthView, // текстура глубины для формирования теней
           depthClearValue: 1.0,
           depthLoadOp: 'clear',
           depthStoreOp: 'store',
@@ -775,8 +634,9 @@ let time_old=0;
       //console.log(time);
       let dt=time-time_old;
       time_old=time;
+
       //--------------------------------------------------
-      camera.setDeltaTime(dt);
+     camera.setDeltaTime(dt);
       //------------------MATRIX EDIT---------------------
       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
       // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
@@ -787,30 +647,28 @@ let time_old=0;
       device.queue.writeBuffer(uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
       device.queue.writeBuffer(uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
-      //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
       device.queue.writeBuffer(uniformBuffershadow, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
-      device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(camera.eye));
+
 
       const commandEncoder = device.createCommandEncoder();
 
       // SHADOW
-    
+
+      // Первым этапом рендерим сцену с точки зрения источника света
+      // Полшучиную текстуры глубины. shadowDepthView использыем в следуюшем проходе для рисования тени.
+
       const renderPassShadow = commandEncoder.beginRenderPass(renderPassDescriptionShadow);
       renderPassShadow.setPipeline(shadowPipeline);
       renderPassShadow.setVertexBuffer(0, vertexBuffer);
       renderPassShadow.setVertexBuffer(1, uvBuffer);
       renderPassShadow.setVertexBuffer(2, normalBuffer);
-      renderPassShadow.setVertexBuffer(3, cubeTangentBuffer);
-      renderPassShadow.setVertexBuffer(4, cubeBitangentlBuffer);
       renderPassShadow.setIndexBuffer(indexBuffer, "uint32");
       renderPassShadow.setBindGroup(0, shadowGroup);
       renderPassShadow.drawIndexed(cube_index.length);
-
+   
       renderPassShadow.setVertexBuffer(0, plane_vertexBuffer);
       renderPassShadow.setVertexBuffer(1, plane_uvBuffer);
       renderPassShadow.setVertexBuffer(2, plane_normalBuffer);
-      renderPassShadow.setVertexBuffer(3, planeTangentBuffer);
-      renderPassShadow.setVertexBuffer(4, planeBitangentBuffer);
       renderPassShadow.setIndexBuffer(plane_indexBuffer, "uint32");
       renderPassShadow.setBindGroup(0, shadowGroup);
       renderPassShadow.drawIndexed(plane_index.length);
@@ -822,14 +680,12 @@ let time_old=0;
       renderPassDescription.colorAttachments[0].view = textureView;  
     
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
-       
+      
 
       renderPass.setPipeline(pipeline);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, uvBuffer);
       renderPass.setVertexBuffer(2, normalBuffer);
-      renderPass.setVertexBuffer(3, cubeTangentBuffer);
-      renderPass.setVertexBuffer(4, cubeBitangentlBuffer);
       renderPass.setIndexBuffer(indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setBindGroup(1, uniformBindGroup1);
@@ -838,8 +694,6 @@ let time_old=0;
       renderPass.setVertexBuffer(0, plane_vertexBuffer);
       renderPass.setVertexBuffer(1, plane_uvBuffer);
       renderPass.setVertexBuffer(2, plane_normalBuffer);
-      renderPass.setVertexBuffer(3, planeTangentBuffer);
-      renderPass.setVertexBuffer(4, planeBitangentBuffer);
       renderPass.setIndexBuffer(plane_indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setBindGroup(1, uniformBindGroup1);
