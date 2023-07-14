@@ -217,8 +217,8 @@ const webGPU_Start = async () => {
     });
 
     const settings = {
-        filterSize: 80,
-        iterations: 2,
+        filterSize: 20,
+        iterations: 40,
     };
 
     const tileDim = 128;
@@ -454,13 +454,15 @@ const webGPU_Start = async () => {
     computePass.dispatchWorkgroups(
         Math.ceil(imageBitmap.width / blockDim),
         Math.ceil(imageBitmap.height / 4));
-    computePass.setBindGroup(0, computeBindGroup1);
+    //computePass.setBindGroup(0, computeBindGroup1);
 
     for (let i = 0; i < settings.iterations - 1; ++i) {
-
+        
+        computePass.setBindGroup(0, computeBindGroup1);
         computePass.dispatchWorkgroups(
             Math.ceil(imageBitmap.width / blockDim),
             Math.ceil(imageBitmap.height / 4));
+        
         computePass.setBindGroup(0, computeBindGroup2);
 
         computePass.dispatchWorkgroups(
