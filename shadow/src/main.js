@@ -8,6 +8,9 @@
 // изменил функцию сравнения на 'greater' вместо 'less' 
 // и умножаю матрицу перспективы на специальную матрицу для инверсии оси z.  
 // 6. Для примера оставил рендер пасс для теней с обычный буффером глубины.
+// 7. Алгоритм тональной компрессии Рейнхарда
+// 8. Экспозиция тональной компрессии
+// 9. Гамма-коррекция
 
 
 import {
@@ -134,6 +137,7 @@ async function main() {
        @location(3) shadowPos: vec3<f32>) -> @location(0) vec4<f32> {
         
         let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
+        let diffuseColor:vec3<f32> = vec3<f32>(2.0, 2.0, 1.0);
 
         let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, fragUV)).rgb;
         
@@ -152,7 +156,7 @@ async function main() {
                     shadowMap, 
                     shadowSampler,
                     shadowPos.xy + offset, 
-                    shadowPos.z - 0.008  // apply a small bias to avoid acne
+                    shadowPos.z - 0.007  // apply a small bias to avoid acne
                 );
             }
         }
@@ -173,12 +177,28 @@ async function main() {
         let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
         let H:vec3<f32> = normalize(L + V);
       
-        let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
+        let diffuse:f32 = 1.0 * max(dot(N, L), 0.0);
         let specular = pow(max(dot(N, H),0.0),100.0);
         let ambient:vec3<f32> = vec3<f32>(0.1, 0.2, 0.3);
+
+        ///
+        let gamma = 2.2f;
+             
+        // // Алгоритм тональной компрессии Рейнхарда
+        // var mapped:vec3<f32> = (diffuseColor * diffuse)  / ((diffuseColor * diffuse) + vec3<f32>(1.0));
+
+        // Экспозиция тональной компрессии
+        let exposure = 0.5f;
+        var mapped:vec3<f32> =  vec3(1.0) - exp((diffuseColor * diffuse) * -exposure);
+     
+        // Гамма-коррекция
+        mapped = pow(mapped, vec3<f32>(1.0 / gamma));
+
+
       
-        let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (specularColor * specular * shadow); 
-        //let finalColor:vec3<f32> =    ( shadow * diffuse + ambient) + (specularColor * specular * shadow); ; 
+        let finalColor:vec3<f32> =  textureColor * ( shadow * mapped + ambient) + (specularColor * specular * shadow); 
+       // let finalColor:vec3<f32> =    ( shadow * (diffuseColor * diffuse) + ambient) + (specularColor * specular * shadow); 
+       // let finalColor:vec3<f32> =  textureColor * ( shadow * diffuse + ambient) + (specularColor * specular * shadow);  
              
         return vec4<f32>(finalColor, 1.0);
     }
@@ -557,7 +577,7 @@ async function main() {
   // Эта текстура будет использована для теста глубины при формировании тени.
   let shadowDepthTexture = device.createTexture({
     //size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-    size: [512, 512, 1],
+    size: [1024, 1024, 1],
     format: "depth24plus",
     usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
   });

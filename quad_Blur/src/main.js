@@ -459,6 +459,7 @@ const webGPU_Start = async () => {
     for (let i = 0; i < settings.iterations - 1; ++i) {
         
         computePass.setBindGroup(0, computeBindGroup1);
+
         computePass.dispatchWorkgroups(
             Math.ceil(imageBitmap.width / blockDim),
             Math.ceil(imageBitmap.height / 4));
