@@ -168,7 +168,7 @@ async function main() {
 
 
     //gltf
-    let gltf = await LoadJSONUsingPromise('/res/dog.gltf');
+    let gltf = await LoadJSONUsingPromise('/GLTF/res/dog.gltf');
     //gltf = JSON.parse(gltf);
     
     const gltfModel = new gltfLoader(device,gltf);

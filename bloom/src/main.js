@@ -47,7 +47,7 @@ const webGPU_Start = async () => {
 
     // ************* LOAD RESOURCE *************
     let CUBE = {};
-    await loadJSON(CUBE, '../../common/asset/models/Model.json'); //'.../res/Model.json'
+    await loadJSON(CUBE, './res/Model.json'); //'.../res/Model.json'
 
     const mesh = CUBE.mesh.meshes[0];
     const cube_vertex = new Float32Array(mesh.vertices);
@@ -62,7 +62,7 @@ const webGPU_Start = async () => {
     // const plane_normal = new Float32Array(plane.normals);
 
     let img = new Image();
-    img.src = '../../common/asset/texture/uv.jpg'; //'./tex/yachik.jpg';
+    img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
     await img.decode();
     
     const imageBitmap = await createImageBitmap(img);

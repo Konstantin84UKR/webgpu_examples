@@ -66,11 +66,17 @@ async function main() {
       
       // Move normal to view space
       var muv : vec2<f32> = (uniforms.vMatrix * vec4<f32>(normalize(vNormal), 0.0)).xy * 0.5 + vec2<f32>(0.5, 0.5);
+
+      if(muv.x > 0.99){
+        muv.x = 0.99;
+      } 
+      
       // read texture inverting Y value
       let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, 1.0 - muv.y))).rgb;
-      //return vec4<f32>(textureColor, 1.0);
-      //return vec4<f32>(vNormal, 1.0);
-
+         
+      
+      // return vec4<f32>( (uniforms.vMatrix * vec4<f32>(normalize(vNormal), 0.0)).xyz, 1.0);
+     
       if(is_front){
         return vec4<f32>(textureColor, 1.0);
       }else{
@@ -95,8 +101,8 @@ async function main() {
 
     //const meshGeometry = new RectangleGeometry(2,1,8,8);
     //const meshGeometry = new BoxGeometry(2,3,4,2,3,4);
-    const meshGeometry = new SphereGeometry(2,16,8,1,1,0,2);
-    //const meshGeometry = new SphereGeometry(2);
+    //const meshGeometry = new SphereGeometry(2,16,8,1,1,0,2);
+    const meshGeometry = new SphereGeometry(2);
  
     const cube_vertex = new Float32Array(meshGeometry.vertices);
     const cube_uv = new Float32Array(meshGeometry.uvs);
@@ -107,7 +113,7 @@ async function main() {
   
     const canvas = document.getElementById("canvas-webgpu");
     canvas.width = 640;
-    canvas.height = 480;
+    canvas.height = 640;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();

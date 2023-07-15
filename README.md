@@ -74,6 +74,8 @@ blur : https://konstantin84ukr.github.io/webgpu_examples/quad_Blur/
 
 bloom : https://konstantin84ukr.github.io/webgpu_examples/bloom/
 
+gltf : https://konstantin84ukr.github.io/webgpu_examples/GLTF/
+
 
 
 
