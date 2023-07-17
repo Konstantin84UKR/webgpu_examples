@@ -70,12 +70,12 @@ normalMap : https://konstantin84ukr.github.io/webgpu_examples/normalMap/
 
 PBR : https://konstantin84ukr.github.io/webgpu_examples/PBR/
 
+PBR 2 : https://konstantin84ukr.github.io/webgpu_examples/PBR_test/
+
 blur : https://konstantin84ukr.github.io/webgpu_examples/quad_Blur/
 
 bloom : https://konstantin84ukr.github.io/webgpu_examples/bloom/
 
 gltf : https://konstantin84ukr.github.io/webgpu_examples/GLTF/
 
-
-
-
+deferredRendering : https://konstantin84ukr.github.io/webgpu_examples/deferredRendering/

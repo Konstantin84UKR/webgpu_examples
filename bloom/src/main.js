@@ -511,8 +511,8 @@ const webGPU_Start = async () => {
     });
 
     const settings = {
-        filterSize: 20,
-        iterations: 2,
+        filterSize: 12,
+        iterations: 4,
     };
 
     const tileDim = 128;
@@ -680,20 +680,29 @@ const webGPU_Start = async () => {
             var color:vec3<f32> = (textureSample(myTexture, mySampler, fragUV)).rgb;
             var colorBloom:vec3<f32> = (textureSample(myTextureBloom, mySampler, fragUV)).rgb;
              
-            var finalColor:vec3<f32> = vec3<f32>( 
-                                                color.x + colorBloom.x,
-                                                color.y + colorBloom.y,
-                                                color.z + colorBloom.z,
-                                                );
+            // var finalColor:vec3<f32> = vec3<f32>( 
+            //                                     color.x + colorBloom.x,
+            //                                     color.y + colorBloom.y,
+            //                                     color.z + colorBloom.z,
+            //                                     );
            
 
             // // Экспозиция тональной компрессии
-            // let exposure = 1.0f;
-            // var mapped:vec3<f32> =  vec3(1.0) - exp(finalColor * -exposure);
+            let exposure = 0.3f;
+            //var mapped:vec3<f32> =  vec3(1.0) - exp(finalColor * -exposure);
+
+            var mapped:vec3<f32> =  vec3(1.0) - exp(colorBloom * -exposure);
           
             // Гамма-коррекция
-            // let gamma = 2.2f;
-            // mapped = pow(mapped, vec3<f32>(1.0 / gamma));
+            let gamma = 2.2f;
+            mapped = pow(mapped, vec3<f32>(1.0 / gamma));
+
+
+            var finalColor:vec3<f32> = vec3<f32>( 
+                color.x + mapped.x,
+                color.y + mapped.y,
+                color.z + mapped.z,
+                );
 
             return  vec4<f32>(finalColor, 1.0);
 
