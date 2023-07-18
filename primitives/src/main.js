@@ -124,6 +124,8 @@ async function main() {
   const thetaLength = Math.PI * 2;
   const meshGeometry = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
 
+  //const meshGeometry = new BoxGeometry(4, 4, 6, 2, 2, 2);
+
    const cube_vertex = new Float32Array(meshGeometry.vertices);
    const cube_uv = new Float32Array(meshGeometry.uvs);
    const cube_normal = new Float32Array(meshGeometry.normals);
