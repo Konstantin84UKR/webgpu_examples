@@ -29,6 +29,9 @@ const webGPU_Start = async () => {
     }
 
     const canvas = document.querySelector('#canvas-webgpu'); // получаем канвас
+    canvas.width = 1200;
+    canvas.height = 800;
+    
     const adapter = await navigator.gpu.requestAdapter(); // получаем физическое устройство ГПУ
     const device = await adapter.requestDevice(); // Получаем логическое устройство ГПУ
     const context = canvas.getContext("webgpu"); // Контекст Канваса

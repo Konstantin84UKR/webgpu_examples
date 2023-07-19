@@ -12,6 +12,8 @@ const webGPU_Start = async () => {
     }
 
     const canvas = document.querySelector('#canvas-webgpu'); // получаем канвас
+    canvas.width = 800;
+    canvas.height= 800;
 
     // WebGPU device initialization
     if (!navigator.gpu) {

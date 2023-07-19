@@ -78,6 +78,9 @@ const webGPU_Start = async () => {
     }
 
     const canvas = document.querySelector('#canvas-webgpu'); // получаем канвас
+    canvas.width = 800;
+    canvas.height = 800;
+
     const adapter = await navigator.gpu.requestAdapter(); // получаем физическое устройство ГПУ
     const device = await adapter.requestDevice(); // Получаем логическое устройство ГПУ
     const context = canvas.getContext("webgpu"); // Контекст Канваса
@@ -355,8 +358,8 @@ const webGPU_Start = async () => {
 
     let mouse = { x: -2, y: 2 };
     canvas.onmousemove = (event) => {
-        mouse.x = (event.layerX / 640) * 2.0 - 1.0;
-        mouse.y = ((event.layerY / 640) * 2.0 - 1.0) * -1.0;
+        mouse.x = (event.layerX / canvas.width) * 2.0 - 1.0;
+        mouse.y = ((event.layerY / canvas.height) * 2.0 - 1.0) * -1.0;
     };
 
     function updateInputParams() {

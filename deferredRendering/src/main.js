@@ -576,8 +576,8 @@ async function initPipeline(device, canvas, format, uBiffers, shader, texture, s
 async function main() {
 
   const canvas = document.getElementById("canvas-webgpu");
-  canvas.width = 400;
-  canvas.height = 400;
+  canvas.width = 1200;
+  canvas.height = 800;
 
   const { device, context, format, size,} = await initWebGPU(canvas);
   //---------------------------------------------------
