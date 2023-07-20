@@ -31,6 +31,7 @@ async function loadJSON(result,modelURL) {
 async function LoadJSONUsingPromise(URL) {
 
   let response = await fetch(URL).then(response=>{
+    //console.log(response.json());
     return response.json();
   });
   
@@ -168,7 +169,9 @@ async function main() {
 
 
     //gltf
-    let gltf = await LoadJSONUsingPromise('./res/dog.gltf');
+    //let gltf = await LoadJSONUsingPromise('./res/dog.gltf');
+    let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
+    //let gltf = await LoadJSONUsingPromise('./res/monky.gltf');
     //gltf = JSON.parse(gltf);
     
     const gltfModel = new gltfLoader(device,gltf);
