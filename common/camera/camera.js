@@ -76,6 +76,11 @@ export class Camera {
         this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);
         this.vMatrix = mat4.lookAt(this.eye, this.look, this.up);
 
+        this.vMatrixRotOnly = mat4.copy(this.vMatrix);
+        this.vMatrixRotOnly[12] = 0;
+        this.vMatrixRotOnly[13] = 0;
+        this.vMatrixRotOnly[14] = 0;
+
         // this.front = mat4.getAxis(this.vMatrix, 2);
         // this.updateCameraVectors();
 

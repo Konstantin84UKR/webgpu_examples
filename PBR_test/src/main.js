@@ -276,7 +276,7 @@ async function main() {
         let specular:vec3<f32> = numerator / max (denominator,.001);
         
         let NdotL:f32 = max(dot(N,L),0.);
-        let ambient:vec3<f32> = vec3<f32>(0.1, 0.2, 0.3) * 0.03; // No PBR
+        let ambient:vec3<f32> = vec3<f32>(0.1, 0.2, 0.3) * 0.0; // No PBR
         let Lo:vec3<f32> = (kD * (textureBaseColor * shadow * texturAO )/ PI + (specular * shadow) + ambient) * radiance * NdotL;
 
 
@@ -336,8 +336,8 @@ async function main() {
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 1200;
-    canvas.height = 800;
+    canvas.width = 1200 * 1.0;
+    canvas.height = 800 * 1.0;
 
     // Получаем данные о физическом утсройстве ГПУ
     const adapter = await navigator.gpu.requestAdapter();
@@ -902,11 +902,11 @@ const generateMips = (() => {
 // const texture_METALLIC =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-metal.png', {mips: true, flipY: false});
 // const texture_AO =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-ao.png', {mips: true, flipY: false});
 
-// const texture =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_albedo.png', {mips: true, flipY: false});
-// const texture_NORMAL =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_normal-ogl.png', {mips: true, flipY: false});
-// const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_roughness.png', {mips: true, flipY: false});
-// const texture_METALLIC =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_metallic.png', {mips: true, flipY: false});
-// const texture_AO =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_ao.png', {mips: true, flipY: false});
+const texture =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_albedo.png', {mips: true, flipY: false});
+const texture_NORMAL =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_normal-ogl.png', {mips: true, flipY: false});
+const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_roughness.png', {mips: true, flipY: false});
+const texture_METALLIC =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_metallic.png', {mips: true, flipY: false});
+const texture_AO =  await createTextureFromImage(device,'./res/rusted-steel-bl/rusted-steel_ao.png', {mips: true, flipY: false});
 
 // const texture =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-albedo.png', {mips: true, flipY: false});
 // const texture_NORMAL =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-normal.png', {mips: true, flipY: false});
@@ -914,11 +914,11 @@ const generateMips = (() => {
 // const texture_METALLIC =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-metal.png', {mips: true, flipY: false});
 // const texture_AO =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-ao.png', {mips: true, flipY: false});
 
-const texture =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_albedo.png', {mips: true, flipY: false});
-const texture_NORMAL =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_normal-ogl.png', {mips: true, flipY: false});
-const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_roughness.png', {mips: true, flipY: false});
-const texture_METALLIC =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_metallic.png', {mips: true, flipY: false});
-const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_ao.png', {mips: true, flipY: false});
+// const texture =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_albedo.png', {mips: true, flipY: false});
+// const texture_NORMAL =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_normal-ogl.png', {mips: true, flipY: false});
+// const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_roughness.png', {mips: true, flipY: false});
+// const texture_METALLIC =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_metallic.png', {mips: true, flipY: false});
+// const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_ao.png', {mips: true, flipY: false});
 
 
     
@@ -1046,7 +1046,7 @@ const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-sidi
       colorAttachments: [
         {
           view: undefined,
-          clearValue: {r: 0.3, g: 0.4, b: 0.5, a: 1.0 },
+          clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
           loadOp: 'clear',
           storeOp: "store", //ХЗ
         },],

@@ -1,5 +1,6 @@
-
-import * as Matrix from "./gl-matrix.js";
+import {
+  mat4, vec3,
+} from './wgpu-matrix.module.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -43,6 +44,7 @@ async function main() {
            
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
+            output.vPosition = uniforms.mMatrix * pos;
             output.vUV = uv;
             output.vNormal   =  uniforms.mMatrix * vec4<f32>(normal,1.0);
 
@@ -54,16 +56,60 @@ async function main() {
       @binding(1) @group(0) var textureSampler : sampler;
       @binding(2) @group(0) var textureData : texture_2d<f32>;   
 
+      const PI : f32 = 3.1415926535897932384626433832795;  
+
       struct Uniforms {
         eyePosition : vec4<f32>,
         lightPosition : vec4<f32>,       
       };
       @binding(3) @group(0) var<uniform> uniforms : Uniforms;
 
+      fn lin2rgb(lin: vec3<f32>) -> vec3<f32>{
+        return pow(lin, vec3<f32>(1.0/2.2));
+      }
+
+      fn rgb2lin(rgb: vec3<f32>) -> vec3<f32>{
+        return pow(rgb, vec3<f32>(2.2));
+      }
+    
+      fn brdfPhong(lighDir: vec3<f32>, 
+        viewDir: vec3<f32>, 
+        halfDir: vec3<f32>, 
+        normal: vec3<f32>,
+        phongDiffuseColor: vec3<f32>,
+        phongSpecularColor: vec3<f32>,
+        phongShiniess:f32) -> vec3<f32>{
+        
+        var color : vec3<f32> =  phongDiffuseColor; 
+        let specDot : f32 = max(dot(normal, halfDir),0.0);
+        color +=  pow(specDot, phongShiniess) * phongSpecularColor;
+        return color;  
+      }
+
+      fn modifiedPhongBRDF(lighDir: vec3<f32>, 
+        viewDir: vec3<f32>, 
+        halfDir: vec3<f32>, 
+        normal: vec3<f32>,
+        phongDiffuseColor: vec3<f32>,
+        phongSpecularColor: vec3<f32>,
+        phongShininess:f32) -> vec3<f32>{
+        
+        var color : vec3<f32> =  phongDiffuseColor / PI; 
+        let specDot : f32 = max(dot(normal, halfDir),0.0);
+        let normalization = (phongShininess + 2.0) / (2.0 * PI);
+        color +=  pow(specDot, phongShininess) * normalization * phongSpecularColor;
+        return color;  
+      }
+      
       @fragment
       fn main(@location(0) vPosition: vec4<f32>, @location(1) vUV: vec2<f32>, @location(2) vNormal:  vec4<f32>) -> @location(0) vec4<f32> {
         
         let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
+        let diffuseColor:vec3<f32> = vec3<f32>(0.25, 0.5, 0.2);
+        let lightColor:vec3<f32> = vec3<f32>(0.6, 0.7, 0.8);
+        let ambientColor:vec3<f32> = vec3<f32>(0.1, 0.1, 0.15);
+        let shiniess = 100.0;
+        let flux = 10.0;
 
         let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vUV)).rgb;
       
@@ -71,14 +117,24 @@ async function main() {
         let L:vec3<f32> = normalize((uniforms.lightPosition).xyz - vPosition.xyz);
         let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - vPosition.xyz);
         let H:vec3<f32> = normalize(L + V);
-      
-        let diffuse:f32 = 0.8 * max(dot(N, L), 0.0);
-        let specular = pow(max(dot(N, H),0.0),50.0);
-        let ambient:vec3<f32> = vec3<f32>(0.1, 0.1, 0.1);
-      
-        let finalColor:vec3<f32> =  textureColor * (diffuse + ambient) + specularColor * specular; 
-             
-        return vec4<f32>(finalColor, 1.0);
+           
+
+        let distlight = distance((uniforms.lightPosition).xyz, vPosition.xyz);     
+        let R = length((uniforms.lightPosition).xyz - vPosition.xyz);               
+    
+        let ambient : vec3<f32> = rgb2lin(textureColor.rgb) * rgb2lin(ambientColor.rgb);
+
+        let irradiance = flux / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight       
+        //let irradiance : f32 = 1.0 * max(dot(N, L), 0.0); // sun
+
+        let brdf = brdfPhong(L,V,H,N, rgb2lin(textureColor), rgb2lin(specularColor),shiniess);
+
+        var radiance = brdf * irradiance * rgb2lin(lightColor.rgb) + ambient;
+
+        let finalColor:vec3<f32> =  vec3<f32>(L.x,L.y,L.z); 
+       
+       // return vec4<f32>(finalColor, 1.0);            
+        return vec4<f32>(lin2rgb(radiance), 1.0);
     }
     `,
     };
@@ -130,19 +186,18 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX = glMatrix.mat4.create(); 
-    let PROJMATRIX = glMatrix.mat4.create();
-    //let NORMALMATRIX = glMatrix.mat4.create();
+    let MODELMATRIX = mat4.identity();;
+    let VIEWMATRIX = mat4.identity();; 
+    let PROJMATRIX = mat4.identity();;
+  
+    let eyePosition = [0.0, 1.0, 10.0];
     
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    VIEWMATRIX =  mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
-    glMatrix.mat4.identity(PROJMATRIX);
     let fovy = 40 * Math.PI / 180;
-    glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
+    PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
-    let eyePosition = [0.0, 0.0, 1.0];
-    let lightPosition = new Float32Array([0.0, 1.0, 1.0]);
+    let lightPosition = new Float32Array([0.0, 0.0, 1.0, 1.0]);
 
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
@@ -335,7 +390,7 @@ async function main() {
     device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
     //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
 
-    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition));
+    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition,1.0));
     device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
 
 
@@ -375,22 +430,23 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002);
-      glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.0001);
-
-      
+      // MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0002);
+            
       // glMatrix.mat4.identity(NORMALMATRIX);
       // glMatrix.mat4.invert(NORMALMATRIX,MODELMATRIX);
       // glMatrix.mat4.transpose(NORMALMATRIX,NORMALMATRIX);
-
+      lightPosition[0] = (Math.sin(time * 0.001) - 0.5) * 4.0; 
+      //lightPosition[1] = (Math.sin(time * 0.001) - 0.5) * 2.0; 
+      //lightPosition[0] = 0;
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
       // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
      //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
-    
+      device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
 
 
       const commandEncoder = device.createCommandEncoder();

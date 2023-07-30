@@ -64,11 +64,11 @@ export const shaderDeferredRendering = {
         vec3<f32>(0.0, 5.0, 0.0)
         );
 
-        const lightColorArray : array<vec3<f32>, 3> = array<vec3<f32>, 3>(
+      const lightColorArray : array<vec3<f32>, 3> = array<vec3<f32>, 3>(
           vec3<f32>(0.0, 0.0, 1.0),
           vec3<f32>(1.0, 0.0, 0.0),
           vec3<f32>(0.0, 1.0, 0.0)
-       );
+      );
 
       @fragment
       fn main(@builtin(position) coord : vec4<f32>, @location(0) fragUV : vec2<f32>)
@@ -94,17 +94,13 @@ export const shaderDeferredRendering = {
         ).xyz;
         
         let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
-        //let diffuseColor:vec3<f32> = vec3<f32>(0.0, 0.5, 1.0);
-        // let diffuseColor:vec3<f32> = vec3<f32>(1.0, 0.5, 0.0);
-        // let diffuseColor:vec3<f32> = vec3<f32>(0.0, 0.1, 0.0);
-
-
+      
         let bufferSize = textureDimensions(gBufferDepth);
         let coordUV = coord.xy / vec2<f32>(bufferSize);
         let fragPosition = world_from_screen_coord(coordUV, depth);
   
         
-          var finalColor:vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
+        var finalColor:vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
 
         for (var i = 0; i < 3; i++) {
            
@@ -112,12 +108,19 @@ export const shaderDeferredRendering = {
             let L:vec3<f32> = normalize((lightPositionArray[i]).xyz - fragPosition.xyz);
             let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
             let H:vec3<f32> = normalize(L + V);
+
+            // let incident:vec3<f32> = (lightPositionArray[i]).xyz - fragPosition.xyz;
+            // let dist:f32 = length(incident);
+            // var light = dot(normal, incident/dist);
+            // light *= smoothstep(0., light, dist);
+
           
-            let diffuse:f32 = 1.0 * max(dot(N, L), 0.0);
+            let diffuse:f32 = 0.5 * max(dot(N, L), 0.0);
             let specular = pow(max(dot(N, H),0.0),100.0);
             let ambient:vec3<f32> = vec3<f32>(0.1, 0.1, 0.1);
       
             finalColor += albedo * ( (lightColorArray[i] * diffuse) + ambient) + (specularColor * specular ); 
+           // finalColor += 1.0 * ( (lightColorArray[i] * diffuse) + ambient) + (specularColor * specular ); 
         }
         
         

@@ -46,7 +46,7 @@ export class gltfLoader {
                                 const accessorIndex = primitiv['attributes'][attribute];
                                 const accessor = this.accessors[accessorIndex];
                                 const bufferView = this.bufferViews[accessor.bufferView];
-                                const gpuBufferData = this.createVertexBufferForBufferView(bufferView, true);
+                                const gpuBufferData = this.createVertexBufferForBufferView(bufferView, false);
 
                                 mesh.data['attribute_' + attribute] = {
                                     accessor, gpuBufferData
@@ -58,7 +58,7 @@ export class gltfLoader {
                             const accessorIndex = primitiv[primitivName];
                             const accessor = this.accessors[accessorIndex]; 
                             const bufferView = this.bufferViews[accessor.bufferView];
-                            const gpuBufferData = this.createVertexBufferForBufferView(bufferView, false);
+                            const gpuBufferData = this.createVertexBufferForBufferView(bufferView, true);
                             const indexCount = accessor.count;
                             mesh.data['indices_' + primitivName] = {
                                 accessor, gpuBufferData, indexCount
@@ -74,13 +74,11 @@ export class gltfLoader {
     }
 
 
-
-
     /////////////////////////////////////////////////////////
-    createVertexBufferForBufferView(bufferView, IND) {
+    createVertexBufferForBufferView(bufferView, INDEX) {
         const buffer = this.getArrayBufferForGltfBuffer(bufferView.buffer);
 
-        if (IND == false) {
+        if (INDEX == true) {
             const gpuBuffer = this.device.createBuffer({
                 size: Math.ceil(bufferView.byteLength / 4) * 4,
                 usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
@@ -89,7 +87,7 @@ export class gltfLoader {
 
             const gpuBufferArray = new Uint8Array(gpuBuffer.getMappedRange());
             gpuBufferArray.set(new Uint8Array(buffer, bufferView.byteOffset, bufferView.byteLength));
-            gpuBuffer.unmap()
+            gpuBuffer.unmap();
 
             return gpuBuffer;
         } else {
@@ -101,15 +99,12 @@ export class gltfLoader {
 
             const gpuBufferArray = new Uint8Array(gpuBuffer.getMappedRange());
             gpuBufferArray.set(new Uint8Array(buffer, bufferView.byteOffset, bufferView.byteLength));
-            gpuBuffer.unmap()
+            gpuBuffer.unmap();
 
             return gpuBuffer;
         }
-
-
-
-
     }
+
     _base64ToArrayBuffer(base64) {
         var binary_string = window.atob(base64);
         var len = binary_string.length;
@@ -119,6 +114,7 @@ export class gltfLoader {
         }
         return bytes.buffer;
     }
+
     getArrayBufferForGltfBuffer(bufferIndex) {
 
         const buffer_STRING = this.gltf.buffers[bufferIndex];

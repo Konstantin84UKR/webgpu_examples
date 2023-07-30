@@ -169,13 +169,13 @@ async function main() {
 
 
     //gltf
-    //let gltf = await LoadJSONUsingPromise('./res/dog.gltf');
-    let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
+    let gltf = await LoadJSONUsingPromise('./res/dog.gltf');
+    //let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
     //let gltf = await LoadJSONUsingPromise('./res/monky.gltf');
     //gltf = JSON.parse(gltf);
     
     const gltfModel = new gltfLoader(device,gltf);
-    console.log(gltfModel.gltf);
+    // console.log(gltfModel.gltf);
 
 
     gltfModel.getMesh();
@@ -403,9 +403,9 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
