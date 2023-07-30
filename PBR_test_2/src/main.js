@@ -373,7 +373,7 @@ async function main() {
   //---------------------------------------------------
  //gltf
  //dog //bunny // monky
- let gltf = await LoadJSONUsingPromise('../../common/asset/models/bunny.gltf');
+ let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
 
  const gltfModel = new gltfLoader(device,gltf);
  console.log(gltfModel.gltf);
