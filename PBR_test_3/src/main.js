@@ -70,7 +70,7 @@ async function main() {
   //---INIT WEBGPU
 
   const canvas = document.getElementById("canvas-webgpu");
-  const scaleCanvas = 1.3;
+  const scaleCanvas = 1.0;
   canvas.width = 1200 * scaleCanvas;
   canvas.height = 800 * scaleCanvas;
 
@@ -332,7 +332,7 @@ async function main() {
       
         let distance:f32 = length((uniforms.lightPosition).xyz - fragPosition.xyz);
         let attenuation:f32 = 1./(distance*distance);
-        let radiance:vec3<f32> = sourceDiffuseColor * 0.0;  //       
+        let radiance:vec3<f32> = sourceDiffuseColor * 0.5;  //       
         
         let NdotL:f32 = max(dot(N,L),0.);                 
         let irradiance : f32 = NdotL * 0.0; //NdotL * irradiPerp
@@ -373,12 +373,12 @@ async function main() {
         let MAX_REFLECTION_LOD : f32 = 5.0;
         let R : vec3<f32> = reflect(-V,N);
         let kS_IBL : vec3<f32> = fresnelSchlickRoughness(max(dot(N,V),.0),F0, texturRoughness.r);
-        var kD_IBL : vec3<f32> = kS_IBL; //vec3<f32>(1.0) - kS_IBL;
+        var kD_IBL : vec3<f32> = vec3<f32>(1.0) - kS_IBL; //vec3<f32>(1.0) - kS_IBL;
         kD_IBL *= 1.0 - texturMetallic;
         let irradiance_IBL: vec3<f32> = vec3(0.0);
         
         let IBLColor : vec3<f32> = (textureSample(IBLTexture, IBLSampler, N)).rgb;  
-        let skyBoxColorPrefilteredColor : vec3<f32> = (textureSampleLevel(skyBoxTexture, skyBoxSampler, N , 0)).rgb;  
+        let skyBoxColorPrefilteredColor : vec3<f32> = (textureSampleLevel(skyBoxTexture, skyBoxSampler, N , 1)).rgb;  
        
         let uvLUT : vec2<f32> = vec2<f32>(max(dot(V,N),.001), texturRoughness.r).rg;
         let brdfLUT : vec2<f32> = (textureSample(brdfLUT, textureSampler, uvLUT)).rg;  
@@ -389,7 +389,7 @@ async function main() {
              
         //-------------------------
         //let finalColor : vec3<f32> = Lo + textureBaseColor * IBLColor * 0.5; //radiance   
-        let finalColor : vec3<f32> = Lo + textureBaseColor * Lo_IBL * 5.0; //radiance       
+        let finalColor : vec3<f32> = Lo + textureBaseColor * Lo_IBL * 0.5; //radiance       
         return vec4<f32>(lin2rgb(finalColor), 1.0);
     }
     `,
@@ -490,7 +490,9 @@ async function main() {
                       @location(1) fragPosition: vec4<f32>) -> @location(0) vec4<f32> {
            
                 var cubemapVec = fragPosition.xyz;
-                return textureSample(myTexture, mySampler, cubemapVec);
+                //return textureSample(myTexture, mySampler, cubemapVec);
+                return textureSampleLevel(myTexture, mySampler, cubemapVec, 1);
+                
           }
           `,
           };
@@ -633,6 +635,15 @@ async function main() {
         //TEXTURE 
         //Создаем картинку и загрудаем в нее данные из файла
         
+        // const imgSrcs = [
+        //   './res/tex/32_32/nx.png',
+        //   './res/tex/32_32/px.png',
+        //   './res/tex/32_32/py.png',
+        //   './res/tex/32_32/ny.png',
+        //   './res/tex/32_32/pz.png',
+        //   './res/tex/32_32/nz.png'
+        // ];
+
         const imgSrcs = [
           './res/tex/32_32/nx.png',
           './res/tex/32_32/px.png',
@@ -669,6 +680,7 @@ async function main() {
         const imageBitmapsSkyBox = await Promise.all(promisesSkyBox);
   
         // Создаем саму текстуру
+        //const texture_CUBEMAP = await createCubeTextureFromImage(device, imgSrcsSkyBox ,{ mips: true, flipY: false });
         const texture_CUBEMAP = device.createTexture({
           size: [imageBitmapsSkyBox[0].width, imageBitmapsSkyBox[0].height, 6], //??
           format: 'rgba8unorm',
@@ -996,11 +1008,11 @@ async function main() {
   // const texture_METALLIC =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-metal.png', {mips: true, flipY: false});
   // const texture_AO =  await createTextureFromImage(device,'./res/pbr3/copper-rock1-ao.png', {mips: true, flipY: false});
 
-  const texture = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_albedo.png', { mips: true, flipY: false });
-  const texture_NORMAL = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_normal-ogl.png', { mips: true, flipY: false });
-  const texture_ROUGHNESS = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_roughness.png', { mips: true, flipY: false });
-  const texture_METALLIC = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_metallic.png', { mips: true, flipY: false });
-  const texture_AO = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_ao.png', { mips: true, flipY: false });
+  // const texture = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_albedo.png', { mips: true, flipY: false });
+  // const texture_NORMAL = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_normal-ogl.png', { mips: true, flipY: false });
+  // const texture_ROUGHNESS = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_roughness.png', { mips: true, flipY: false });
+  // const texture_METALLIC = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_metallic.png', { mips: true, flipY: false });
+  // const texture_AO = await createTextureFromImage(device, './res/rusted-steel-bl/rusted-steel_ao.png', { mips: true, flipY: false });
 
   // const texture =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-albedo.png', {mips: true, flipY: false});
   // const texture_NORMAL =  await createTextureFromImage(device,'./res/bamboo-wood-semigloss-bl/bamboo-wood-semigloss-normal.png', {mips: true, flipY: false});
@@ -1014,11 +1026,11 @@ async function main() {
   // const texture_METALLIC =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_metallic.png', {mips: true, flipY: false});
   // const texture_AO =  await createTextureFromImage(device,'./res/worn-factory-siding-bl/worn-factory-siding_ao.png', {mips: true, flipY: false});
 
-  // const texture =  await createTextureFromImage(device,'./res/plastic/albedo.png', {mips: true, flipY: false});
-  // const texture_NORMAL =  await createTextureFromImage(device,'./res/plastic/normal.png', {mips: true, flipY: false});
-  // const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/plastic/roughness.png', {mips: true, flipY: false});
-  // const texture_METALLIC =  await createTextureFromImage(device,'./res/plastic/metallic.png', {mips: true, flipY: false});
-  // const texture_AO =  await createTextureFromImage(device,'./res/plastic/ao.png', {mips: true, flipY: false});
+  const texture =  await createTextureFromImage(device,'./res/plastic/albedo.png', {mips: true, flipY: false});
+  const texture_NORMAL =  await createTextureFromImage(device,'./res/plastic/normal.png', {mips: true, flipY: false});
+  const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/plastic/roughness.png', {mips: true, flipY: false});
+  const texture_METALLIC =  await createTextureFromImage(device,'./res/plastic/metallic.png', {mips: true, flipY: false});
+  const texture_AO =  await createTextureFromImage(device,'./res/plastic/ao.png', {mips: true, flipY: false});
 
   // const texture =  await createTextureFromImage(device,'./res/pbr_gold/basecolor_boosted.png', {mips: true, flipY: false});
   // const texture_NORMAL =  await createTextureFromImage(device,'./res/pbr_gold/normal.png', {mips: true, flipY: false});
@@ -1121,24 +1133,24 @@ async function main() {
 
    // Создаем саму текстуру
    
-   const texture_CUBEMAP_PBR = await createCubeTextureFromImage(device,imgSrcsSkyBox,{ mips: true, flipY: false });
-  //  const texture_CUBEMAP_PBR = device.createTexture({
-  //   size: [imageBitmapsSkyBox[0].width, imageBitmapsSkyBox[0].height, 6], //??
-  //   format: 'rgba8unorm',
-  //   usage: GPUTextureUsage.TEXTURE_BINDING |
-  //     GPUTextureUsage.COPY_DST |
-  //     GPUTextureUsage.RENDER_ATTACHMENT,
-  //   dimension: '2d',
-  // });
+   //const texture_CUBEMAP_PBR = await createCubeTextureFromImage(device,imgSrcs,{ mips: true, flipY: false });
+   const texture_CUBEMAP_PBR = device.createTexture({
+    size: [imageBitmapsSkyBox[0].width, imageBitmapsSkyBox[0].height, 6], //??
+    format: 'rgba8unorm',
+    usage: GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.RENDER_ATTACHMENT,
+    dimension: '2d',
+  });
 
-  // //передаем данные о текстуре и данных текстуры в очередь
-  // for (let i = 0; i < imageBitmapsSkyBox.length; i++) {
-  //   const imageBitmap = imageBitmapsSkyBox[i];
-  //   device.queue.copyExternalImageToTexture(
-  //   { source: imageBitmap },
-  //   { texture: texture_CUBEMAP_PBR, origin: [0, 0, i] },
-  //   [imageBitmap.width, imageBitmap.height]);
-  // }
+  //передаем данные о текстуре и данных текстуры в очередь
+  for (let i = 0; i < imageBitmapsSkyBox.length; i++) {
+    const imageBitmap = imageBitmapsSkyBox[i];
+    device.queue.copyExternalImageToTexture(
+    { source: imageBitmap },
+    { texture: texture_CUBEMAP_PBR, origin: [0, 0, i] },
+    [imageBitmap.width, imageBitmap.height]);
+  }
 
      // Создаем саму текстуру
      const texture_IBL_PBR = device.createTexture({
@@ -1291,21 +1303,21 @@ async function main() {
     const renderPassShadow = commandEncoder.beginRenderPass(renderPassDescriptionShadow);
     renderPassShadow.setPipeline(shadowPipeline);
 
-    renderPassShadow.setVertexBuffer(0, plane_vertexBuffer);
-    renderPassShadow.setVertexBuffer(1, plane_uvBuffer);
-    renderPassShadow.setVertexBuffer(2, plane_normalBuffer);
-    renderPassShadow.setVertexBuffer(3, planeTangentBuffer);
-    renderPassShadow.setIndexBuffer(plane_indexBuffer, "uint32");
-    renderPassShadow.setBindGroup(0, shadowGroup);
-    renderPassShadow.drawIndexed(meshIndexData.length);
-
-    // renderPassShadow.setVertexBuffer(0, vertexBufferGLTF);
-    // renderPassShadow.setVertexBuffer(1, uvBufferGLTF);
-    // renderPassShadow.setVertexBuffer(2, normalBufferGLTF);
-    // renderPassShadow.setVertexBuffer(3, tangentBufferGLTF);
-    // renderPassShadow.setIndexBuffer(indexBufferGLTF, "uint16");
+    // renderPassShadow.setVertexBuffer(0, plane_vertexBuffer);
+    // renderPassShadow.setVertexBuffer(1, plane_uvBuffer);
+    // renderPassShadow.setVertexBuffer(2, plane_normalBuffer);
+    // renderPassShadow.setVertexBuffer(3, planeTangentBuffer);
+    // renderPassShadow.setIndexBuffer(plane_indexBuffer, "uint32");
     // renderPassShadow.setBindGroup(0, shadowGroup);
-    // renderPassShadow.drawIndexed(modelBufferData.indices_indices.indexCount);
+    // renderPassShadow.drawIndexed(meshIndexData.length);
+
+    renderPassShadow.setVertexBuffer(0, vertexBufferGLTF);
+    renderPassShadow.setVertexBuffer(1, uvBufferGLTF);
+    renderPassShadow.setVertexBuffer(2, normalBufferGLTF);
+    renderPassShadow.setVertexBuffer(3, tangentBufferGLTF);
+    renderPassShadow.setIndexBuffer(indexBufferGLTF, "uint16");
+    renderPassShadow.setBindGroup(0, shadowGroup);
+    renderPassShadow.drawIndexed(modelBufferData.indices_indices.indexCount);
 
     renderPassShadow.end();
 
@@ -1317,27 +1329,27 @@ async function main() {
     renderPass.setPipeline(pipeline);
 
     
-    renderPass.setVertexBuffer(0, plane_vertexBuffer);
-    renderPass.setVertexBuffer(1, plane_uvBuffer);
-    renderPass.setVertexBuffer(2, plane_normalBuffer);
-    renderPass.setVertexBuffer(3, planeTangentBuffer);
-    renderPass.setIndexBuffer(plane_indexBuffer, "uint32");
-    renderPass.setBindGroup(0, uniformBindGroup);
-    renderPass.setBindGroup(1, uniformBindGroup1);
-    renderPass.setBindGroup(2, uniformBindGroup_IBL_PBR);
-    renderPass.setBindGroup(3, uniformBindGroup_CUBEMAP_PBR);
-    renderPass.drawIndexed(meshIndexData.length);
-
-    // renderPass.setVertexBuffer(0, vertexBufferGLTF);
-    // renderPass.setVertexBuffer(1, uvBufferGLTF);
-    // renderPass.setVertexBuffer(2, normalBufferGLTF);
-    // renderPass.setVertexBuffer(3, tangentBufferGLTF);
-    // renderPass.setIndexBuffer(indexBufferGLTF, "uint16");
+    // renderPass.setVertexBuffer(0, plane_vertexBuffer);
+    // renderPass.setVertexBuffer(1, plane_uvBuffer);
+    // renderPass.setVertexBuffer(2, plane_normalBuffer);
+    // renderPass.setVertexBuffer(3, planeTangentBuffer);
+    // renderPass.setIndexBuffer(plane_indexBuffer, "uint32");
     // renderPass.setBindGroup(0, uniformBindGroup);
     // renderPass.setBindGroup(1, uniformBindGroup1);
     // renderPass.setBindGroup(2, uniformBindGroup_IBL_PBR);
     // renderPass.setBindGroup(3, uniformBindGroup_CUBEMAP_PBR);
-    // renderPass.drawIndexed(modelBufferData.indices_indices.indexCount);
+    // renderPass.drawIndexed(meshIndexData.length);
+
+    renderPass.setVertexBuffer(0, vertexBufferGLTF);
+    renderPass.setVertexBuffer(1, uvBufferGLTF);
+    renderPass.setVertexBuffer(2, normalBufferGLTF);
+    renderPass.setVertexBuffer(3, tangentBufferGLTF);
+    renderPass.setIndexBuffer(indexBufferGLTF, "uint16");
+    renderPass.setBindGroup(0, uniformBindGroup);
+    renderPass.setBindGroup(1, uniformBindGroup1);
+    renderPass.setBindGroup(2, uniformBindGroup_IBL_PBR);
+    renderPass.setBindGroup(3, uniformBindGroup_CUBEMAP_PBR);
+    renderPass.drawIndexed(modelBufferData.indices_indices.indexCount);
 
     // CUBEMAP
     renderPass.setPipeline(pipeline_CUBEMAP);

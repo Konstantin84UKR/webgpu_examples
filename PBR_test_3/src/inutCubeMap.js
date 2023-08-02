@@ -185,6 +185,8 @@ export async function initCubeMap(device,context,canvas,format){
           './res/tex/32_32/pz.png',
           './res/tex/32_32/nz.png'
         ];
+
+      
        
         const promises = imgSrcs.map(async (src) => {
           let img = new Image();

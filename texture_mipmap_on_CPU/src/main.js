@@ -38,6 +38,7 @@ async function main() {
       @fragment
       fn main(@location(0) vUV: vec2<f32>) -> @location(0) vec4<f32> {
       let textureColor:vec3<f32> = (textureSample(textureData, Sampler, vUV)).rgb;
+      //let textureColor:vec3<f32> = (textureSampleLevel(textureData, Sampler, vUV, 1)).rgb;
       return vec4<f32>(textureColor, 1.0);
     }
     `,
@@ -114,8 +115,8 @@ async function main() {
 
     const devicePixelRatio = window.devicePixelRatio || 1;
     const size = [
-      canvas.clientWidth * devicePixelRatio ,
-      canvas.clientHeight * devicePixelRatio ,
+      canvas.clientWidth * devicePixelRatio * 0.1,
+      canvas.clientHeight * devicePixelRatio * 0.1,
     ];
 
     //const format = "bgra8unorm";
@@ -127,7 +128,7 @@ async function main() {
     context.configure({
       device: device,
       format: format,
-      size: size,
+     // size: size,
       compositingAlphaMode : "opaque",
     });
 
@@ -138,8 +139,8 @@ async function main() {
     let VIEWMATRIX = glMatrix.mat4.create(); 
     let PROJMATRIX = glMatrix.mat4.create();
     
-    glMatrix.mat4.translate(MODELMATRIX,MODELMATRIX,[0,0,1-15]);
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+    glMatrix.mat4.translate(MODELMATRIX,MODELMATRIX,[0,0,0]);
+    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 6.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
 
     glMatrix.mat4.identity(PROJMATRIX);
     let fovy = 40 * Math.PI / 180;
@@ -236,7 +237,7 @@ async function main() {
     const kTextureWidth = 16;
     const kTextureHeight = 16;
     const r = [255,   0,   0, 255];  // red
-    const o = [255, 255,   0, 255];  // orangw
+    const o = [255, 125,   0, 255];  // orangw
     const g = [0, 255,   0, 255];  // orangw
     const b = [  0,   0, 255, 255];  // blue
     const w = [ 255, 255, 255, 255];  // white
@@ -286,7 +287,7 @@ async function main() {
     ].flat()));
 
     mipLevelData.push(new Uint8Array([
-      r      
+      b      
     ].flat()));
 
 
@@ -378,7 +379,7 @@ async function main() {
     const sampler = device.createSampler({
       minFilter:'nearest',
       magFilter:'nearest', //['nearest', 'linear'];
-      mipmapFilter : "linear", // mipmapFilter нужно генерить самому 
+      mipmapFilter : "linear", //linear mipmapFilter нужно генерить самому 
       addressModeU: 'repeat', //['repeat', 'clamp-to-edge'];
       addressModeV: 'repeat' 
     });
