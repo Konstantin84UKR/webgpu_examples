@@ -72,6 +72,8 @@ PBR : https://konstantin84ukr.github.io/webgpu_examples/PBR/
 
 PBR 2 : https://konstantin84ukr.github.io/webgpu_examples/PBR_test/
 
+PBR/IBL : https://konstantin84ukr.github.io/webgpu_examples/PBR_test_4/
+
 blur : https://konstantin84ukr.github.io/webgpu_examples/quad_Blur/
 
 bloom : https://konstantin84ukr.github.io/webgpu_examples/bloom/
