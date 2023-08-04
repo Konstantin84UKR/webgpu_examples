@@ -20,6 +20,7 @@ export async function initResurse(device) {
   
     //-------------------- TEXTURE ---------------------
     let img = new Image();
+   // img.src = './res/uv.jpg'; //'./tex/yachik.jpg'; //paper
     img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
     await img.decode();
   

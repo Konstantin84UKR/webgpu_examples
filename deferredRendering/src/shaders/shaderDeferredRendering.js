@@ -49,6 +49,7 @@ export const shaderDeferredRendering = {
 
       @group(2) @binding(0) var<uniform> camera : Camera;
 
+      const PI : f32 = 3.1415926535897932384626433832795;  
 
       fn world_from_screen_coord(coord : vec2<f32>, depth_sample: f32) -> vec3<f32> {
         // reconstruct world-space position from the screen coordinate.
@@ -56,12 +57,15 @@ export const shaderDeferredRendering = {
         let posWorldW = camera.invViewProjectionMatrix * posClip;
         let posWorld = posWorldW.xyz / posWorldW.www;
         return posWorld;
-      }      
+      }     
+      fn lin2rgb(lin: vec3<f32>) -> vec3<f32>{
+        return pow(lin, vec3<f32>(1.0/2.2));
+      } 
 
       const lightPositionArray : array<vec3<f32>, 3> = array<vec3<f32>, 3>(
-        vec3<f32>(5.0, 5.0, 5.0),
-        vec3<f32>(-5.0, 5.0, 5.0),
-        vec3<f32>(0.0, 5.0, 0.0)
+        vec3<f32>(2.0, 2.0, 1.0),
+        vec3<f32>(0.0, 3.0, 0.0),
+        vec3<f32>(-2.0, 2.0, 2.0)
         );
 
       const lightColorArray : array<vec3<f32>, 3> = array<vec3<f32>, 3>(
@@ -114,17 +118,20 @@ export const shaderDeferredRendering = {
             // var light = dot(normal, incident/dist);
             // light *= smoothstep(0., light, dist);
 
-          
-            let diffuse:f32 = 0.5 * max(dot(N, L), 0.0);
-            let specular = pow(max(dot(N, H),0.0),100.0);
-            let ambient:vec3<f32> = vec3<f32>(0.1, 0.1, 0.1);
+            let distlight = distance(lightPositionArray[i].xyz, fragPosition.xyz); 
+            //let diffuse:f32 = 0.5 * max(dot(N, L), 0.0);
+            let diffuse = 30.0 / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight       
+            //let irradiance : f32 = 1.0 * max(dot(N, L), 0.0); // sun
+            let specular = pow(max(dot(N, H),0.0), 50.0) * .9; //0.9 Просто уменьшаю яркость блика
+           // let specular = 0.0;
+            let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
       
             finalColor += albedo * ( (lightColorArray[i] * diffuse) + ambient) + (specularColor * specular ); 
            // finalColor += 1.0 * ( (lightColorArray[i] * diffuse) + ambient) + (specularColor * specular ); 
         }
         
-        
-        return vec4<f32>((finalColor / 1.0), 1.0);
+        return vec4<f32>(finalColor, 1.0);
+       // return vec4<f32>(lin2rgb(finalColor), 1.0);
         
 
         // let N:vec3<f32> = normalize(normal.xyz);
