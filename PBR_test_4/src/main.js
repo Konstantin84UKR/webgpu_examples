@@ -350,11 +350,11 @@ async function main() {
         let NoH : f32 = clamp(dot(N, H), 0.0, 1.0);
         let VoH : f32  = clamp(dot(V, H), 0.0, 1.0);
 
-        //  var F0:vec3<f32> = vec3(0.4);
-        // F0 = mix(F0, textureBaseColor, texturMetallic.r);
-
-        var F0:vec3<f32> = vec3(0.16 * (reflectance * reflectance));
+         var F0:vec3<f32> = vec3(0.04);
         F0 = mix(F0, textureBaseColor, texturMetallic.r);
+
+        // var F0:vec3<f32> = vec3(0.16 * (reflectance * reflectance));
+        // F0 = mix(F0, textureBaseColor, texturMetallic.r);
 
         // cook-torrance brdf
         let F:vec3<f32> = FresnelSchlick(NoH,F0);  
@@ -375,7 +375,7 @@ async function main() {
 
        
         //---IBL -----------------
-        let MAX_REFLECTION_LOD : f32 = 6.0;
+        let MAX_REFLECTION_LOD : f32 = 4.0;
         let R : vec3<f32> = reflect(-V,N);
         let kS_IBL : vec3<f32> = fresnelSchlickRoughness(NoV,F0, texturRoughness.r);
         var kD_IBL : vec3<f32> = vec3<f32>(1.0) - kS_IBL;
@@ -407,6 +407,7 @@ async function main() {
  //gltf
  //dog //bunny // monky
  let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
+
 
  const gltfModel = new gltfLoader(device,gltf);
  console.log(gltfModel.gltf);
@@ -1137,11 +1138,11 @@ async function main() {
   // const texture_HEIGHT =  await createTextureFromImage(device,'./res/pbr_metal1/scuffed-metal1_height.png', {mips: true, flipY: false});
 
 
-  // const texture =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-albedo.png', {mips: true, flipY: false});
-  // const texture_NORMAL =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-normal-ogl.png', {mips: true, flipY: false});
-  // const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-rough2.png', {mips: true, flipY: false});
-  // const texture_METALLIC =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-metal.png', {mips: true, flipY: false});
-  // const texture_AO =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-ao.png', {mips: true, flipY: false});
+  const texture =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-albedo.png', {mips: true, flipY: false});
+  const texture_NORMAL =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-normal-ogl.png', {mips: true, flipY: false});
+  const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-rough2.png', {mips: true, flipY: false});
+  const texture_METALLIC =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-metal-metal.png', {mips: true, flipY: false});
+  const texture_AO =  await createTextureFromImage(device,'./res/paint_metal/chipped-paint-ao.png', {mips: true, flipY: false});
 
   // const texture =  await createTextureFromImage(device,'./res/bathroom/bathroomtile2-basecolor.png', {mips: true, flipY: false});
   // const texture_NORMAL =  await createTextureFromImage(device,'./res/bathroom/bathroomtile2-normal-ogl.png', {mips: true, flipY: false});
@@ -1161,11 +1162,11 @@ async function main() {
   // const texture_METALLIC =  await createTextureFromImage(device,'./res/stringy-marble-bl/stringy_marble_Metallic.png', {mips: true, flipY: false});
   // const texture_AO =  await createTextureFromImage(device,'./res/stringy-marble-bl/stringy_marble_ao.png', {mips: true, flipY: false});
 
-  const texture =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_albedo.png', {mips: true, flipY: false});
-  const texture_NORMAL =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_normal-ogl.png', {mips: true, flipY: false});
-  const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_roughness.png', {mips: true, flipY: false});
-  const texture_METALLIC =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_metallic.png', {mips: true, flipY: false});
-  const texture_AO =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_ao.png', {mips: true, flipY: false});
+  // const texture =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_albedo.png', {mips: true, flipY: false});
+  // const texture_NORMAL =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_normal-ogl.png', {mips: true, flipY: false});
+  // const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_roughness.png', {mips: true, flipY: false});
+  // const texture_METALLIC =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_metallic.png', {mips: true, flipY: false});
+  // const texture_AO =  await createTextureFromImage(device,'./res/shades-tile-bl/shades-tile_ao.png', {mips: true, flipY: false});
 
   //--------------------------------------------------
   const shadowGroup = device.createBindGroup({

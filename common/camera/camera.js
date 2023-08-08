@@ -73,7 +73,7 @@ export class Camera {
 
     update() {
 
-        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);
+        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 0.1, 500);
         this.vMatrix = mat4.lookAt(this.eye, this.look, this.up);
 
         this.vMatrixRotOnly = mat4.copy(this.vMatrix);
