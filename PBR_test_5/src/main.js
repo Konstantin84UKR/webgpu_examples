@@ -254,7 +254,7 @@ async function main() {
       @binding(6) @group(0) var textureDataRoughness : texture_2d<f32>; 
       @binding(7) @group(0) var textureDataMetallic : texture_2d<f32>;  
       @binding(8) @group(0) var textureDataAO : texture_2d<f32>; 
-      @binding(9) @group(0) var textureDataExtra : texture_2d<f32>; 
+      @binding(9) @group(0) var textureDataEmissive : texture_2d<f32>; 
 
      
       @binding(0) @group(1) var shadowMap : texture_depth_2d;  
@@ -286,14 +286,21 @@ async function main() {
         let textureBaseColor:vec3<f32> = rgb2lin(textureAlbedo);
       
         //Roughness & Metallic & AO
-        let texturRoughness:vec3<f32> = vec3<f32>((textureSample(textureDataRoughness, textureSampler, fragUV * i)).g);
+        let texturRoughness:vec3<f32> = vec3<f32>((textureSample(textureDataRoughness, textureSampler, fragUV * i)).g );
+        //let texturRoughness:vec3<f32> = rgb2lin(texturRoughnessColor);
+      
         let texturMetallic:vec3<f32> = vec3<f32>((textureSample(textureDataMetallic, textureSampler, fragUV * i)).b);
+       // let texturMetallic:vec3<f32> = rgb2lin(texturMetallicColor);
+
         let texturAO:vec3<f32> = vec3<f32>((textureSample(textureDataAO, textureSampler, fragUV * i)).r);
-        let texturHeight:vec3<f32> = (textureSample(textureDataExtra, textureSampler, fragUV * i)).rgb;
+       
+        let texturEmissiveColor:vec3<f32> = (textureSample(textureDataEmissive, textureSampler, fragUV * i)).rgb;
+        let texturEmissive:vec3<f32> = rgb2lin(texturEmissiveColor);
                 
         //Normal 
+        var textureNormalTest:vec3<f32> = normalize((textureSample(textureDataNormal, textureSampler, fragUV * i)).rgb);
         var textureNormal:vec3<f32> = normalize(2.0 * (textureSample(textureDataNormal, textureSampler, fragUV * i)).rgb - 1.0);
-        var colorNormal = normalize(vec3<f32>(textureNormal.x, textureNormal.y, textureNormal.z));
+        var colorNormalTangentSpace:vec3<f32> = normalize(vec3<f32>(textureNormal.x, textureNormal.y, textureNormal.z));
         //colorNormal.y *= -1;
 
         var tbnMatrix : mat3x3<f32> = mat3x3<f32>(
@@ -301,7 +308,7 @@ async function main() {
           normalize(fragBitangent), 
           normalize(fragNor));
     
-        colorNormal = normalize(tbnMatrix * colorNormal);
+          var colorNormal:vec3<f32> = normalize(tbnMatrix * colorNormalTangentSpace);
         
 
         // --- Shadow -------------------------------------------------------
@@ -337,7 +344,7 @@ async function main() {
       
         let distance:f32 = length((uniforms.lightPosition).xyz - fragPosition.xyz);
         let attenuation:f32 = 1./(distance*distance);
-        let radiance:vec3<f32> = sourceDiffuseColor * 0.5;  //       
+        let radiance:vec3<f32> = sourceDiffuseColor * 1.0;  //       
         
         let NdotL:f32 = max(dot(N,L),0.);                 
         //let irradiance : f32 = NdotL * 0.0; //NdotL * irradiPerp
@@ -396,9 +403,9 @@ async function main() {
              
         //-------------------------
         //let finalColor : vec3<f32> = Lo + textureBaseColor * IBLColor * 0.5; //radiance   
-        let finalColor : vec3<f32> = texturHeight * 2.0 + Lo + Lo_IBL * 0.5 ; //radiance       
+        let finalColor : vec3<f32> = texturEmissive * 1.0 + Lo + Lo_IBL * 1.0 ; //radiance       
         return vec4<f32>(lin2rgb(finalColor), 0.5);
-        //return vec4<f32>(finalColor, 1.0);
+        return vec4<f32>(texturRoughness, 1.0);
     }
     `,
   };
@@ -1176,7 +1183,8 @@ async function main() {
   // const texture_ROUGHNESS =  await createTextureFromImage(device,'./res/bottle/WaterBottle_occlusionRoughnessMetallic.png', {mips: true, flipY: false});
   // const texture_METALLIC =  await createTextureFromImage(device,'./res/bottle/WaterBottle_occlusionRoughnessMetallic.png', {mips: true, flipY: false});
   // const texture_AO =  await createTextureFromImage(device,'./res/bottle/WaterBottle_occlusionRoughnessMetallic.png', {mips: true, flipY: false});
-  
+  // const texture_EMISSIVE =  await createTextureFromImage(device,'./res/bottle/WaterBottle_emissive.png', {mips: true, flipY: false});
+
 //   const texture =  await createTextureFromImage(device,'./res/boombox/BoomBox_baseColor.png', {mips: true, flipY: false});
 //  // const texture =  await createTextureFromImage(device,'./res/uv.jpg', {mips: true, flipY: false});
 //   const texture_NORMAL =  await createTextureFromImage(device,'./res/boombox/BoomBox_normal.png', {mips: true, flipY: false});
@@ -1477,7 +1485,7 @@ async function main() {
     //--------------------------------------------------
 
     //------------------MATRIX EDIT---------------------
-    MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0001);
+     MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0001);
     //MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
     //MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
     camera.setDeltaTime(dt);

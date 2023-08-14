@@ -1,5 +1,6 @@
-
-import * as Matrix from "./gl-matrix.js";
+import {
+  mat4, vec3,
+} from './../../common/wgpu-matrix.module.js';
 
 async function main() {
     ///**  Шейдеры тут все понятно более мение. */  
@@ -133,16 +134,15 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX = glMatrix.mat4.create(); 
-    let PROJMATRIX = glMatrix.mat4.create();
-    let VIEWMATRIX_SKYBOX = glMatrix.mat4.create();
+    let MODELMATRIX = mat4.identity();
+    let VIEWMATRIX = mat4.identity(); 
+    let PROJMATRIX = mat4.identity();
+    let VIEWMATRIX_SKYBOX = mat4.identity();
     
-    glMatrix.mat4.lookAt(VIEWMATRIX, [0.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]);
-
-    glMatrix.mat4.identity(PROJMATRIX);
+    VIEWMATRIX = mat4.lookAt([0.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]);
+   
     let fovy = 40 * Math.PI / 180;
-    glMatrix.mat4.perspective(PROJMATRIX, fovy, canvas.width/ canvas.height, 1, 25);
+    PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
 
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
@@ -323,7 +323,7 @@ async function main() {
       }
     };
 
-     glMatrix.mat4.scale(MODELMATRIX, MODELMATRIX, [10.0, 10.0, 10.0]); 
+     MODELMATRIX = mat4.scale(MODELMATRIX, [10.0, 10.0, 10.0]); 
 
      device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
      device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
@@ -339,15 +339,11 @@ let time_old=0;
       time_old=time;
       //--------------------------------------------------
      
-      // //------------------MATRIX EDIT---------------------
-      glMatrix.mat4.rotateY(MODELMATRIX, MODELMATRIX, dt * 0.0001);
-      glMatrix.mat4.rotateX(MODELMATRIX, MODELMATRIX, dt * 0.0002 * Math.sin(time * 0.001));
-      // glMatrix.mat4.rotateZ(MODELMATRIX, MODELMATRIX, dt * 0.000001);
-      // //--------------------------------------------------
+      //------------------MATRIX EDIT---------------------
+      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002 * Math.sin(time * 0.001));
+      //--------------------------------------------------
       device.queue.writeBuffer(uniformBuffer, 64 + 64, MODELMATRIX); // и так дале прибавляем 64 к offset
-
-     
-
 
       const commandEncoder = device.createCommandEncoder();
       textureView = context.getCurrentTexture().createView();
@@ -368,8 +364,6 @@ let time_old=0;
       renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);
-
-
       requestAnimationFrame(animate);
     };
     animate(0);

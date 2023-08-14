@@ -1,0 +1,107 @@
+export async function initResurse(device) {
+    //-------------------- MESH --------------------- 
+    let CUBE = {};
+    await loadJSON(CUBE, './res/Model.json');
+  
+    const mesh0 = CUBE.mesh.meshes[0];
+    const model = {};
+    model.vertex = new Float32Array(mesh0.vertices);
+    model.uv = new Float32Array(mesh0.texturecoords[0]);
+    model.index = new Uint32Array(mesh0.faces.flat());
+    model.normal = new Float32Array(mesh0.normals);
+    model.tangents = new Float32Array(mesh0.tangents);
+    model.bitangents = new Float32Array(mesh0.bitangents);
+  
+    const mesh1 = CUBE.mesh.meshes[1];
+    const plane = {};
+    plane.vertex = new Float32Array(mesh1.vertices);
+    plane.uv = new Float32Array(mesh1.texturecoords[0]);
+    plane.index = new Uint32Array(mesh1.faces.flat());
+    plane.normal = new Float32Array(mesh1.normals);  
+    plane.tangents = new Float32Array(mesh1.tangents);
+    plane.bitangents = new Float32Array(mesh1.bitangents);
+  
+    //-------------------- TEXTURE ---------------------
+    // let img = new Image(); 
+    // img.src = './res/uv.jpg'; 
+    // await img.decode();
+  
+    // const imageBitmap = await createImageBitmap(img);
+  
+    const sampler = device.createSampler({
+      minFilter: 'linear',
+      magFilter: 'linear',
+      mipmapFilter: "nearest", 
+      addressModeU: 'repeat',
+      addressModeV: 'repeat'
+    });
+  
+    // const texture = device.createTexture({
+    //   size: [imageBitmap.width, imageBitmap.height, 1],
+    //   format: 'rgba8unorm',
+    //   usage: GPUTextureUsage.TEXTURE_BINDING |
+    //     GPUTextureUsage.COPY_DST |
+    //     GPUTextureUsage.RENDER_ATTACHMENT
+    // });
+  
+    // device.queue.copyExternalImageToTexture(
+    //   { source: imageBitmap },
+    //   { texture: texture },
+    //   [imageBitmap.width, imageBitmap.height]);  
+
+
+    let texture_DIFFUSE = await loadTexture(device,'./res/tex2_DIFFUSE.jpg');
+    let texture_NORMAL = await loadTexture(device,'./res/tex2_NORMAL.jpg');
+    let texture_SPECULAR = await loadTexture(device,'./res/tex2_SPECULAR.jpg');
+    
+    let textures = {
+      texture_DIFFUSE,
+      texture_NORMAL,
+      texture_SPECULAR
+    }
+  
+    return { model, plane, textures, sampler }
+  }
+
+  async function loadJSON(result, modelURL) {
+    var xhr = new XMLHttpRequest();
+  
+    xhr.open('GET', modelURL, false);
+    xhr.onload = function () {
+      if (xhr.status != 200) {
+  
+        alert('LOAD' + xhr.status + ': ' + xhr.statusText);
+      } else {
+  
+        result.mesh = JSON.parse(xhr.responseText);
+        //return  result;     
+      }
+    }
+    xhr.send();
+  }
+
+  async function loadTexture(device,url){
+
+    let img = new Image();
+    img.src = url; 
+    await img.decode();
+    
+    const imageBitmap = await createImageBitmap(img);
+  
+  
+    const texture = device.createTexture({
+      size:[imageBitmap.width,imageBitmap.height,1],
+      format:'rgba8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING |
+             GPUTextureUsage.COPY_DST |
+             GPUTextureUsage.RENDER_ATTACHMENT
+    });
+  
+    device.queue.copyExternalImageToTexture(
+      {source: imageBitmap},
+      {texture: texture},
+      [imageBitmap.width,imageBitmap.height]);
+  
+    return texture;
+  
+  }
