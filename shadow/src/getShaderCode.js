@@ -18,7 +18,7 @@ export async function getShaderCode(){
       @group(1) @binding(0) var<uniform> uniformsModel : UniformModel;
       
       @vertex
-        fn main(@location(0) pos: vec4<f32>, @location(1) uv: vec2<f32>, @location(2) normal: vec3<f32>) -> @builtin(position) vec4<f32> {
+        fn main(@location(0) pos: vec4<f32>) -> @builtin(position) vec4<f32> {
           return uniforms.pMatrix * uniforms.vMatrix * uniformsModel.mMatrix * pos;
        }`
   };
@@ -124,12 +124,12 @@ export async function getShaderCode(){
         }
         shadow = shadow / 9.0;
 
-        // Жесткие тени   
+        // //Жесткие тени   
         //   shadow = textureSampleCompare(
         //     shadowMap, 
         //     shadowSampler,
         //     shadowPos.xy, 
-        //     shadowPos.z - 0.005  // apply a small bias to avoid acne
+        //     shadowPos.z - 0.05  // apply a small bias to avoid acne
         // );
 
         // let size = f32(textureDimensions(shadowMap).x);

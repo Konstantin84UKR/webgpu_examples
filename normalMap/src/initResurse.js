@@ -22,11 +22,6 @@ export async function initResurse(device) {
     plane.bitangents = new Float32Array(mesh1.bitangents);
   
     //-------------------- TEXTURE ---------------------
-    // let img = new Image(); 
-    // img.src = './res/uv.jpg'; 
-    // await img.decode();
-  
-    // const imageBitmap = await createImageBitmap(img);
   
     const sampler = device.createSampler({
       minFilter: 'linear',
@@ -36,20 +31,6 @@ export async function initResurse(device) {
       addressModeV: 'repeat'
     });
   
-    // const texture = device.createTexture({
-    //   size: [imageBitmap.width, imageBitmap.height, 1],
-    //   format: 'rgba8unorm',
-    //   usage: GPUTextureUsage.TEXTURE_BINDING |
-    //     GPUTextureUsage.COPY_DST |
-    //     GPUTextureUsage.RENDER_ATTACHMENT
-    // });
-  
-    // device.queue.copyExternalImageToTexture(
-    //   { source: imageBitmap },
-    //   { texture: texture },
-    //   [imageBitmap.width, imageBitmap.height]);  
-
-
     let texture_DIFFUSE = await loadTexture(device,'./res/tex2_DIFFUSE.jpg');
     let texture_NORMAL = await loadTexture(device,'./res/tex2_NORMAL.jpg');
     let texture_SPECULAR = await loadTexture(device,'./res/tex2_SPECULAR.jpg');

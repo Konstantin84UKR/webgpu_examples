@@ -83,8 +83,6 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         }
     }
 
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // ************* Pipeline Main *************** //
@@ -99,8 +97,6 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
     // Эта текстура будет использована для теста глубины при формировании тени.
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
     const pipeline = device.createRenderPipeline({
         layout: 'auto',
@@ -181,8 +177,6 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         usage: GPUTextureUsage.RENDER_ATTACHMENT
     });
 
-
-
     const uniformBindGroup0 = device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
         entries: [
@@ -253,7 +247,6 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
             }
         ]
     });
-
 
     const pipelineMainGroup = {
         pipeline: pipeline,
