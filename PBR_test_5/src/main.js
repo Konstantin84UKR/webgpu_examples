@@ -169,9 +169,9 @@ async function main() {
             output.fragNormal  = (uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz; 
                     
               // -----NORMAL --------------------------------
-              let norm : vec3<f32>  = normalize((uniforms.mMatrix * vec4<f32>(normal,1.0)).xyz);
-              let tang : vec3<f32> = normalize((uniforms.mMatrix * vec4<f32>(tangent,1.0)).xyz);
-             // let binormal : vec3<f32> = normalize((uniforms.mMatrix * vec4<f32>(bitangent,1.0)).xyz);
+              let norm : vec3<f32>  = normalize((uniforms.mMatrix * vec4<f32>(normal,0.0)).xyz);
+              let tang : vec3<f32> = normalize((uniforms.mMatrix * vec4<f32>(tangent,0.0)).xyz);
+             // let binormal : vec3<f32> = normalize((uniforms.mMatrix * vec4<f32>(bitangent,0.0)).xyz);
 
               output.fragNor  = norm; 
               output.fragTangent  = tang; 

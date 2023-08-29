@@ -30,6 +30,7 @@ async function main() {
        pMatrix : mat4x4<f32>,
        vMatrix : mat4x4<f32>,
        mMatrix : mat4x4<f32>,
+       nMatrix : mat4x4<f32>,
       };
       @binding(0) @group(0) var<uniform> uniforms : Uniform;
          
@@ -45,7 +46,8 @@ async function main() {
             var output: Output;
             output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
             output.vUV = uv;
-            output.vNormal = normalize((uniforms.mMatrix * vec4<f32>(normal, 0.0)).xyz); // Normal in model space
+            output.vNormal = normalize((uniforms.vMatrix * uniforms.nMatrix * vec4<f32>(normal, 0.0)).xyz); // Normal in model space
+            //output.vNormal = normalize((uniforms.nMatrix * vec4<f32>(normal, 0.0)).xyz); // Normal in model space
 
             return output;
         }
@@ -57,7 +59,7 @@ async function main() {
       fn main_fragment(@location(0) vUV: vec2<f32>, @location(1) vNormal: vec3<f32>) -> @location(0) vec4<f32> {
       
       // Move normal to view space
-      var muv : vec2<f32> = (uniforms.vMatrix * vec4<f32>(normalize(vNormal), 0.0)).xy * 0.5 + vec2<f32>(0.5, 0.5);
+      var muv : vec2<f32> = (vec4<f32>(normalize(vNormal), 0.0)).xy * 0.5 + vec2<f32>(0.5, 0.5);
       // read texture inverting Y value
       let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, 1.0 - muv.y))).rgb;
       return vec4<f32>(textureColor, 1.0);
@@ -71,10 +73,12 @@ async function main() {
 
     let mesh = CUBE.mesh.meshes[0];
 
-     const cube_vertex = new Float32Array(mesh.vertices);
-     const cube_uv = new Float32Array(mesh.texturecoords[0]);
-     const cube_normal = new Float32Array(mesh.normals);
-     const cube_index = new Uint32Array(mesh.faces.flat());
+    const model = {};
+
+    model.vertex = new Float32Array(mesh.vertices);
+    model.uv = new Float32Array(mesh.texturecoords[0]);
+    model.normal = new Float32Array(mesh.normals);
+    model.index = new Uint32Array(mesh.faces.flat());
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
@@ -115,6 +119,7 @@ async function main() {
     //---create uniform data
    
     let MODELMATRIX = mat4.identity();
+    let NORMALMATRIX = mat4.identity();
     let VIEWMATRIX = mat4.identity(); 
     let PROJMATRIX = mat4.identity();
     
@@ -130,44 +135,48 @@ async function main() {
     //** mappedAtCreation если true значить буфер доступен для записи с ЦПУ */
     //** это нужно для того что бы не было гонки между ЦПУ и ГПУ */
     const vertexBuffer = device.createBuffer({
-      size: cube_vertex.byteLength,
+      size: model.vertex.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  можно писать в буффер
       mappedAtCreation: true
     });
     //загружаем данные в буффер */
-    new Float32Array(vertexBuffer.getMappedRange()).set(cube_vertex);
+    new Float32Array(vertexBuffer.getMappedRange()).set(model.vertex);
     // передаем буфер в управление ГПУ */
     vertexBuffer.unmap();
+    model.vertexBuffer = vertexBuffer;
 
     const uvBuffer = device.createBuffer({
-      size: cube_uv.byteLength,
+      size: model.uv.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST можно писать в буффер
       mappedAtCreation: true
     });
     //загружаем данные в буффер */
-    new Float32Array(uvBuffer.getMappedRange()).set(cube_uv);
+    new Float32Array(uvBuffer.getMappedRange()).set(model.uv);
     // передаем буфер в управление ГПУ */
     uvBuffer.unmap();
+    model.uvBuffer = uvBuffer;
 
     const normalBuffer = device.createBuffer({
       label : "normalBuffer",
-      size: cube_normal.byteLength,
+      size: model.normal.byteLength,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
       mappedAtCreation: true
     });
     //загружаем данные в буффер */
-    new Float32Array(normalBuffer.getMappedRange()).set(cube_normal);
+    new Float32Array(normalBuffer.getMappedRange()).set(model.normal);
     // передаем буфер в управление ГПУ */
     normalBuffer.unmap();
+    model.normalBuffer = normalBuffer;
 
     const indexBuffer = device.createBuffer({
-      size: cube_index.byteLength,
+      size: model.index.byteLength,
       usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true
     });
 
-    new Uint32Array(indexBuffer.getMappedRange()).set(cube_index);
+    new Uint32Array(indexBuffer.getMappedRange()).set(model.index);
     indexBuffer.unmap();
+    model.indexBuffer = indexBuffer;
 
     //*********************************************//
     //** настраиваем конвейер рендера 
@@ -239,7 +248,7 @@ async function main() {
 
     // create uniform buffer and layout
     const uniformBuffer = device.createBuffer({
-        size: 64 + 64 + 64,
+        size: 64 + 64 + 64 + 64,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });   
 
@@ -278,7 +287,7 @@ async function main() {
             resource: {
                 buffer: uniformBuffer,
                 offset: 0,
-                size: 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+                size: 64 + 64 + 64 + 64// PROJMATRIX + VIEWMATRIX + MODELMATRIX + NORMALMATRIX// Каждая матрица занимает 64 байта
             }
           },
           { 
@@ -292,10 +301,18 @@ async function main() {
         ]
     });
 
+    
+    // MODELMATRIX = mat4.translate( MODELMATRIX, [2.0,1,0.0]);
+    // MODELMATRIX = mat4.rotateY( MODELMATRIX, 3.14 * 0.0);
+     MODELMATRIX = mat4.scale( MODELMATRIX, [1.0,1.0,1.0]);
 
     device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
-    device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
+    device.queue.writeBuffer(uniformBuffer, 64 + 64, MODELMATRIX); // и так дале прибавляем 64 к offset
+   
+    NORMALMATRIX = mat4.invert(MODELMATRIX);
+    NORMALMATRIX = mat4.transpose(MODELMATRIX);
+    device.queue.writeBuffer(uniformBuffer, 64 + 64 + 64, NORMALMATRIX); // и так дале прибавляем 64 к offset
 
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
@@ -343,29 +360,32 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
-      MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
+       MODELMATRIX = mat4.rotateY( MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0001);
+      // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
       // device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
-      device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
+      device.queue.writeBuffer(uniformBuffer, 64 + 64, MODELMATRIX); // и так дале прибавляем 64 к offset
+      
+      NORMALMATRIX = mat4.invert(MODELMATRIX);
+      NORMALMATRIX = mat4.transpose(MODELMATRIX);
+      device.queue.writeBuffer(uniformBuffer, 64 + 64 + 64, MODELMATRIX); // и так дале прибавляем 64 к offset
 
       const commandEncoder = device.createCommandEncoder();
          
-      renderPassDescription.colorAttachments[0].resolveTarget = context.getCurrentTexture().createView();
-  
+      renderPassDescription.colorAttachments[0].resolveTarget = context.getCurrentTexture().createView();  
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
 
       renderPass.setPipeline(pipeline);
-      renderPass.setVertexBuffer(0, vertexBuffer);
-      renderPass.setVertexBuffer(1, uvBuffer);
-      renderPass.setVertexBuffer(2, normalBuffer);
-      renderPass.setIndexBuffer(indexBuffer, "uint32");
+      renderPass.setVertexBuffer(0, model.vertexBuffer);
+      renderPass.setVertexBuffer(1, model.uvBuffer);
+      renderPass.setVertexBuffer(2, model.normalBuffer);
+      renderPass.setIndexBuffer(model.indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
      
-      renderPass.drawIndexed(cube_index.length);
+      renderPass.drawIndexed(model.index.length);
       renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);

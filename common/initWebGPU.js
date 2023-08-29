@@ -1,7 +1,7 @@
 export async function initWebGPU(debag = false) {
 
     const canvas = document.getElementById("canvas-webgpu");
-    if(0){
+    if(debag){
       canvas.width = 400;
       canvas.height = 400;
     }else{

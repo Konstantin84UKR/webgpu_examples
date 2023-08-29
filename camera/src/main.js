@@ -1,7 +1,7 @@
 
 import {
   mat4,
-} from './wgpu-matrix.module.js';
+} from '../common/wgpu-matrix.module.js';
 //console.log(mat4);
 
 import { Camera } from '../../common/camera/camera.js';

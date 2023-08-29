@@ -3,7 +3,7 @@ import {
 } from './wgpu-matrix.module.js';
 
 import { Camera } from '../../common/camera/camera.js';
-import { initWebGPU } from './initWebGPU.js';
+import { initWebGPU } from '../../common/initWebGPU.js';
 import { initResurse } from './initResurse.js';
 import { initBuffers } from './initBuffers.js';
 import { getShaderCode } from './getShaderCode.js';
