@@ -1,6 +1,7 @@
 import {
   mat4, vec3,
 } from './wgpu-matrix.module.js';
+import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -139,16 +140,56 @@ async function main() {
     `,
     };
 
+
+    const shaderForLigth = {
+      vertex: `
+      struct Uniform {
+       pMatrix : mat4x4<f32>,
+       vMatrix : mat4x4<f32>,
+       mMatrix : mat4x4<f32>,      
+      };
+      @binding(0) @group(0) var<uniform> uniforms : Uniform;
+         
+      struct Output {
+          @builtin(position) Position : vec4<f32>         
+      };
+
+      @vertex
+        fn main(@location(0) pos: vec4<f32>) -> Output {
+           
+            var output: Output;
+            output.Position = uniforms.pMatrix * uniforms.vMatrix * uniforms.mMatrix * pos;
+            return output;
+        }
+    `,
+
+      fragment: `     
+    
+      @fragment
+      fn main() -> @location(0) vec4<f32> {
+      
+        let finalColor:vec3<f32> =  vec3<f32>(0.9,0.9,0.9); 
+        return vec4<f32>(finalColor, 1.0);            
+       
+    }
+    `,
+    };
+    
     //---------------------------------------------------
     let CUBE = {}; 
     await loadJSON(CUBE,'./res/Model.json');
     
     let mesh = CUBE.mesh.meshes[0];
 
-     const cube_vertex = new Float32Array(mesh.vertices);
-     const cube_uv = new Float32Array(mesh.texturecoords[0]);
-     const cube_index = new Uint32Array(mesh.faces.flat());
-     const cube_normal = new Float32Array(mesh.normals);
+    const cube_vertex = new Float32Array(mesh.vertices);
+    const cube_uv = new Float32Array(mesh.texturecoords[0]);
+    const cube_index = new Uint32Array(mesh.faces.flat());
+    const cube_normal = new Float32Array(mesh.normals);
+   
+    const meshSphereGeometry = new SphereGeometry(0.1, 16, 8);
+    const sphere_vertex = new Float32Array(meshSphereGeometry.vertices);
+    const sphere_index = new Uint32Array(meshSphereGeometry.indices);
+
     //---------------------------------------------------
   
     const canvas = document.getElementById("canvas-webgpu");
@@ -186,9 +227,10 @@ async function main() {
 
     //---create uniform data
    
-    let MODELMATRIX = mat4.identity();;
-    let VIEWMATRIX = mat4.identity();; 
-    let PROJMATRIX = mat4.identity();;
+    let MODELMATRIX = mat4.identity();
+    let VIEWMATRIX = mat4.identity(); 
+    let PROJMATRIX = mat4.identity();
+    let sphere_MODELMATRIX = mat4.identity();
   
     let eyePosition = [0.0, 1.0, 10.0];
     
@@ -249,6 +291,27 @@ async function main() {
 
     new Uint32Array(indexBuffer.getMappedRange()).set(cube_index);
     indexBuffer.unmap();
+
+    //****************** BUFFER  SphereGeometry ***************************************
+    //****************** BUFFER  vertexBuffer
+     const sphere_vertexBuffer = device.createBuffer({
+      size: sphere_vertex.byteLength,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
+      mappedAtCreation: true
+    });  
+     //загружаем данные в буффер */
+     new Float32Array(sphere_vertexBuffer.getMappedRange()).set(sphere_vertex);
+     // передаем буфер в управление ГПУ */
+     sphere_vertexBuffer.unmap();
+    //****************** BUFFER  indexBuffer
+    const sphere_indexBuffer = device.createBuffer({
+      size: sphere_index.byteLength,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true
+    });
+
+    new Uint32Array(sphere_indexBuffer.getMappedRange()).set(sphere_index);
+    sphere_indexBuffer.unmap();
 
     //*********************************************//
     //** настраиваем конвейер рендера 
@@ -324,6 +387,53 @@ async function main() {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
+    //----------------- Sphere -------------------
+    const pipelineSphere = device.createRenderPipeline({
+      layout: "auto",
+      vertex: {
+        module: device.createShaderModule({
+          code: shaderForLigth.vertex,
+        }),
+        entryPoint: "main",
+        buffers:[
+          {
+              arrayStride: 12,
+              attributes: [{
+                  shaderLocation: 0,
+                  format: "float32x3",
+                  offset: 0
+              }]
+          }
+      ]
+      },
+      fragment: {
+        module: device.createShaderModule({
+          code: shaderForLigth.fragment,
+        }),
+        entryPoint: "main",
+        targets: [
+          {
+            format: format,
+          },
+        ],
+      },
+      primitive: {
+        topology: "triangle-list",
+        //topology: "point-list",
+      },
+      depthStencil:{
+        format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
+        depthWriteEnabled: true, //вкл\выкл теста глубины 
+        depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. 
+    }
+    });
+
+    // create uniform buffer and layout
+    const sphere_uniformBuffer = device.createBuffer({
+        size: 64 + 64 + 64,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    }); 
+
     //-------------------- TEXTURE ---------------------
     let img = new Image();
     img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
@@ -384,6 +494,21 @@ async function main() {
         ]
     });
 
+    const sphere_uniformBindGroup = device.createBindGroup({
+      layout: pipelineSphere.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: {
+              buffer: sphere_uniformBuffer,
+              offset: 0,
+              size: 64 + 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+          }
+        }
+      ]
+  });
+
+
 
     device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
@@ -392,6 +517,11 @@ async function main() {
 
     device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(eyePosition,1.0));
     device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
+
+    device.queue.writeBuffer(sphere_uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
+    device.queue.writeBuffer(sphere_uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
+    sphere_MODELMATRIX = mat4.translate(sphere_MODELMATRIX,lightPosition);
+    device.queue.writeBuffer(sphere_uniformBuffer, 64+64, sphere_MODELMATRIX); // и так дале прибавляем 64 к offset
 
 
     const depthTexture = device.createTexture({
@@ -437,9 +567,11 @@ let time_old=0;
       // glMatrix.mat4.identity(NORMALMATRIX);
       // glMatrix.mat4.invert(NORMALMATRIX,MODELMATRIX);
       // glMatrix.mat4.transpose(NORMALMATRIX,NORMALMATRIX);
-      lightPosition[0] = (Math.sin(time * 0.001) - 0.5) * 4.0; 
+      lightPosition[0] = (Math.sin(time * 0.001) - 0.0) * 4.0; 
       //lightPosition[1] = (Math.sin(time * 0.001) - 0.5) * 2.0; 
       //lightPosition[0] = 0;
+      mat4.identity(sphere_MODELMATRIX,sphere_MODELMATRIX);
+      sphere_MODELMATRIX = mat4.translate(sphere_MODELMATRIX, lightPosition);
       //--------------------------------------------------
 
       // device.queue.writeBuffer(uniformBuffer, 0, PROJMATRIX); // пишем в начало буффера с отступом (offset = 0)
@@ -447,6 +579,7 @@ let time_old=0;
       device.queue.writeBuffer(uniformBuffer, 64+64, MODELMATRIX); // и так дале прибавляем 64 к offset
      //device.queue.writeBuffer(uniformBuffer, 64+64+64, NORMALMATRIX); // и так дале прибавляем 64 к offset
       device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
+      device.queue.writeBuffer(sphere_uniformBuffer, 64+64, sphere_MODELMATRIX); // и так дале прибавляем 64 к offset
 
 
       const commandEncoder = device.createCommandEncoder();
@@ -461,8 +594,14 @@ let time_old=0;
       renderPass.setVertexBuffer(2, normalBuffer);
       renderPass.setIndexBuffer(indexBuffer, "uint32");
       renderPass.setBindGroup(0, uniformBindGroup);
-      //renderPass.draw(6, 1, 0, 0);
       renderPass.drawIndexed(cube_index.length);
+      //renderPass.end();
+
+      renderPass.setPipeline(pipelineSphere);
+      renderPass.setVertexBuffer(0, sphere_vertexBuffer);
+      renderPass.setIndexBuffer(sphere_indexBuffer, "uint32");
+      renderPass.setBindGroup(0, sphere_uniformBindGroup);
+      renderPass.drawIndexed(sphere_index.length);
       renderPass.end();
   
       device.queue.submit([commandEncoder.finish()]);
