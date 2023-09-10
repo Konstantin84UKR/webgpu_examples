@@ -13,8 +13,8 @@ export const shaderPostEffect = {
      
 
       var pos = array<vec2<f32>, 6>(
-          vec2( 1.0,  1.0),  vec2( 1.0, -1.0), vec2(-1.0, -1.0),
-          vec2( 1.0,  1.0),  vec2(-1.0, -1.0), vec2(-1.0,  1.0)            
+          vec2( 0.95,  0.95),  vec2( 0.95, -0.95), vec2(-0.95, -0.95),
+          vec2( 0.95,  0.95),  vec2(-0.95, -0.95), vec2(-0.95,  0.95)            
       );
 
       const uv = array(
@@ -39,7 +39,7 @@ export const shaderPostEffect = {
           fn fragment_main(@builtin(position) coord : vec4<f32>, @location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
                     
           var color: vec3<f32> = textureSample(myTexture, mySampler, fragUV).rgb;
-         
+
           // let bufferSize = textureDimensions(myTexture);
           // let coordUV = fragUV.xy * vec2<f32>(bufferSize);
 
@@ -49,10 +49,7 @@ export const shaderPostEffect = {
           //   0
           // );
          
-          //
-          // var colorF: f32 = textureSample(myTexture, mySampler, fragUV);
-          
-          // return  vec4<f32>(rawDepth);
           return  vec4<f32>(color, 1.0);
+
 
       }`};

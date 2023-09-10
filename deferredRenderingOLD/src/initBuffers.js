@@ -1,4 +1,4 @@
-export async function initBuffers(device, model, plane,ligthHelper) {
+export async function initBuffers(device, model, plane) {
     //****************** BUFFER ********************//
     //** на логическом устойстве  выделяем кусок памяти равный  массиву данных vertexData */
     //** который будет в будушем загружен в данный буффер */
@@ -109,32 +109,6 @@ export async function initBuffers(device, model, plane,ligthHelper) {
     plane_indexBuffer.unmap();
   
     plane.plane_indexBuffer = plane_indexBuffer;
-
-    //****************** ligthHelper ***************
-    
-    const ligthHelper_vertexBuffer = device.createBuffer({
-      size: ligthHelper.vertex.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-      mappedAtCreation: true
-    });  
-     //загружаем данные в буффер */
-     new Float32Array(ligthHelper_vertexBuffer.getMappedRange()).set(ligthHelper.vertex);
-     // передаем буфер в управление ГПУ */
-     ligthHelper_vertexBuffer.unmap();
-     ligthHelper.ligthHelper_vertexBuffer = ligthHelper_vertexBuffer;
-    
-     //****************** BUFFER  indexBuffer
-    const ligthHelper_indexBuffer = device.createBuffer({
-      size: ligthHelper.index.byteLength,
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true
-    });
-
-    new Uint32Array(ligthHelper_indexBuffer.getMappedRange()).set(ligthHelper.index);
-    ligthHelper_indexBuffer.unmap();
-    ligthHelper.ligthHelper_indexBuffer = ligthHelper_indexBuffer;
-    
-
     //*********************************************//
     //** настраиваем конвейер рендера 
     //** настраиваем шейдеры указав исходник,точку входа, данные буферов
@@ -194,40 +168,7 @@ export async function initBuffers(device, model, plane,ligthHelper) {
     });
   
     uBiffers.uniformBufferCamera = uniformBufferCamera;
-
-        // create uniform buffer and layout
-    const ligthHelper_uniformBuffer = device.createBuffer({
-          size: 64 + 64,
-          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    }); 
-    uBiffers.ligthHelper_uniformBuffer = ligthHelper_uniformBuffer;
-
-
-    const fragmentUniformLightPositionBuffer = device.createBuffer({
-      size: 16 + 16 + 16,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    }); 
-    uBiffers.fragmentUniformLightPositionBuffer = fragmentUniformLightPositionBuffer;
-
-    const fragmentUniformLightColorBuffer = device.createBuffer({
-      size: 16 + 16 + 16,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    }); 
-    uBiffers.fragmentUniformLightColorBuffer = fragmentUniformLightColorBuffer;
-
-    const instanceBuffer = device.createBuffer({
-      label : "instanceBuffer",
-      size : 64 * 3, // три Light
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-    });
-    uBiffers.instanceBuffer = instanceBuffer;
-
-    const instanceColorBuffer = device.createBuffer({
-      label : "instanceBuffer",
-      size : 16 * 3, // три Light
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-    });
-    uBiffers.instanceColorBuffer = instanceColorBuffer;
+  
   
     return { uBiffers };
   }

@@ -135,7 +135,8 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
     });
-    
+  
+  
     const gBufferTexture = [
       gBufferTexture2DFloat16,
       gBufferTextureAlbedo,
@@ -280,15 +281,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
           binding: 0,
           visibility: GPUShaderStage.FRAGMENT,
           buffer: {}
-        },{
-          binding: 1,
-          visibility: GPUShaderStage.FRAGMENT,
-          buffer: {}
-        },{
-          binding: 2,
-          visibility: GPUShaderStage.FRAGMENT,
-          buffer: {}
-        }
+        },
       ],
     });
   
@@ -301,23 +294,8 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
           resource: {
             buffer: uBiffers.fragmentUniformBuffer,
             offset: 0,
+            //size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>; 
             size: 32 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
-          }
-        },
-        {
-          binding: 1,
-          resource: {
-            buffer: uBiffers.fragmentUniformLightPositionBuffer,
-            offset: 0,          
-            size: 16 + 16 + 16 //   lightPosition : array<vec3<f32>, 3>;   
-          }
-        },
-        {
-          binding: 2,
-          resource: {
-            buffer: uBiffers.fragmentUniformLightColorBuffer,
-            offset: 0,          
-            size: 16 + 16 + 16 //   lightPosition : array<vec3<f32>, 3>;   
           }
         }
       ]
@@ -325,7 +303,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
   
   
     const gBufferCameraBindGroupLayout = device.createBindGroupLayout({
-      label: 'gBufferCameraBindGroupLayout',
+      label: 'gBufferCameraBindGroupLayout ',
       entries: [
          {
           binding: 0,
@@ -337,7 +315,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
   
   
     const gBufferCameraBindGroup = device.createBindGroup({
-      label: 'gBufferCameraBindGroup',
+      label: 'gBufferCameraBindGroup ',
       layout: gBufferCameraBindGroupLayout,
       entries: [
         {

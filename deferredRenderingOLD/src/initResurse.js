@@ -1,5 +1,3 @@
-import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
-
 export async function initResurse(device) {
     //-------------------- MESH --------------------- 
     let CUBE = {};
@@ -20,10 +18,6 @@ export async function initResurse(device) {
     plane.normal = new Float32Array(mesh1.normals);
   
   
-    const meshSphereGeometry = new SphereGeometry(0.1, 32, 16);
-    const ligthHelper = {};
-    ligthHelper.vertex = new Float32Array(meshSphereGeometry.vertices);
-    ligthHelper.index = new Uint32Array(meshSphereGeometry.indices);
     //-------------------- TEXTURE ---------------------
     let img = new Image();
    // img.src = './res/uv.jpg'; //'./tex/yachik.jpg'; //paper
@@ -54,7 +48,7 @@ export async function initResurse(device) {
       [imageBitmap.width, imageBitmap.height]);
   
   
-    return { model, plane, texture, sampler ,ligthHelper}
+    return { model, plane, texture, sampler }
   }
 
   async function loadJSON(result, modelURL) {

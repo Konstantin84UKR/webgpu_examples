@@ -30,7 +30,6 @@ export async function initPostEffect(device, canvas, format, shaderPostEffect, t
     //  });
   
     const pipeline_PostEffect = device.createRenderPipeline({
-      label: "pipeline_PostEffect",
       layout: device.createPipelineLayout({
         bindGroupLayouts: [gBufferTexturesBindGroupLayout],
       }),
@@ -52,12 +51,6 @@ export async function initPostEffect(device, canvas, format, shaderPostEffect, t
       },
       primitive: {
         topology: "triangle-list", // что будем рисовать точки - треугольники - линии
-      },
-      depthStencil: {
-        format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus depth32float
-        depthWriteEnabled: false, //вкл\выкл теста глубины 
-        depthCompare: 'always' //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. 
-        //depthCompare: 'never' //'less' // greater 'never' //'less' // greater //greater-equal //less-equal "always"
       }
     });
   
