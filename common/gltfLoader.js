@@ -130,16 +130,24 @@ export class gltfLoader {
 
 /////////////////////////////////////////////////////////////////////
 
+// export async function LoadJSONUsingPromise(URL) {
+//     let promise = new Promise(function (resolve, reject) {
+//         let xhr = new XMLHttpRequest();
+//         xhr.open("GET", URL, true);
+//         xhr.onload = () => resolve(xhr.responseText);
+//         xhr.onerror = () => resolve(console.log(xhr.statusText));
+//         xhr.send();
+//     });
+//     return promise;
+// }
+
 export async function LoadJSONUsingPromise(URL) {
-    let promise = new Promise(function (resolve, reject) {
-        let xhr = new XMLHttpRequest();
-        xhr.open("GET", URL, true);
-        xhr.onload = () => resolve(xhr.responseText);
-        xhr.onerror = () => resolve(console.log(xhr.statusText));
-        xhr.send();
+
+    let response = await fetch(URL).then(response=>{
+      //console.log(response.json());
+      return response.json();
     });
-    return promise;
-}
-
-
+    
+    return response;
+  }
 

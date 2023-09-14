@@ -1,4 +1,6 @@
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
+import { RectangleGeometry } from '../../common/primitives/RectangleGeometry.js';
+import { gltfLoader ,LoadJSONUsingPromise} from '../../common/gltfLoader.js';
 
 export async function initResurse(device) {
     //-------------------- MESH --------------------- 
@@ -18,6 +20,30 @@ export async function initResurse(device) {
     plane.uv = new Float32Array(mesh1.texturecoords[0]);
     plane.index = new Uint32Array(mesh1.faces.flat());
     plane.normal = new Float32Array(mesh1.normals);
+
+    const rectangleGeometry = new RectangleGeometry(10,10,1,1);
+   
+    plane.vertex = new Float32Array(rectangleGeometry.vertices);
+    plane.uv = new Float32Array(rectangleGeometry.uvs);
+    plane.normal = new Float32Array(rectangleGeometry.normals);
+    plane.index = new Uint32Array(rectangleGeometry.indices);
+
+
+    // BUNNY
+    let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
+
+    const gltfModel = new gltfLoader(device,gltf);
+    //console.log(gltfModel.gltf);
+    gltfModel.getMesh();
+
+    const modelBufferData = gltfModel.meshes[0].data;
+    const bunny = {};
+    bunny.vertexBuffer = modelBufferData.attribute_POSITION.gpuBufferData;
+    bunny.uvBuffer = modelBufferData.attribute_TEXCOORD_0.gpuBufferData;
+    bunny.normalBuffer = modelBufferData.attribute_NORMAL.gpuBufferData;
+    //const bunny = modelBufferData.attribute_TANGENT.gpuBufferData;
+    bunny.indexBuffer = modelBufferData.indices_indices.gpuBufferData;
+    bunny.indexCount =  modelBufferData.indices_indices.indexCount
   
   
     const meshSphereGeometry = new SphereGeometry(0.1, 32, 16);
@@ -54,7 +80,7 @@ export async function initResurse(device) {
       [imageBitmap.width, imageBitmap.height]);
   
   
-    return { model, plane, texture, sampler ,ligthHelper}
+    return { model, plane, texture, sampler ,ligthHelper,bunny}
   }
 
   async function loadJSON(result, modelURL) {

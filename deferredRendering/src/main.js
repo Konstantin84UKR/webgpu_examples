@@ -25,7 +25,7 @@ async function main() {
   const { device, context, format, canvas} = await initWebGPU(false);
   //---------------------------------------------------
   //initResurse
-  const { model, plane, texture, sampler , ligthHelper} = await initResurse(device);
+  const { model, plane, texture, sampler , ligthHelper, bunny} = await initResurse(device);
   //---------------------------------------------------
   //initBuffers
   await initVertexBuffers(device, model);  
@@ -167,9 +167,13 @@ async function main() {
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
   device.queue.writeBuffer(uBiffers.uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
 
-  MODELMATRIX = mat4.translate(MODELMATRIX, vec3.set(0, 1.5, 0));
+  MODELMATRIX = mat4.translate(MODELMATRIX, vec3.set(0, 0.0, 0));
+  MODELMATRIX = mat4.scale(MODELMATRIX, vec3.set(2.0,2.0,2.0));
 
   device.queue.writeBuffer(uBiffers.uniformBufferModel, 0, MODELMATRIX); // и так дале прибавляем 64 к offset
+
+  MODELMATRIX_PLANE = mat4.translate(MODELMATRIX_PLANE, vec3.set(0, -1.0, 0));
+  MODELMATRIX_PLANE = mat4.rotateX(MODELMATRIX_PLANE, -3.14*0.5);
   device.queue.writeBuffer(uBiffers.uniformBufferModel_2, 0, MODELMATRIX_PLANE); // и так дале прибавляем 64 к offset
 
   device.queue.writeBuffer(uBiffers.fragmentUniformBuffer, 0, new Float32Array(camera.eye));
@@ -266,13 +270,14 @@ async function main() {
     const renderGBufferPass = commandEncoder.beginRenderPass(renderGBufferPassDescription);
 
     renderGBufferPass.setPipeline(pipelineGBuffer);
-    renderGBufferPass.setVertexBuffer(0, model.vertexBuffer);
-    renderGBufferPass.setVertexBuffer(1, model.uvBuffer);
-    renderGBufferPass.setVertexBuffer(2, model.normalBuffer);
-    renderGBufferPass.setIndexBuffer(model.indexBuffer, "uint32");
-    renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
-    renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2);
-    renderGBufferPass.drawIndexed(model.index.length);
+   
+    // renderGBufferPass.setVertexBuffer(0, model.vertexBuffer);
+    // renderGBufferPass.setVertexBuffer(1, model.uvBuffer);
+    // renderGBufferPass.setVertexBuffer(2, model.normalBuffer);
+    // renderGBufferPass.setIndexBuffer(model.indexBuffer, "uint32");
+    // renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
+    // renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2);
+    // renderGBufferPass.drawIndexed(model.index.length);
 
     renderGBufferPass.setVertexBuffer(0, plane.vertexBuffer);
     renderGBufferPass.setVertexBuffer(1, plane.uvBuffer);
@@ -281,6 +286,16 @@ async function main() {
     renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
     renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2_1);
     renderGBufferPass.drawIndexed(plane.index.length);
+
+
+    renderGBufferPass.setVertexBuffer(0, bunny.vertexBuffer);
+    renderGBufferPass.setVertexBuffer(1, bunny.uvBuffer);
+    renderGBufferPass.setVertexBuffer(2, bunny.normalBuffer);
+    renderGBufferPass.setIndexBuffer(bunny.indexBuffer, "uint16");
+    renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
+    renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2);
+    renderGBufferPass.drawIndexed(bunny.indexCount);
+
     renderGBufferPass.end();
 
     //DeferredRender 
