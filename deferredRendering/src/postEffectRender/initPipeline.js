@@ -1,4 +1,4 @@
-export async function initPostEffect(device, canvas, format, shaderPostEffect, texturePostEffect, sampler) {
+export async function initPipeline(device, canvas, format, shaderPostEffect, texturePostEffect, sampler) {
     //   ***********************************************
     //   *************** _PostEffect *******************
     //   ***********************************************
@@ -29,7 +29,7 @@ export async function initPostEffect(device, canvas, format, shaderPostEffect, t
     //         GPUTextureUsage.RENDER_ATTACHMENT
     //  });
   
-    const pipeline_PostEffect = device.createRenderPipeline({
+    const pipeline = device.createRenderPipeline({
       label: "pipeline_PostEffect",
       layout: device.createPipelineLayout({
         bindGroupLayouts: [gBufferTexturesBindGroupLayout],
@@ -76,9 +76,9 @@ export async function initPostEffect(device, canvas, format, shaderPostEffect, t
       ]
     });
   
-    pipeline_PostEffect.BindGroup = {};
-    pipeline_PostEffect.BindGroup.bindGroup_PostEffect = bindGroup_PostEffect;
+    pipeline.BindGroup = {};
+    pipeline.BindGroup.bindGroup_PostEffect = bindGroup_PostEffect;
   
-    return { pipeline_PostEffect };
+    return { pipeline };
   
   }

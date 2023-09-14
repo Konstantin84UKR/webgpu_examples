@@ -1,4 +1,4 @@
-export async function initPipelineForvardRender(device, canvas, format, uBiffers,shaderLigthHelpers){
+export async function initPipeline(device, canvas, format, uBiffers,shaderLigthHelpers){
 
       
     const forvardRender_UniformBindGroupLayout = device.createBindGroupLayout({
@@ -66,7 +66,7 @@ export async function initPipelineForvardRender(device, canvas, format, uBiffers
 
       ///
 
-      const forvardRender_pipeline = device.createRenderPipeline({
+      const pipeline = device.createRenderPipeline({
         label: 'forvardRender_pipeline',
         layout: forvardRender_pipelineLayout,
         vertex: {
@@ -109,12 +109,12 @@ export async function initPipelineForvardRender(device, canvas, format, uBiffers
       });
          
     
-      forvardRender_pipeline.BindGroup = {
+      pipeline.BindGroup = {
         forvardRender_uniformBindGroup,
         forvardRender_pipelineLayout
       };    
     
-      forvardRender_pipeline.Depth = { depthTexture };
+      pipeline.Depth = { depthTexture };
     
-      return {forvardRender_pipeline}      
+      return {pipeline}      
 }
