@@ -41,7 +41,6 @@ export async function initResurse(device) {
     bunny.vertexBuffer = modelBufferData.attribute_POSITION.gpuBufferData;
     bunny.uvBuffer = modelBufferData.attribute_TEXCOORD_0.gpuBufferData;
     bunny.normalBuffer = modelBufferData.attribute_NORMAL.gpuBufferData;
-    //const bunny = modelBufferData.attribute_TANGENT.gpuBufferData;
     bunny.indexBuffer = modelBufferData.indices_indices.gpuBufferData;
     bunny.indexCount =  modelBufferData.indices_indices.indexCount
   
@@ -49,11 +48,13 @@ export async function initResurse(device) {
     const meshSphereGeometry = new SphereGeometry(0.1, 32, 16);
     const ligthHelper = {};
     ligthHelper.vertex = new Float32Array(meshSphereGeometry.vertices);
-    ligthHelper.index = new Uint32Array(meshSphereGeometry.indices);
+    ligthHelper.index = new Uint32Array(meshSphereGeometry.indices);    
+    ligthHelper.uv = new Float32Array(meshSphereGeometry.uvs);
+    ligthHelper.normal = new Float32Array(meshSphereGeometry.normals);
+  
     //-------------------- TEXTURE ---------------------
     let img = new Image();
-   // img.src = './res/uv.jpg'; //'./tex/yachik.jpg'; //paper
-    img.src = './res/uv.jpg'; //'./tex/yachik.jpg';
+    img.src = './res/uv.jpg';
     await img.decode();
   
     const imageBitmap = await createImageBitmap(img);

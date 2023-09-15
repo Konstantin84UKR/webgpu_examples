@@ -24,8 +24,7 @@ export const shadergBufferPass = {
         @builtin(position) Position : vec4<f32>,
         @location(0) fragPosition : vec3<f32>,
         @location(1) fragUV : vec2<f32>,
-        @location(2) fragNormal : vec3<f32>,
-        @location(3) shadowPos : vec3<f32>          
+        @location(2) fragNormal : vec3<f32>,             
     };
    
 
@@ -38,16 +37,11 @@ export const shadergBufferPass = {
           nMatrix[3] = vec4<f32>(0.0, 0.0, 0.0, 1.0); 
 
           var output: Output;
-          output.Position = uniforms.pMatrix * uniforms.vMatrix * uniformsModel.mMatrix * pos;
-         
+          output.Position = uniforms.pMatrix * uniforms.vMatrix * uniformsModel.mMatrix * pos;         
 
           output.fragPosition = (uniformsModel.mMatrix * pos).xyz;
           output.fragUV = uv;
           output.fragNormal  = (nMatrix * vec4<f32>(normal,1.0)).xyz; 
-
-          let posFromLight: vec4<f32> = uniformsLight.pMatrix * uniformsLight.vMatrix * uniformsModel.mMatrix * pos;
-          // Convert shadowPos XY to (0, 1) to fit texture UV
-          output.shadowPos = vec3<f32>(posFromLight.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5, 0.5), posFromLight.z);
 
           return output;
       }
@@ -66,36 +60,21 @@ export const shadergBufferPass = {
     struct GBufferOutput {
       @location(0) color1 : vec4<f32>,
       @location(1) normal : vec4<f32>,
-      @location(2) color2 : vec4<f32>,
     }
       
 
     @fragment
     fn main(@location(0) fragPosition: vec3<f32>,
      @location(1) fragUV: vec2<f32>, 
-     @location(2) fragNormal: vec3<f32>,
-     @location(3) shadowPos: vec3<f32>) -> GBufferOutput {
+     @location(2) fragNormal: vec3<f32>,    
+     ) -> GBufferOutput {
       
-      let specularColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
-      let diffuseColor:vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
-
       let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, fragUV)).rgb;
-      
       let N:vec3<f32> = normalize(fragNormal.xyz);
-      let L:vec3<f32> = normalize((uniforms.lightPosition).xyz - fragPosition.xyz);
-      let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
-      let H:vec3<f32> = normalize(L + V);
-    
-      let diffuse:f32 = 1.0 * max(dot(N, L), 0.0);
-      let specular = pow(max(dot(N, H),0.0),100.0);
-      let ambient:vec3<f32> = vec3<f32>(0.1, 0.2, 0.3);
-    
-      let finalColor:vec3<f32> =  textureColor * ((diffuseColor * diffuse) + ambient) + (specularColor * specular);  
-
+     
       var output : GBufferOutput;
-      output.color1 = vec4(finalColor, 1.0);
       output.normal = vec4(N, 1.0);
-      output.color2 = vec4(textureColor, 1.0);
+      output.color1 = vec4(textureColor, 1.0);
            
       return output;
   }

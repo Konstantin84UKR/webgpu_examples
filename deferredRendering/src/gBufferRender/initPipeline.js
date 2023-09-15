@@ -184,15 +184,17 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         },
         {
           format: 'rgba16float',
-        },
-        {
-          format: format,
         }
+        //,
+        // {
+        //   format: format,
+        // }
         ],
       },
       primitive: {
-        topology: "triangle-list",
-        //topology: "point-list",
+       topology: "triangle-list",
+       //topology: "point-list",
+       //topology: "line-list",
       },
       depthStencil: {
         format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus depth32float

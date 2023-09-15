@@ -5,19 +5,21 @@ import {
 
 import { Camera } from '../../common/camera/camera.js';
 import { initWebGPU } from '../../common/initWebGPU.js';
+
 import { shaderPostEffect } from './postEffectRender/shaders/shaderPostEffect.js';
 import { shadergBufferPass } from './gBufferRender/shader/shadergBufferPass.js';
 import { shaderDeferredRendering } from './deferredRender/shaders/shaderDeferredRendering.js';
 import { shaderLigthHelpers } from './forvardRender/shaders/shaderLigthHelpers.js';
+
 import { initResurse } from './initResurse.js';
 import { initUniformBuffers } from './initUniformBuffers.js';
 import { initVertexBuffers } from './initVertexBuffers.js';
+
 import { initPipeline as initPostEffectPipeline } from './postEffectRender/initPipeline.js';
 import { initPipeline as initPipelineDeferredRender } from './deferredRender/initPipeline.js';
 import { initPipeline as initPipelineGBuffer} from './gBufferRender/initPipeline.js';
-
 import { initPipeline as initPipelineForvardRender } from './forvardRender/initPipeline.js';
-import { initBuffers as initBuffersForvardRender} from './forvardRender/initBuffers.js';
+
 
 async function main() {
   //---------------------------------------------------
@@ -30,34 +32,21 @@ async function main() {
   //initBuffers
   await initVertexBuffers(device, model);  
   await initVertexBuffers(device, plane);
+  await initVertexBuffers(device, ligthHelper);
   const { uBiffers } = await initUniformBuffers(device);  
-  await initBuffersForvardRender(device, ligthHelper);
   //---------------------------------------------------
   //initMATRIX
   let MODELMATRIX = mat4.identity();
   let MODELMATRIX_PLANE = mat4.identity();
   let MODELMATRIX_ligthHelper = mat4.identity();
+  
   let MODELMATRIX_ARRAY = new Float32Array(3 * (4 * 4));
   let LIGTHCOLOR_ARRAY = new Float32Array(3 * (4));
-  let VIEWMATRIX = mat4.identity();
-  let PROJMATRIX = mat4.identity();
-  let VIEWMATRIX_SHADOW = mat4.identity();
-  let PROJMATRIX_SHADOW = mat4.identity();
-
-  VIEWMATRIX = mat4.lookAt([0.0, 5.0, 10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-
-  PROJMATRIX = mat4.identity();
-  let fovy = 40 * Math.PI / 180;
-  PROJMATRIX = mat4.perspective(fovy, canvas.width / canvas.height, 1, 25);
+ 
 
   let camera = new Camera(canvas);
   camera.setPosition([0.0, 5.0, 8.0]);
   camera.setLook([0.0, -0.5, -1.0])
-
-  let eyePosition = [10, 10, 10.0];
-  VIEWMATRIX_SHADOW = mat4.lookAt(eyePosition, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-  PROJMATRIX_SHADOW = mat4.ortho(-6, 6, -6, 6, 1, 15);
-
   let lightPosition = [
     new Float32Array([2.0, 2.0, 1.0]),
     new Float32Array([-2.0, 2.0, 1.0]),
@@ -68,10 +57,8 @@ async function main() {
     [1.0, 0.5, 0.1],
     [0.5, 0.0, 0.5],
     [0.1, 0.5, 0.9]
-  ]
+  ];
  
-
-
   const depthRangeRemapMatrix = mat4.identity();
   depthRangeRemapMatrix[10] = -1;
   depthRangeRemapMatrix[14] = 1;
@@ -83,22 +70,14 @@ async function main() {
   const { pipeline : forvardRender_pipeline } = await initPipelineForvardRender(device, canvas, format, uBiffers,shaderLigthHelpers);
   //---------------------------------------------------
   //initRenderPassDescription
-  const textureGBufferPass = device.createTexture({
-    size: [canvas.width, canvas.height],
-    format: format,
-    usage: GPUTextureUsage.TEXTURE_BINDING |
-      GPUTextureUsage.COPY_DST |
-      GPUTextureUsage.RENDER_ATTACHMENT
-  });
-
-  let depthPipelineGBufferView = pipelineGBuffer.Depth.depthTexture.createView();
+  let depthPipelineGBufferView = pipelineGBuffer.gBufferTexture[2].createView(); //  pipelineGBuffer.Depth.depthTexture  == pipelineGBuffer.gBufferTexture[2]
 
   const renderGBufferPassDescription = {
     colorAttachments: [   
       {
-        view: textureGBufferPass.createView(),
+        view: pipelineGBuffer.gBufferTexture[1].createView(),
 
-        clearValue: { r: 0.3, g: 0.4, b: 0.5, a: 1.0 },
+        clearValue: {  r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
         loadOp: 'clear',
         storeOp: 'store',
       },
@@ -108,16 +87,7 @@ async function main() {
         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
         loadOp: 'clear',
         storeOp: 'store',
-      },
-      {
-        view: pipelineGBuffer.gBufferTexture[1].createView(),
-
-        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-        loadOp: 'clear',
-        storeOp: 'store',
-      }
-     
-    
+      }   
     ],
    
     depthStencilAttachment: {
@@ -161,7 +131,7 @@ async function main() {
       depthStoreOp: 'store',} // "store", "discard",
   };
 
-  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, textureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureMainScene2
+  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, textureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
   //--------------------------------------------------
   //BUFFERS EDIT
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
@@ -177,11 +147,7 @@ async function main() {
   device.queue.writeBuffer(uBiffers.uniformBufferModel_2, 0, MODELMATRIX_PLANE); // и так дале прибавляем 64 к offset
 
   device.queue.writeBuffer(uBiffers.fragmentUniformBuffer, 0, new Float32Array(camera.eye));
-   
-  device.queue.writeBuffer(uBiffers.uniformBuffershadow, 0, PROJMATRIX_SHADOW); // пишем в начало буффера с отступом (offset = 0)
-  device.queue.writeBuffer(uBiffers.uniformBuffershadow, 64, VIEWMATRIX_SHADOW); // следуюшая записать в буфер с отступом (offset = 64)
-
-
+  
   MODELMATRIX_ligthHelper = mat4.translate(MODELMATRIX_ligthHelper,new Float32Array([-2.0, 2.0, 1.0]));
   device.queue.writeBuffer(uBiffers.ligthHelper_uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
   device.queue.writeBuffer(uBiffers.ligthHelper_uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)

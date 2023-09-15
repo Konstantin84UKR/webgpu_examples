@@ -32,7 +32,7 @@ export const shaderPostEffect = {
     fragment: `
           @group(0) @binding(0) var mySampler : sampler;
           @group(0) @binding(1) var myTexture : texture_2d<f32>;
-         // @group(0) @binding(1) var myTexture : texture_depth_2d;
+          //@group(0) @binding(1) var myTexture : texture_depth_2d;
          
 
           @fragment
@@ -40,19 +40,19 @@ export const shaderPostEffect = {
                     
           var color: vec3<f32> = textureSample(myTexture, mySampler, fragUV).rgb;
          
-          // let bufferSize = textureDimensions(myTexture);
-          // let coordUV = fragUV.xy * vec2<f32>(bufferSize);
+        //   let bufferSize = textureDimensions(myTexture);
+        //   let coordUV = fragUV.xy * vec2<f32>(bufferSize);
 
-          // var rawDepth:f32 = textureLoad(
-          //   myTexture,
-          //   vec2<i32>(floor(coordUV.xy)),
-          //   0
-          // );
+        //   var rawDepth:f32 = textureLoad(
+        //     myTexture,
+        //     vec2<i32>(floor(coordUV.xy)),
+        //     0
+        //   );
          
           //
           // var colorF: f32 = textureSample(myTexture, mySampler, fragUV);
           
-          // return  vec4<f32>(rawDepth);
+          // return  vec4<f32>(rawDepth,rawDepth,rawDepth, 1.0);
           return  vec4<f32>(color, 1.0);
 
       }`};

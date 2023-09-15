@@ -65,18 +65,6 @@ export const shaderDeferredRendering = {
         return pow(lin, vec3<f32>(1.0/2.2));
       } 
 
-      // const lightPositionArray : array<vec4<f32>, 3> = array<vec4<f32>, 3>(
-      //   vec4<f32>(2.0, 2.0, 1.0, 1.0),
-      //   vec4<f32>(0.0, 3.0, 0.0, 1.0),
-      //   vec4<f32>(-2.0, 2.0, 2.0, 1.0)
-      //   );
-
-      // const lightColorArray : array<vec3<f32>, 3> = array<vec3<f32>, 3>(
-      //     vec3<f32>(0.0, 0.0, 1.0),
-      //     vec3<f32>(1.0, 0.0, 0.0),
-      //     vec3<f32>(0.0, 1.0, 0.0)
-      // );
-
       @fragment
       fn main(@builtin(position) coord : vec4<f32>, @location(0) fragUV : vec2<f32>)
        ->  @location(0) vec4<f32> {
@@ -111,9 +99,7 @@ export const shaderDeferredRendering = {
 
         for (var i = 0; i < 3; i++) {
             
-            // if(i>0){
-            //   continue;
-            // }
+        
             let N:vec3<f32> = normalize(normal.xyz);
             let L:vec3<f32> = normalize((lightPositionArray[i]).xyz - fragPosition.xyz);
             let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
@@ -125,36 +111,17 @@ export const shaderDeferredRendering = {
             // light *= smoothstep(0., light, dist);
 
             let distlight = distance(lightPositionArray[i].xyz, fragPosition.xyz); 
-            //let diffuse:f32 = 0.5 * max(dot(N, L), 0.0);
             let diffuse = 30.0 / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight       
             //let irradiance : f32 = 1.0 * max(dot(N, L), 0.0); // sun
             let specular = pow(max(dot(N, H),0.0), 50.0) * .1; //0.9 Просто уменьшаю яркость блика
-           // let specular = 0.0;
+            // let specular = 0.0;
             let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
       
             finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
            
         }
         
-        return vec4<f32>(finalColor, 1.0);
-       // return vec4<f32>(lin2rgb(finalColor), 1.0);
-        
-
-        // let N:vec3<f32> = normalize(normal.xyz);
-        // let L:vec3<f32> = normalize((uniforms.lightPosition).xyz - fragPosition.xyz);
-        // let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
-        // let H:vec3<f32> = normalize(L + V);
-      
-        // let diffuse:f32 = 1.0 * max(dot(N, L), 0.0);
-        // let specular = pow(max(dot(N, H),0.0),100.0);
-        // let ambient:vec3<f32> = vec3<f32>(0.1, 0.1, 0.1);
-  
-        // let finalColor:vec3<f32> =  albedo * ( (diffuseColor * diffuse) + ambient) + (specularColor * specular ); 
-
-        // //let finalColor:vec3<f32> =  fragPosition; 
-             
-        
-        //return vec4<f32>(1.0,0.5,0.0, 1.0);
+        return vec4<f32>(finalColor, 1.0);     
     }
     `,
   };
