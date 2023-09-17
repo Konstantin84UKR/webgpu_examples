@@ -27,10 +27,9 @@ async function main() {
   const { device, context, format, canvas} = await initWebGPU(false);
   //---------------------------------------------------
   //initResurse
-  const { model, plane, texture, sampler , ligthHelper, bunny} = await initResurse(device);
+  const { plane, texture, sampler , ligthHelper, bunny} = await initResurse(device);
   //---------------------------------------------------
   //initBuffers
-  await initVertexBuffers(device, model);  
   await initVertexBuffers(device, plane);
   await initVertexBuffers(device, ligthHelper);
   const { uBiffers } = await initUniformBuffers(device);  
@@ -43,10 +42,10 @@ async function main() {
   let MODELMATRIX_ARRAY = new Float32Array(3 * (4 * 4));
   let LIGTHCOLOR_ARRAY = new Float32Array(3 * (4));
  
-
   let camera = new Camera(canvas);
   camera.setPosition([0.0, 5.0, 8.0]);
   camera.setLook([0.0, -0.5, -1.0])
+  
   let lightPosition = [
     new Float32Array([2.0, 2.0, 1.0]),
     new Float32Array([-2.0, 2.0, 1.0]),
@@ -55,7 +54,7 @@ async function main() {
 
   let lightColor = [
     [1.0, 0.5, 0.1],
-    [0.5, 0.0, 0.5],
+    [0.0, 0.9, 0.0],
     [0.1, 0.5, 0.9]
   ];
  
