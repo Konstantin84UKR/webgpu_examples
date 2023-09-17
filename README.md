@@ -81,3 +81,5 @@ bloom : https://konstantin84ukr.github.io/webgpu_examples/bloom/
 gltf : https://konstantin84ukr.github.io/webgpu_examples/GLTF/
 
 deferredRendering : https://konstantin84ukr.github.io/webgpu_examples/deferredRendering/
+
+reversedZ : https://konstantin84ukr.github.io/webgpu_examples/reversedZ/

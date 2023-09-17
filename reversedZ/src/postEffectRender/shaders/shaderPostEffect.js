@@ -13,8 +13,8 @@ export const shaderPostEffect = {
      
 
       var pos = array<vec2<f32>, 6>(
-          vec2( 1.0,  1.0),  vec2( 1.0, -1.0), vec2(-1.0, -1.0),
-          vec2( 1.0,  1.0),  vec2(-1.0, -1.0), vec2(-1.0,  1.0)            
+          vec2( 0.9,  0.9),  vec2( 0.9, -0.9), vec2(-0.9, -0.9),
+          vec2( 0.9,  0.9),  vec2(-0.9, -0.9), vec2(-0.9,  0.9)            
       );
 
       const uv = array(
@@ -44,6 +44,9 @@ export const shaderPostEffect = {
           let coordUV = fragUV.xy * vec2<f32>(bufferSize);
           let depthValue = textureLoad(depthTexture, vec2<i32>(floor(coordUV.xy)), 0);
           
+          if(fragUV.x < 0.5){
+            return  vec4<f32>(color, 1.0);
+          }
           return  vec4<f32>(depthValue,depthValue,depthValue, 1.0);
           //return  vec4<f32>(color, 1.0);
 

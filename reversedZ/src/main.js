@@ -15,7 +15,7 @@ import { shaderPostEffect} from './postEffectRender/shaders/shaderPostEffect.js'
 async function main() {
   //---------------------------------------------------
   //initWebGPU
-  const { device, context, format, canvas} = await initWebGPU(true);
+  const { device, context, format, canvas} = await initWebGPU(false);
   //initResurse
   const {cube} = await initResurse(device);
   //---------------------------------------------------
@@ -33,13 +33,10 @@ async function main() {
   let VIEWMATRIX = mat4.identity(); 
   let PROJMATRIX = mat4.identity();
   
-  VIEWMATRIX = mat4.lookAt([0.0, 0.0, 5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+  VIEWMATRIX = mat4.lookAt([0.0, 0.0, 6.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
   let fovy = 40 * Math.PI / 180;
   PROJMATRIX = mat4.perspective(fovy, canvas.width/ canvas.height, 1, 25);
-
-  const depthRangeRemapMatrix = mat4.identity();
-  depthRangeRemapMatrix[10] = -1;
-  depthRangeRemapMatrix[14] = 1;
+  
 
   //------------------------------------------------------------------------------
    
@@ -69,8 +66,8 @@ async function main() {
         depthStencilAttachment: {
           view: depthTextureMainRender.createView(),        
           depthLoadOp :"clear",
-         // depthClearValue : 0.0, // STEP 1 
-          depthClearValue : 1.0, // STEP 1 
+          depthClearValue : 0.0, // STEP 1 
+          //depthClearValue : 1.0, // STEP 1 
           depthStoreOp: "store",        
       }
     };
@@ -99,9 +96,13 @@ async function main() {
         depthStoreOp: 'store',} // "store", "discard",
     };       
     
-   // const reversZpMatrix = mat4.multiply(depthRangeRemapMatrix, PROJMATRIX); // STEP 3
-   // device.queue.writeBuffer(uBuffers.uniformBuffer, 0, reversZpMatrix); // пишем в начало буффера с отступом (offset = 0)
-    device.queue.writeBuffer(uBuffers.uniformBuffer, 0, PROJMATRIX);
+     // STEP 3
+    const depthRangeRemapMatrix = mat4.identity();
+    depthRangeRemapMatrix[10] = -1;
+    depthRangeRemapMatrix[14] = 1;
+    const reversZpMatrix = mat4.multiply(depthRangeRemapMatrix, PROJMATRIX); // STEP 3
+    device.queue.writeBuffer(uBuffers.uniformBuffer, 0, reversZpMatrix); // пишем в начало буффера с отступом (offset = 0)
+    //device.queue.writeBuffer(uBuffers.uniformBuffer, 0, PROJMATRIX);
     device.queue.writeBuffer(uBuffers.uniformBuffer, 64, VIEWMATRIX); // следуюшая записать в буфер с отступом (offset = 64)
  
 
@@ -113,9 +114,9 @@ let time_old=0;
       let dt=time-time_old;
       time_old=time;
       //------------------MATRIX EDIT---------------------
-      MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.001);
-      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.002);
-      MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.001);
+      MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0001);
+      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0002);
+      MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 
       device.queue.writeBuffer(uBuffers.uniformBuffer, 64 + 64, MODELMATRIX); 

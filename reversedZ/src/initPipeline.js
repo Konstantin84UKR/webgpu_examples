@@ -40,10 +40,10 @@ export async function initPipeline(device,format,uBuffers,shader){
           //topology: "point-list",
         },
         depthStencil:{
-          format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
+          format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus depth32float
           depthWriteEnabled: true, //вкл\выкл теста глубины 
-          //depthCompare: 'greater', // STEP 2
-          depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. 
+          depthCompare: 'greater', // STEP 2
+          //depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. 
       }
       });
 
