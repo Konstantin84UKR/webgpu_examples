@@ -1,4 +1,4 @@
-export async function initPipeline(device, canvas, format, shaderPostEffect, texturePostEffect, sampler) {
+export async function initPipeline(device, canvas, format, shaderPostEffect, texturePostEffect, depthPipelineGBufferView, sampler) {
     //   ***********************************************
     //   *************** _PostEffect *******************
     //   ***********************************************
@@ -13,22 +13,18 @@ export async function initPipeline(device, canvas, format, shaderPostEffect, tex
         {
           binding: 1,
           visibility: GPUShaderStage.FRAGMENT,
+          texture: {},
+        },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.FRAGMENT,
           texture: {
-            //sampleType: 'depth',
+            sampleType: 'depth',
           },
         },
       ],
     });
-  
-    //   // Создаем саму текстуру
-    //   const texturePostEffect = device.createTexture({
-    //     size: [canvas.width, canvas.height],
-    //     format: format,
-    //     usage: GPUTextureUsage.TEXTURE_BINDING |
-    //         GPUTextureUsage.COPY_DST |
-    //         GPUTextureUsage.RENDER_ATTACHMENT
-    //  });
-  
+ 
     const pipeline = device.createRenderPipeline({
       label: "pipeline_PostEffect",
       layout: device.createPipelineLayout({
@@ -72,12 +68,16 @@ export async function initPipeline(device, canvas, format, shaderPostEffect, tex
         {
           binding: 1,
           resource: texturePostEffect.createView(),
+        },
+        {
+          binding: 2,
+          resource: depthPipelineGBufferView,
         }
       ]
     });
   
-    pipeline.BindGroup = {};
-    pipeline.BindGroup.bindGroup_PostEffect = bindGroup_PostEffect;
+    gBufferTexturesBindGroupLayout.BindGroup = {bindGroup_PostEffect};
+    pipeline.layout = {gBufferTexturesBindGroupLayout};
   
     return { pipeline };
   

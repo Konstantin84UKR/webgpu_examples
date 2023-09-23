@@ -47,7 +47,8 @@ export const shaderDeferredRendering = {
       struct Camera {
         viewProjectionMatrix : mat4x4<f32>,
         invViewProjectionMatrix : mat4x4<f32>,
-       
+        vMatrix : mat4x4<f32>,
+        pMatrix : mat4x4<f32>,       
        };
 
       @group(2) @binding(0) var<uniform> camera : Camera;
@@ -122,18 +123,17 @@ export const shaderDeferredRendering = {
             //let diffuse = 100.0 / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight  
             let diffuse : f32 = 1.0 * max(dot(N, L), 0.0); // sun     
             let specular = pow(max(dot(N, H),0.0), 50.0) * .1; //0.9 Просто уменьшаю яркость блика
-            let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
+            let ambient:vec3<f32> = vec3<f32>(0.05, 0.05, 0.05);
       
             //finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
             finalColor +=  ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
         
         }
 
-        //SSAO
-               
+        //SSAO               
 
         let fragPos = fragPosition;
-        let radius = 1.0;
+        let radius = 0.25;
         let sampleSize = 64.0;
         var occlusion = 0.0;
 
@@ -141,21 +141,31 @@ export const shaderDeferredRendering = {
         let noiseY = u32(((coord.y / 4) - floor(coord.y / 4)) * 4);
         let randomVec : vec3<f32> =  normalize(ssaoNoise[noiseX + noiseY].xyz);
 
+        var sampleDepth = vec3<f32>(0.0,0.0,0.0);
+
+        var tangent : vec3<f32>  = vec3<f32>(0.0,0.0,0.0);
+        var bitangent : vec3<f32>  = vec3<f32>(0.0,0.0,0.0);
+        var samplePos  : vec4<f32> = vec4<f32>(0.0,0.0,0.0,1.0);
+       
+        //world to view
+        let N_view = (camera.vMatrix *  vec4<f32>(N,0.0)).xyz;
+        let fragPos_view = (camera.vMatrix *  vec4<f32>(fragPos,1.0)).xyz;
+
         for (var i = 0; i < 8; i++) {
 
-          let tangent : vec3<f32> = normalize(randomVec - N * dot(randomVec, N));
-          let bitangent : vec3<f32> = cross(N, tangent);
-          let TBN : mat3x3<f32> = mat3x3<f32>(tangent, bitangent, N); 
+          tangent  = normalize(randomVec - N_view * dot(randomVec, N_view));
+          bitangent  = cross(N_view, tangent);
+          let TBN : mat3x3<f32> = mat3x3<f32>(tangent, bitangent, N_view); 
 
           // get sample position
           //var samplePos = samples[i];  // текуший семпл
-          var samplePos = vec4<f32>(TBN * samples[i].xyz, samples[i].w); // переход от касательного пространства к пространству мира
+          samplePos = vec4<f32>(TBN * samples[i].xyz, samples[i].w); // переход от касательного пространства к пространству мира
           samplePos = samplePos * radius; // маштабируем семпл
-          samplePos = vec4<f32>(fragPos, 1.0) + samplePos; // К текушей позиции в мировом пространстве  добавляем семпл 
+          samplePos = vec4<f32>(fragPos_view, 1.0) + samplePos; // К текушей позиции в мировом пространстве  добавляем семпл 
           //и получаем положение точки сверки в мировом пространстве
 
           var offset : vec4<f32> = samplePos;
-          offset = camera.viewProjectionMatrix * offset;            // from мировое to clip-space
+          offset = camera.pMatrix * offset;            // from мировое to clip-space
           offset = vec4<f32>(offset.xyz / offset.www, 1.0);          // perspective divide 
           var offsetClipSpace  = vec2<f32>(offset.x * 0.5 + 0.5, offset.y * -0.5 + 0.5);   // transform to range 0.0 - 1.0  
                     
@@ -169,25 +179,29 @@ export const shaderDeferredRendering = {
           );
 
           //получаем позицию для сверки.
-          let sampleDepth  = world_from_screen_coord(offsetClipSpace.xy, depthSSAO);
+          sampleDepth = world_from_screen_coord(offsetClipSpace.xy, depthSSAO);
           
+          sampleDepth = (camera.vMatrix * vec4<f32>(sampleDepth, 1.0)).xyz; 
+
           let rangeCheck = smoothstep(0.0, 1.0, radius / abs((samplePos.z + 0.01) - sampleDepth.z));
         
-          if((samplePos.z + 0.01) < sampleDepth.z){
+          if((samplePos.z+ 0.01) < sampleDepth.z)
+           {
               occlusion = (occlusion + 1.0) * rangeCheck;                       
-           }
-              occlusion = occlusion + 0.0;  
-           }
-          occlusion =  (1.0 - (occlusion / 8));
+           }                   
+           occlusion = occlusion + 0.0;        
+        }
+              
+        occlusion =  (1.0 - (occlusion / 8));
 
         var output : GBufferOutput;
         output.colorBuffer = vec4(finalColor , 1.0);
         output.ssaoBuffer = vec4(finalColor, 1.0);
-        // output.ssaoBuffer = vec4(fragPosition.z, fragPosition.z, fragPosition.z, 1.0);
-        // output.ssaoBuffer = vec4(sampleDepth, 1.0);
-        //output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
-        output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
-        //output.ssaoBuffer = vec4(randomVec, 1.0);
+        output.ssaoBuffer = vec4(fragPosition, 1.0);
+        // output.ssaoBuffer = vec4(sampleDepth,1.0);
+        output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
+        //output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
+        // output.ssaoBuffer = vec4(samplePos.xyz, 1.0);
        
         return output;     
     }

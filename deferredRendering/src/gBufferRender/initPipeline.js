@@ -1,8 +1,8 @@
 export async function initPipeline(device, canvas, format, uBiffers, shader, texture, sampler,shaderDeferredRendering) {
   
     // gBufferPipeline
-    const bindGroupLayout_0_pipeline = device.createBindGroupLayout({
-      label: 'bindGroupLayout_0_pipeline ',
+    const layout_0_main = device.createBindGroupLayout({
+      label: 'layout_0_main ',
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.VERTEX,
@@ -19,17 +19,13 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         binding: 3,
         visibility: GPUShaderStage.FRAGMENT,
         buffer: {}
-      }, {
-        binding: 4,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: {}
-      }]
+      }     
+    ]
     });
   
     const uniformBindGroup = device.createBindGroup({
-      //layout: pipeline.getBindGroupLayout(0),
       label: 'uniformBindGroup ',
-      layout: bindGroupLayout_0_pipeline,
+      layout: layout_0_main,
       entries: [
         {
           binding: 0,
@@ -54,20 +50,12 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
             offset: 0,
             size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
           }
-        },
-        {
-          binding: 4,
-          resource: {
-            buffer: uBiffers.uniformBuffershadow,
-            offset: 0,
-            size: 64 + 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX + + MODELMATRIX_PLANE// Каждая матрица занимает 64 байта
-          }
-        }
+        }      
       ]
     });
   
-    const bindGroupLayout_2_pipeline = device.createBindGroupLayout({
-      label: 'bindGroupLayout_2_pipeline ',
+    const layout_1_ModelMatrix = device.createBindGroupLayout({
+      label: 'bindGroupLayout_ModelMatrix ',
       entries: [{
         binding: 0,
         visibility: GPUShaderStage.VERTEX,
@@ -76,34 +64,34 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         }
       }]
     });
-  
-    const uniformBindGroup2 = device.createBindGroup({
-      label: 'uniformBindGroup2 ',
-      //layout: pipeline.getBindGroupLayout(1),
-      layout: bindGroupLayout_2_pipeline,
+    
+    //plane Model#1
+    const uniformBindGroupModel1 = device.createBindGroup({
+      label: 'bindGroupLayout_ModelMatrix ',
+      layout: layout_1_ModelMatrix,
       entries: [
         {
           binding: 0,
           resource: {
             buffer: uBiffers.uniformBufferModel,
             offset: 0,
-            size: 64  //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
+            size: 64  //  Model Matrix;   
           }
         }
       ]
     });
   
-    const uniformBindGroup2_1 = device.createBindGroup({
-      label: 'uniformBindGroup2_1 ',
-      //layout: pipeline.getBindGroupLayout(1),
-      layout: bindGroupLayout_2_pipeline,
+    //bunny Model#2
+    const uniformBindGroupModel2 = device.createBindGroup({
+      label: 'uniformBindGroupModel2 ',
+      layout: layout_1_ModelMatrix,
       entries: [
         {
           binding: 0,
           resource: {
             buffer: uBiffers.uniformBufferModel_2,
             offset: 0,
-            size: 64  //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
+            size: 64  // Model Matrix;   
           }
         }
       ]
@@ -119,10 +107,10 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
       size: [canvas.width, canvas.height],
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
       format: 'bgra8unorm',  // 'bgra8unorm'
-    });
-   
+    });   
     // Эта теневая текстура для обычного теста глубины при рендере сцены.
     const depthTexture = device.createTexture({
+      label: 'depthTexture_gBufferTexture',
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
@@ -135,7 +123,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
     ];
   
     const pipelineLayout_pipeline = device.createPipelineLayout({
-      bindGroupLayouts: [bindGroupLayout_0_pipeline, bindGroupLayout_2_pipeline]
+      bindGroupLayouts: [layout_0_main, layout_1_ModelMatrix]
     });
   
     const pipeline = device.createRenderPipeline({
@@ -184,11 +172,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         },
         {
           format: 'rgba16float',
-        }
-        //,
-        // {
-        //   format: format,
-        // }
+        }        
         ],
       },
       primitive: {
@@ -203,19 +187,15 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         //depthCompare: 'never' //'less' // greater
       }
     });
-  
-   
-  
-    pipeline.BindGroup = {
-      bindGroupLayout_0_pipeline,
-      uniformBindGroup,
-      bindGroupLayout_2_pipeline,
-      uniformBindGroup2,
-      uniformBindGroup2_1,
-      pipelineLayout_pipeline
+     
+    layout_0_main.BindGroup = {uniformBindGroup};
+    layout_1_ModelMatrix.BindGroup = {uniformBindGroupModel1,uniformBindGroupModel2};
+
+    pipeline.layout = {
+      layout_0_main,
+      layout_1_ModelMatrix      
     };
-  
-  
+    
     pipeline.Depth = { depthTexture };
   
     pipeline.gBufferTexture = gBufferTexture;

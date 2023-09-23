@@ -83,3 +83,5 @@ gltf : https://konstantin84ukr.github.io/webgpu_examples/GLTF/
 deferredRendering : https://konstantin84ukr.github.io/webgpu_examples/deferredRendering/
 
 reversedZ : https://konstantin84ukr.github.io/webgpu_examples/reversedZ/
+
+SSAO : https://konstantin84ukr.github.io/webgpu_examples/SSAO/

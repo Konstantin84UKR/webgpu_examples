@@ -191,7 +191,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
           resource: {
             buffer: uBiffers.uniformBufferCamera,
             offset: 0,
-            size: 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+            size: 64 + 64 + 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
           }
         }
       ]

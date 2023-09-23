@@ -45,7 +45,7 @@ export async function initUniformBuffers(device) {
     uBiffers.uniformBufferModel_2 = uniformBufferModel_2;
   
     const uniformBufferCamera = device.createBuffer({
-      size: 64 * 2,
+      size: 64 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     });
   

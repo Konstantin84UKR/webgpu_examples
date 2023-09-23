@@ -107,13 +107,10 @@ export async function initPipeline(device, canvas, format, uBiffers,shaderLigthH
           //depthCompare: 'never' //'less' // greater //greater-equal //less-equal
         }
       });
-         
-    
-      pipeline.BindGroup = {
-        forvardRender_uniformBindGroup,
-        forvardRender_pipelineLayout
-      };    
-    
+           
+      forvardRender_UniformBindGroupLayout.BindGroup = {forvardRender_uniformBindGroup};
+      
+      pipeline.layout = {forvardRender_UniformBindGroupLayout};
       pipeline.Depth = { depthTexture };
     
       return {pipeline}      

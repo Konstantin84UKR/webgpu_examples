@@ -44,8 +44,8 @@ async function main() {
   let LIGTHCOLOR_ARRAY = new Float32Array(3 * (4));
  
   let camera = new Camera(canvas);
-  camera.setPosition([0.0, 5.0, 8.0]);
-  camera.setLook([0.0, -0.5, -1.0])
+  camera.setPosition([0.0, 3.0, 8.0]);
+  camera.setLook([0.0, -0.3, -1.0])
   
   let lightPosition = [
     new Float32Array([2.0, 2.0, 1.0]),
@@ -69,6 +69,14 @@ async function main() {
   {
       return a + f * (b - a);
   }  
+
+  function easeInQuint(x) {
+    return x * x * x * x * x;
+  }
+
+  function easeOutCubic(x) {
+    return 1 - Math.pow(1 - x, 3);
+    }
  
   let ssaoKernel = new Float32Array(64 * (4));
   let ssaoKernelSaze = 64;
@@ -83,9 +91,12 @@ async function main() {
      )
   
      vec3.normalize(sample,sample);
-     
+
+
+
+
      let scale =  i/ ssaoKernelSaze; 
-     scale = lerp(0.1, 1.0, scale * scale);
+     scale = lerp(0.1, 1.0, easeOutCubic(scale));
      sample = vec3.mulScalar(sample,scale);
      ssaoKernel.set(sample, (i) * 4);
   }
@@ -99,6 +110,8 @@ async function main() {
           Math.random() * 2.0 - 1.0, 
           0.0,
           1.0); 
+      
+      vec3.normalize(noise,noise);
       ssaoNoise.set(noise, (i) * 4);
   } 
 
@@ -186,13 +199,13 @@ async function main() {
       depthStoreOp: 'store',} // "store", "discard",
   };
 
-  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, SSAOtextureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
+  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, SSAOtextureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender  // SSAOtextureDeferredRender
   //--------------------------------------------------
   //BUFFERS EDIT
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
   device.queue.writeBuffer(uBiffers.uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
 
-  MODELMATRIX = mat4.translate(MODELMATRIX, vec3.set(0, -1.0, 0));
+  MODELMATRIX = mat4.translate(MODELMATRIX, vec3.set(0, -1.0, 0.0));
   MODELMATRIX = mat4.scale(MODELMATRIX, vec3.set(2.0,2.0,2.0));
 
   device.queue.writeBuffer(uBiffers.uniformBufferModel, 0, MODELMATRIX); // и так дале прибавляем 64 к offset
@@ -269,6 +282,8 @@ async function main() {
     const cameraInvViewProj = mat4.invert(cameraViewProj);
     device.queue.writeBuffer(uBiffers.uniformBufferCamera, 0, cameraViewProj);
     device.queue.writeBuffer(uBiffers.uniformBufferCamera, 64, cameraInvViewProj);
+    device.queue.writeBuffer(uBiffers.uniformBufferCamera, 64 + 64, camera.vMatrix);
+    device.queue.writeBuffer(uBiffers.uniformBufferCamera, 64 + 64 + 64, reversZpMatrix);
    
     device.queue.writeBuffer(uBiffers.ligthHelper_uniformBuffer, 0, reversZpMatrix); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uBiffers.ligthHelper_uniformBuffer, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)

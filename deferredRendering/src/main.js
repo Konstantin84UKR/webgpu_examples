@@ -116,6 +116,12 @@ async function main() {
       }    
     ],    
   };
+  
+  let depthTexturePostEffect = device.createTexture({
+    size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+    format: "depth24plus",
+    usage:  GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT
+  }); 
 
   const postEffectRenderPassDescription = {  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
     colorAttachments: [{
@@ -125,12 +131,15 @@ async function main() {
       storeOp: 'store' //хз
     }],
     depthStencilAttachment: {
-      view: depthPipelineGBufferView,
+      view: depthPipelineGBufferView, //depthTexturePostEffect.createView() //depthPipelineGBufferView
       depthLoadOp: 'load', //  "load" 'clear'
       depthStoreOp: 'store',} // "store", "discard",
   };
 
-  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, textureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
+  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(
+    device, canvas, format, shaderPostEffect, 
+    textureDeferredRender , depthTexturePostEffect.createView(),sampler); 
+    // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
   //--------------------------------------------------
   //BUFFERS EDIT
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
@@ -235,21 +244,13 @@ async function main() {
     const renderGBufferPass = commandEncoder.beginRenderPass(renderGBufferPassDescription);
 
     renderGBufferPass.setPipeline(pipelineGBuffer);
-   
-    // renderGBufferPass.setVertexBuffer(0, model.vertexBuffer);
-    // renderGBufferPass.setVertexBuffer(1, model.uvBuffer);
-    // renderGBufferPass.setVertexBuffer(2, model.normalBuffer);
-    // renderGBufferPass.setIndexBuffer(model.indexBuffer, "uint32");
-    // renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
-    // renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2);
-    // renderGBufferPass.drawIndexed(model.index.length);
 
     renderGBufferPass.setVertexBuffer(0, plane.vertexBuffer);
     renderGBufferPass.setVertexBuffer(1, plane.uvBuffer);
     renderGBufferPass.setVertexBuffer(2, plane.normalBuffer);
     renderGBufferPass.setIndexBuffer(plane.indexBuffer, "uint32");
-    renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
-    renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2_1);
+    renderGBufferPass.setBindGroup(0, pipelineGBuffer.layout.layout_0_main.BindGroup.uniformBindGroup);
+    renderGBufferPass.setBindGroup(1, pipelineGBuffer.layout.layout_1_ModelMatrix.BindGroup.uniformBindGroupModel2);
     renderGBufferPass.drawIndexed(plane.index.length);
 
 
@@ -257,8 +258,8 @@ async function main() {
     renderGBufferPass.setVertexBuffer(1, bunny.uvBuffer);
     renderGBufferPass.setVertexBuffer(2, bunny.normalBuffer);
     renderGBufferPass.setIndexBuffer(bunny.indexBuffer, "uint16");
-    renderGBufferPass.setBindGroup(0, pipelineGBuffer.BindGroup.uniformBindGroup);
-    renderGBufferPass.setBindGroup(1, pipelineGBuffer.BindGroup.uniformBindGroup2);
+    renderGBufferPass.setBindGroup(0, pipelineGBuffer.layout.layout_0_main.BindGroup.uniformBindGroup);
+    renderGBufferPass.setBindGroup(1, pipelineGBuffer.layout.layout_1_ModelMatrix.BindGroup.uniformBindGroupModel1);
     renderGBufferPass.drawIndexed(bunny.indexCount);
 
     renderGBufferPass.end();
@@ -267,9 +268,9 @@ async function main() {
     const renderPass = commandEncoder.beginRenderPass(deferredRenderPassDescription);
 
     renderPass.setPipeline(pipelineDeferredRender);
-    renderPass.setBindGroup(0, pipelineDeferredRender.BindGroup.gBufferTexturesBindGroup);
-    renderPass.setBindGroup(1, pipelineDeferredRender.BindGroup.gBufferUniformBindGroup);
-    renderPass.setBindGroup(2, pipelineDeferredRender.BindGroup.gBufferCameraBindGroup);
+    renderPass.setBindGroup(0, pipelineDeferredRender.layout.gBufferTexturesBindGroupLayout.BindGroup.gBufferTexturesBindGroup);
+    renderPass.setBindGroup(1, pipelineDeferredRender.layout.gBufferUniformBindGroupLayout.BindGroup.gBufferUniformBindGroup);
+    renderPass.setBindGroup(2, pipelineDeferredRender.layout.gBufferCameraBindGroupLayout.BindGroup.gBufferCameraBindGroup);
     renderPass.draw(6);
     renderPass.end();
 
@@ -278,14 +279,14 @@ async function main() {
     postEffectRenderPassDescription.colorAttachments[0].view = textureView_PostEffect;
     const renderPass_PostEffect = commandEncoder.beginRenderPass(postEffectRenderPassDescription);
    
-    renderPass_PostEffect.setBindGroup(0, pipeline_PostEffect.BindGroup.bindGroup_PostEffect);
+    renderPass_PostEffect.setBindGroup(0, pipeline_PostEffect.layout.gBufferTexturesBindGroupLayout.BindGroup.bindGroup_PostEffect);
     renderPass_PostEffect.setPipeline(pipeline_PostEffect); // подключаем наш pipeline
     renderPass_PostEffect.draw(6);
   
     renderPass_PostEffect.setPipeline(forvardRender_pipeline);
     renderPass_PostEffect.setVertexBuffer(0, ligthHelper.vertexBuffer);
     renderPass_PostEffect.setIndexBuffer(ligthHelper.indexBuffer, "uint32");
-    renderPass_PostEffect.setBindGroup(0, forvardRender_pipeline.BindGroup.forvardRender_uniformBindGroup);
+    renderPass_PostEffect.setBindGroup(0, forvardRender_pipeline.layout.forvardRender_UniformBindGroupLayout.BindGroup.forvardRender_uniformBindGroup);
     renderPass_PostEffect.drawIndexed(ligthHelper.index.length,3,0,0,0);         
     
     renderPass_PostEffect.end();

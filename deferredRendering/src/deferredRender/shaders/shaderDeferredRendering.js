@@ -60,7 +60,8 @@ export const shaderDeferredRendering = {
         let posWorldW = camera.invViewProjectionMatrix * posClip;
         let posWorld = posWorldW.xyz / posWorldW.www;
         return posWorld;
-      }     
+      }    
+       
       fn lin2rgb(lin: vec3<f32>) -> vec3<f32>{
         return pow(lin, vec3<f32>(1.0/2.2));
       } 

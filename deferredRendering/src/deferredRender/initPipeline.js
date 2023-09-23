@@ -91,7 +91,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
           resource: {
             buffer: uBiffers.fragmentUniformLightColorBuffer,
             offset: 0,          
-            size: 16 + 16 + 16 //   lightPosition : array<vec3<f32>, 3>;   
+            size: 16 + 16 + 16 //   lightColor : array<vec3<f32>, 3>;   
           }
         }
       ]
@@ -119,7 +119,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
           resource: {
             buffer: uBiffers.uniformBufferCamera,
             offset: 0,
-            size: 64 + 64  // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
+            size: 64 + 64  // PROJMATRIX + VIEWMATRIX // Каждая матрица занимает 64 байта
           }
         }
       ]
@@ -161,20 +161,21 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
       // }
     });
   
-    pipeline.BindGroup = {
-      gBufferTexturesBindGroup,
-      gBufferUniformBindGroup,
-      gBufferCameraBindGroup
-    }
-  
+    gBufferTexturesBindGroupLayout.BindGroup = {gBufferTexturesBindGroup};
+    gBufferUniformBindGroupLayout.BindGroup = {gBufferUniformBindGroup};
+    gBufferCameraBindGroupLayout.BindGroup = {gBufferCameraBindGroup};
+
+    pipeline.layout = {gBufferTexturesBindGroupLayout,gBufferUniformBindGroupLayout,gBufferCameraBindGroupLayout}
+
+
       // Эта теневая текстура для обычного теста глубины при рендере сцены.
-      const depthTexture2 = device.createTexture({
-        size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-        format: "depth24plus",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-      });
+      // const depthTexture2 = device.createTexture({
+      //   size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+      //   format: "depth24plus",
+      //   usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+      // });
   
-      pipeline.depthTexture = depthTexture2;
+    //  pipeline.depthTexture = depthTexture2;
   
     return { pipeline};
   }
