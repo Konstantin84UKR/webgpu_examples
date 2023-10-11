@@ -133,14 +133,8 @@ const webGPU_Start = async()=>{
         const bindGroup = device.createBindGroup({
             layout : pipeline.getBindGroupLayout(0),
             entries : [
-                {
-                    binding : 0,
-                    resource : sampler, 
-                },
-                {
-                    binding : 1,
-                    resource : texture.createView(), 
-                }
+                { binding : 0, resource : sampler},
+                { binding : 1, resource : texture.createView()}
             ]
         });
 

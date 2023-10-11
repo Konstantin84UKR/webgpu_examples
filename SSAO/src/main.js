@@ -196,7 +196,7 @@ async function main() {
     depthStencilAttachment: {
       view: depthPipelineGBufferView,
       depthLoadOp: 'load', //  "load" 'clear'
-      depthStoreOp: 'store',} // "store", "discard",
+      depthStoreOp: 'store',} // "store", "discard",/
   };
 
   const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, SSAOtextureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender  // SSAOtextureDeferredRender
@@ -359,11 +359,11 @@ async function main() {
     renderPass_PostEffect.setPipeline(pipeline_PostEffect); // подключаем наш pipeline
     renderPass_PostEffect.draw(6);
   
-    // renderPass_PostEffect.setPipeline(forvardRender_pipeline);
-    // renderPass_PostEffect.setVertexBuffer(0, ligthHelper.vertexBuffer);
-    // renderPass_PostEffect.setIndexBuffer(ligthHelper.indexBuffer, "uint32");
-    // renderPass_PostEffect.setBindGroup(0, forvardRender_pipeline.BindGroup.forvardRender_uniformBindGroup);
-    // renderPass_PostEffect.drawIndexed(ligthHelper.index.length,3,0,0,0);         
+    renderPass_PostEffect.setPipeline(forvardRender_pipeline);
+    renderPass_PostEffect.setVertexBuffer(0, ligthHelper.vertexBuffer);
+    renderPass_PostEffect.setIndexBuffer(ligthHelper.indexBuffer, "uint32");
+    renderPass_PostEffect.setBindGroup(0, forvardRender_pipeline.BindGroup.forvardRender_uniformBindGroup);
+    renderPass_PostEffect.drawIndexed(ligthHelper.index.length,3,0,0,0);         
     
     renderPass_PostEffect.end();
 

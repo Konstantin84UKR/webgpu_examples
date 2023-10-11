@@ -15,7 +15,7 @@
 
 //  workgroupBarrier(); // Ждем все 32 потока что бы cформировать общую область памяти с которой будем читать данные для BLUR
 
-// Читаем данные и3 TILE Если онипопадают в область для размытия (TODO)
+// Читаем данные и3 TILE Если они попадают в область для размытия (TODO)
 // тогла Читаем соседние пиксели по горизонтали и делим наколичество пикселей размытия
 // так мы получаем усредненый цвет
 
@@ -77,11 +77,11 @@ const webGPU_Start = async () => {
   
     const settings = {
         filterSize: 20,
-        iterations: 40,
+        iterations: 10,
     };
 
     const tileDim = 128;
-    const batch = [4, 4];
+    // const batch = [4, 4];
     
     let blockDim = tileDim - (settings.filterSize - 1);
     device.queue.writeBuffer( blurParamsBuffer, 0, new Uint32Array([settings.filterSize, blockDim]));

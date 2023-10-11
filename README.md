@@ -85,3 +85,8 @@ deferredRendering : https://konstantin84ukr.github.io/webgpu_examples/deferredRe
 reversedZ : https://konstantin84ukr.github.io/webgpu_examples/reversedZ/
 
 SSAO : https://konstantin84ukr.github.io/webgpu_examples/SSAO/
+
+BallsPhysics : https://konstantin84ukr.github.io/webgpu_examples/BallsPhysics/
+
+computeBalls3D : https://konstantin84ukr.github.io/webgpu_examples/computeBalls3D/
+

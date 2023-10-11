@@ -33,23 +33,9 @@ export const postEffectShader = {
         @group(0) @binding(1) var myTexture : texture_2d<f32>;
 
         @fragment
-        fn fragment_main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
-                  
-        //var color:vec3<f32> = (textureSample(myTexture, mySampler, fragUV)).rgb;
-       
-        // if(fragUV.x < 0.33){
-        //     color = 1.0 - color;
-        // }else if(fragUV.x < 0.66){
-        //     color = vec3(color.y,color.y,color.y);
-        // }
-
-        //PIXELATE
-
-        var dx:f32 = 1.0 / 640.0;
-        var dy:f32 = 1.0 / 640.0;
-        var uv:vec2<f32> = vec2(dx*(floor(fragUV.x/dx)), dy*(floor(fragUV.y/dy)));
+        fn fragment_main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {    
         
-        var color:vec3<f32> = (textureSample(myTexture, mySampler, uv)).rgb;
+        var color:vec3<f32> = (textureSample(myTexture, mySampler, fragUV)).rgb;
         
         return  vec4<f32>(color, 1.0);
     }`};

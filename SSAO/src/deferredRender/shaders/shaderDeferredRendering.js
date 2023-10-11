@@ -125,15 +125,15 @@ export const shaderDeferredRendering = {
             let specular = pow(max(dot(N, H),0.0), 50.0) * .1; //0.9 Просто уменьшаю яркость блика
             let ambient:vec3<f32> = vec3<f32>(0.05, 0.05, 0.05);
       
-            //finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
-            finalColor +=  ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
+            finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
+            //finalColor +=  ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
         
         }
 
         //SSAO               
 
         let fragPos = fragPosition;
-        let radius = 0.25;
+        let radius = 0.5;
         let sampleSize = 64.0;
         var occlusion = 0.0;
 
@@ -151,7 +151,7 @@ export const shaderDeferredRendering = {
         let N_view = (camera.vMatrix *  vec4<f32>(N,0.0)).xyz;
         let fragPos_view = (camera.vMatrix *  vec4<f32>(fragPos,1.0)).xyz;
 
-        for (var i = 0; i < 8; i++) {
+        for (var i = 0; i < 16; i++) {
 
           tangent  = normalize(randomVec - N_view * dot(randomVec, N_view));
           bitangent  = cross(N_view, tangent);
@@ -192,15 +192,15 @@ export const shaderDeferredRendering = {
            occlusion = occlusion + 0.0;        
         }
               
-        occlusion =  (1.0 - (occlusion / 8));
+        occlusion =  1.0 - (occlusion / 16);
 
         var output : GBufferOutput;
         output.colorBuffer = vec4(finalColor , 1.0);
         output.ssaoBuffer = vec4(finalColor, 1.0);
-        output.ssaoBuffer = vec4(fragPosition, 1.0);
+        //output.ssaoBuffer = vec4(fragPosition, 1.0);
         // output.ssaoBuffer = vec4(sampleDepth,1.0);
-        output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
-        //output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
+        //output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
+        //output.ssaoBuffer = vec4(finalColor.r + occlusion, finalColor.gb, 1.0);
         // output.ssaoBuffer = vec4(samplePos.xyz, 1.0);
        
         return output;     

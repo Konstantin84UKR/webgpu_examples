@@ -181,7 +181,7 @@ async function main() {
   //const meshGeometry = new BoxGeometry(4,8,4,1,1,1);
   //const meshGeometry = new SphereGeometry(2);
   //const meshGeometry = new SphereGeometry(2);
-  const meshGeometry = new CylinderGeometry();
+  const meshGeometry = new SphereGeometry(1.0);
 
   const cube_vertex = new Float32Array(meshGeometry.vertices);
   const cube_uv = new Float32Array(meshGeometry.uvs);
@@ -205,7 +205,7 @@ async function main() {
 
 
   //---create uniform data
-  let camera = new Camera(canvas, vec3.create(0.0, 0.0, 100.0), vec3.create(0.0, -0.0, -1.0));
+  let camera = new Camera(canvas, vec3.create(0.0, 15.0, 0.0), vec3.create(0.0, -0.0, -1.0));
 
  
   //****************** BUFFER ********************//
@@ -376,7 +376,7 @@ async function main() {
   // init BALLS 
   let ball = {
     mass: 1,
-    position: vec3.set(-10, 10, 0),
+    position: vec3.set(-10, 10, -25),
     velosity: vec3.set(0.5, 0.5, 0.5),
     gravity: vec3.set(0, -0.01, 0),
     oldPosition: vec3.set(0, 0, 0),
@@ -393,6 +393,9 @@ async function main() {
   }
 
   MODELMATRIX_meshGeometry = mat4.translate(MODELMATRIX_meshGeometry, ball.position);
+
+  
+  MODELMATRIX_meshPlane = mat4.translate(MODELMATRIX_meshPlane,  vec3.set(0, 0, -100));
   MODELMATRIX_meshPlane = mat4.rotateX(MODELMATRIX_meshPlane, Math.PI*-0.5);
 
   let r = new Ray(camera.eye, camera.front, canvas, camera);
