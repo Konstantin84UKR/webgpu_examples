@@ -64,13 +64,13 @@ async function main() {
       for (let i = 0; i < instance_count ; i++) {
                             
             mat4.identity(MODELMATRIX);
-            const s =radiuses[i] * 1.0;
-            MODELMATRIX = mat4.scale(MODELMATRIX,vec3.set(s,s,s));
-
-            MODELMATRIX = mat4.translate(MODELMATRIX,[centers[i][0],centers[i][1],centers[i][2]]);              
+         
+            MODELMATRIX = mat4.translate(MODELMATRIX,[centers[i][0],centers[i][1],centers[i][2]]);    
+            const s =radiuses[i];
+            MODELMATRIX = mat4.scale(MODELMATRIX,vec3.set(s,s,s));          
+         
             MODELMATRIX_ARRAY.set(MODELMATRIX, (k) * 16);
-            
-            
+                    
             NORMALMATRIX = mat4.invert(MODELMATRIX);
             NORMALMATRIX = mat4.transpose(MODELMATRIX);
             NORMALMATRIX_ARRAY.set(NORMALMATRIX, (k) * (16));
@@ -210,10 +210,11 @@ window.addEventListener("keyup", () => sign = -2);
            // const r = bodies[i].translation();
             let clone = Object.assign({},  bodies[i].translation());
 
-            const s =radiuses[i] * 1.0;
-            MODELMATRIX = mat4.scale(MODELMATRIX,vec3.set(s,s,s));
+            const s = radiuses[i];
+           
           
             MODELMATRIX = mat4.translate(MODELMATRIX, [clone.x, clone.y, clone.z]);
+            MODELMATRIX = mat4.scale(MODELMATRIX,vec3.set(s,s,s));
               
             MODELMATRIX_ARRAY.set(MODELMATRIX, (k) * 16);
             
