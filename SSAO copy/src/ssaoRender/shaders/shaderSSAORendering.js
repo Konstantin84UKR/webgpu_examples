@@ -1,4 +1,4 @@
-export const shaderDeferredRendering = {
+export const shaderSSAORendering = {
     vertex: `
     struct VertexOutput{
       @builtin(position) Position : vec4<f32>,
@@ -71,8 +71,7 @@ export const shaderDeferredRendering = {
       } 
 
       struct GBufferOutput {
-        @location(0) colorBuffer : vec4<f32>,
-        @location(1) ssaoBuffer : vec4<f32>,
+        @location(0) ssaoBuffer : vec4<f32>,
       }
 
       @fragment
@@ -103,32 +102,12 @@ export const shaderDeferredRendering = {
         let bufferSize = textureDimensions(gBufferDepth);
         let coordUV = coord.xy / vec2<f32>(bufferSize);
         let fragPosition = world_from_screen_coord(coordUV, depth);
-  
-        
+         
         var finalColor:vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
         let N:vec3<f32> = normalize(normal.xyz);
         let V:vec3<f32> = normalize((uniforms.eyePosition).xyz - fragPosition.xyz);
 
-        for (var i = 0; i < 1; i++) {
-              
-            let sunPosition:vec3<f32> = vec3<f32>(2.0,2.0,2.0);
-
-           // let L:vec3<f32> = normalize((lightPositionArray[i]).xyz - fragPosition.xyz);
-            
-            let L:vec3<f32> = normalize(sunPosition.xyz - fragPosition.xyz);
-            let H:vec3<f32> = normalize(L + V);
-          
-            //let distlight = distance(lightPositionArray[i].xyz, fragPosition.xyz); 
-            //let diffuse = 100.0 / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight  
-            let diffuse : f32 = 1.0 * max(dot(N, L), 0.0); // sun     
-            let specular = pow(max(dot(N, H),0.0), 50.0) * .1; //0.9 Просто уменьшаю яркость блика
-            let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
       
-            //finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
-            finalColor +=  ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
-        
-        }
-
         //SSAO
         let fragPos = fragPosition;
         let radius = 0.5;
@@ -139,7 +118,7 @@ export const shaderDeferredRendering = {
         let noiseY = u32(((coord.y / 4) - floor(coord.y / 4)) * 4);
         let randomVec : vec3<f32> =  normalize(ssaoNoise[noiseX + noiseY].xyz);
 
-        for (var i = 0; i < 16; i++) {
+        for (var i = 0; i < 64; i++) {
 
           let tangent : vec3<f32> = normalize(randomVec - N * dot(randomVec, N));
           let bitangent : vec3<f32> = cross(N, tangent);
@@ -176,17 +155,11 @@ export const shaderDeferredRendering = {
            }
               occlusion = occlusion;  
            }
-          occlusion =  (1.0 - (occlusion / 16));
+          occlusion =  (1.0 - (occlusion / 64));
 
         var output : GBufferOutput;
-        output.colorBuffer = vec4(finalColor , 1.0);
-        // output.ssaoBuffer = vec4(finalColor, 1.0);
-        // output.ssaoBuffer = vec4(fragPosition.z, fragPosition.z, fragPosition.z, 1.0);
-        // output.ssaoBuffer = vec4(sampleDepth, 1.0);
         output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
-        //output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
-        //output.ssaoBuffer = vec4(randomVec, 1.0);
-       
+            
         return output;     
     }
     `,

@@ -1,4 +1,4 @@
-export async function initPipeline(device, canvas, format, uBiffers, gBufferTexture,shaderDeferredRendering) {
+export async function initPipeline(device, canvas, format, uBiffers, gBufferTexture,shaderSSAORendering) {
   
     //-------------------------------------------------------------------------------------------------------
   
@@ -47,32 +47,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
         }
       ]
     });
-
-    //SSAO
-
-    // const SSAOTexturesBindGroupLayout = device.createBindGroupLayout({
-    //   label: 'SSAOTexturesBindGroupLayout',
-    //   entries: [
-    //     {
-    //       binding: 0,
-    //       visibility: GPUShaderStage.FRAGMENT,
-    //       texture: {
-    //         sampleType: 'unfilterable-float',
-    //       },
-    //     }
-    //   ],
-    // });
-
-    // const SSAOTexturesBindGroup = device.createBindGroup({
-    //   label: 'SSAOTexturesBindGroup ',
-    //   layout: SSAOTexturesBindGroupLayout,
-    //   entries: [
-    //     {
-    //       binding: 0,
-    //       resource: gBufferTexture[0].createView() // normal
-    //     }
-    //   ]
-    // });
+  
 
       const SSAOKernelBindGroupLayout = device.createBindGroupLayout({
       label: 'SSAOKernelBindGroupLayout',
@@ -199,7 +174,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
     
   
     const pipeline = device.createRenderPipeline({
-      label: 'pipeline DefRender ',
+      label: 'pipelineSSAO ',
       layout: device.createPipelineLayout({
         label: 'gBuffer bindGroupLayouts ',
         bindGroupLayouts: [
@@ -211,18 +186,16 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
       }),
       vertex: {
         module: device.createShaderModule({
-          code: shaderDeferredRendering.vertex
+          code: shaderSSAORendering.vertex
         }),
         entryPoint: "main"
       },
       fragment: {
         module: device.createShaderModule({
-          code: shaderDeferredRendering.fragment
+          code: shaderSSAORendering.fragment
         }),
         entryPoint: "main",
-        targets: [{
-          format: format
-        },
+        targets: [
         {
           format: format, //SSAO
         }]
@@ -244,15 +217,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
       gBufferCameraBindGroup,
       SSAOKernelBindGroup
     }
-  
-      // Эта теневая текстура для обычного теста глубины при рендере сцены.
-      const depthTexture2 = device.createTexture({
-        size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
-        format: "depth24plus",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-      });
-  
-      pipeline.depthTexture = depthTexture2;
+     
   
     return { pipeline};
   }

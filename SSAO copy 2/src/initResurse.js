@@ -15,7 +15,6 @@ export async function initResurse(device) {
 
     // BUNNY
     let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
-    //let gltf = await LoadJSONUsingPromise('./res/sponza.gltf');
     const gltfModel = new gltfLoader(device,gltf);
     gltfModel.getMesh();
 

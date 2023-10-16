@@ -196,11 +196,11 @@ export const shaderDeferredRendering = {
 
         var output : GBufferOutput;
         output.colorBuffer = vec4(finalColor , 1.0);
-        output.ssaoBuffer = vec4(finalColor, 1.0);
+        //output.ssaoBuffer = vec4(finalColor, 1.0);
         //output.ssaoBuffer = vec4(fragPosition, 1.0);
         // output.ssaoBuffer = vec4(sampleDepth,1.0);
-        //output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
-        //output.ssaoBuffer = vec4(finalColor.r + occlusion, finalColor.gb, 1.0);
+        output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
+        //output.ssaoBuffer = vec4(finalColor * occlusion,1.0);
         // output.ssaoBuffer = vec4(samplePos.xyz, 1.0);
        
         return output;     
