@@ -46,7 +46,6 @@ export const shaderRayTracing = {
 
           @group(1) @binding(0) var<storage, read> instansPosition : array<vec4<f32>>;
           @group(1) @binding(1) var<storage, read> instansRadius : array<f32>;
-          @group(1) @binding(2) var<uniform> iCount : i32;
            
           fn sphIntersect( ro : vec4<f32>, rdir : vec4<f32>, ce : vec4<f32>, ra:f32) -> f32 {
             var oc : vec4<f32>  = ce - ro;  
@@ -125,31 +124,26 @@ export const shaderRayTracing = {
           var t:f32 = 0.0; 
           var minD:f32 = 1000.0; 
           var minPos: vec4<f32> = vec4<f32>(0.0);
-          var indexSph: i32 = -1;
-
           var ra: f32 = 0.0;
-          var iC = iCount - 5;
+          
           //Перебираем все сферы и ищем самую ближнюю сферу
-          for (var i = 0; i < iC; i++) {
+          for (var i = 0; i < 6; i++) {
            
             t = sphIntersect(ro, rd, instansPosition[i], instansRadius[i]);
             if(t < minD && t > 0.0) {
               minD = t;
-              indexSph = i;
-              //ra = instansRadius[i];
+              minPos = instansPosition[i];
+              ra = instansRadius[i];
             }             
           } 
         
           if (minD > 999.0){ 
              discard;
-          }  
-
+          }   
           //Рисуем самую ближнюю сферу         
           var hit: vec4<f32> = ro + minD * rd;
-          var N: vec4<f32> = normalize(hit - instansPosition[indexSph]);
+          var n: vec4<f32> = normalize(hit - minPos);
 
-          var colorReflect: vec4<f32> = reflect(rd,N);
-
-          return colorReflect;
+          return n;
 
        }`};

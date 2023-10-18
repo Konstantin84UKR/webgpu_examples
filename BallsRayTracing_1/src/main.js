@@ -25,7 +25,7 @@ async function main() {
     const instance_count = 12;
   //---------------------------------------------------
   //initWebGPU
-  const { device, context, format, canvas} = await initWebGPU(false);
+  const { device, context, format, canvas} = await initWebGPU(true);
   //initResurse
   const { modelSphere, texture, sampler}= await initResurse(device);
     ///**  Шейдеры тут все понятно более мение. */  
@@ -64,7 +64,7 @@ async function main() {
      return v}           
     );
    
-   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 3.0 + 1.0);
+   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 1.0 + 2.0);
 
    //const radiuses = new Array(instance_count).fill(0).map(_ =>  2.0);
 
@@ -145,7 +145,6 @@ async function main() {
     device.queue.writeBuffer(uBuffers.instanceNormalBuffer, 0, NORMALMATRIX_ARRAY); // и так дале прибавляем 64 к offset
    
     device.queue.writeBuffer(uBuffers.instanceBufferRadius, 0, new Float32Array(radiuses)); 
-    device.queue.writeBuffer(uBuffers.innstanceBufferCount, 0, new Uint32Array([instance_count])); 
 
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],

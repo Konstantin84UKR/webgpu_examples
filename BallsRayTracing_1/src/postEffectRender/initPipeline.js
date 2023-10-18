@@ -85,14 +85,6 @@ export async function initPipeline(device, canvas, format, shader,sampleCount,in
             offset: 0,
             size: (4) * instance_count// PROJMATRIX + VIEWMATRIX + MODELMATRIX + NORMALMATRIX// Каждая матрица занимает 64 байта
         }
-    },    
-    {
-        binding: 2,
-        resource: {
-            buffer: uBuffers.innstanceBufferCount,
-            offset: 0,
-            size: (4)// PROJMATRIX + VIEWMATRIX + MODELMATRIX + NORMALMATRIX// Каждая матрица занимает 64 байта
-        }
     }
     
   ]
