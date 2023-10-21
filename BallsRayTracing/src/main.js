@@ -27,7 +27,7 @@ async function main() {
   //initWebGPU
   const { device, context, format, canvas} = await initWebGPU(false);
   //initResurse
-  const { modelSphere, texture, sampler}= await initResurse(device);
+  const { modelSphere, texture, sampler,textureCUBE}= await initResurse(device);
     ///**  Шейдеры тут все понятно более мение. */  
  
   //****************** BUFFER ********************//
@@ -45,7 +45,7 @@ async function main() {
     let NORMALMATRIX_ARRAY = new Float32Array(instance_count * 16 ); // Model
     let INSTANSPOSITION_ARRAY = new Float32Array(instance_count * 4 ); // Model
     //---create uniform data
-    let camera = new Camera(canvas, vec3.create(0.0, 0.0, 25.0), vec3.create(0.0, 0.0, -1.0));
+    let camera = new Camera(canvas, vec3.create(0.0, 0.0, 20.0), vec3.create(0.0, 0.0, -1.0));
 
     let VIEWMATRIXinvert = mat4.invert(camera.vMatrix); 
     let PROJMATRIXinvert = mat4.invert(camera.pMatrix);
@@ -64,7 +64,7 @@ async function main() {
      return v}           
     );
    
-   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 3.0 + 1.0);
+   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 1.0 + 1.0);
 
    //const radiuses = new Array(instance_count).fill(0).map(_ =>  2.0);
 
@@ -92,10 +92,10 @@ async function main() {
         const bodyDesc = new RAPIER.RigidBodyDesc(RAPIER.RigidBodyType.Dynamic)
           .setTranslation(center[0], center[1], center[2]);
         const body = world.createRigidBody(bodyDesc);
-        //body.mass = 4/3 * Math.PI * radiuses[i] ** 3;
-        body.mass = 1;
+        body.mass = 4/3 * Math.PI * radiuses[i] ** 3;
+        //body.mass = 1;
       
-        const colliderDesc = RAPIER.ColliderDesc.ball(radiuses[i]).setFriction(0.8);
+        const colliderDesc = RAPIER.ColliderDesc.ball(radiuses[i]).setFriction(0.5);
         world.createCollider(colliderDesc, body);
 
         
@@ -132,7 +132,7 @@ async function main() {
     //*********************************************//
     //** настраиваем конвейер рендера 
     const {pipeline} = await initMatCaptPipeline(device, canvas, format, shaderMatCap,sampleCount,sampler,texture,instance_count,uBuffers)
-    const {pipeline: pipelineRayTracing } = await initRayTracingPipeline(device, canvas, format, shaderRayTracing,sampleCount,instance_count,uBuffers)
+    const {pipeline: pipelineRayTracing } = await initRayTracingPipeline(device, canvas, format, shaderRayTracing,sampleCount,instance_count,uBuffers,textureCUBE)
     
     // MODELMATRIX = mat4.translate( MODELMATRIX, [2.0,1,0.0]);
     // MODELMATRIX = mat4.rotateY( MODELMATRIX, 3.14 * 0.0);
@@ -174,8 +174,8 @@ async function main() {
         depthStencilAttachment: {
           view: depthTexture.createView(),
           depthLoadOp :"clear",
-          depthClearValue :1.0,
-          depthStoreOp: "store",       
+          depthClearValue : 1.0,
+          depthStoreOp: "store",      
       }
     };
 
@@ -258,6 +258,7 @@ window.addEventListener("keyup", () => sign = -2);
         
      
       const resolveTarget = context.getCurrentTexture().createView();
+
       //Rastr
       renderPassDescription.colorAttachments[0].resolveTarget = resolveTarget;  
       const renderPass = commandEncoder.beginRenderPass(renderPassDescription);
@@ -273,10 +274,11 @@ window.addEventListener("keyup", () => sign = -2);
       //RayTracing
       renderPass.setPipeline(pipelineRayTracing);  
       renderPass.setBindGroup(0, pipelineRayTracing.BindGroup.uniformBindGroup); 
-      renderPass.setBindGroup(1, pipelineRayTracing.BindGroup.uniformInstansPosition);     
+      renderPass.setBindGroup(1, pipelineRayTracing.BindGroup.uniformInstansPosition);  
+      renderPass.setBindGroup(2, pipelineRayTracing.BindGroup.uniformCubeTexture);      
       renderPass.draw(6); 
+      
       renderPass.end();
-  
       device.queue.submit([commandEncoder.finish()]);
 
 

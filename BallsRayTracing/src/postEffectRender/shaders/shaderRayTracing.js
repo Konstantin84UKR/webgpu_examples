@@ -23,14 +23,14 @@ export const shaderRayTracing = {
       );
 
         var output : VertexOutput;
-        output.Position = vec4(pos[VertexIndex], 0.1, 1.0);
+        output.Position = vec4(pos[VertexIndex], 1.0, 1.0);
         output.fragUV =  uv[VertexIndex];
 
         return output;
       }`,
 
     fragment: `
-
+         
           struct Uniform {
             pMatrix : mat4x4<f32>,
             vMatrix : mat4x4<f32>,
@@ -47,22 +47,16 @@ export const shaderRayTracing = {
           @group(1) @binding(0) var<storage, read> instansPosition : array<vec4<f32>>;
           @group(1) @binding(1) var<storage, read> instansRadius : array<f32>;
           @group(1) @binding(2) var<uniform> iCount : i32;
+
+          @group(2) @binding(0) var mySampler: sampler;
+          @group(2) @binding(1) var myTexture: texture_cube<f32>;
            
           fn sphIntersect( ro : vec4<f32>, rdir : vec4<f32>, ce : vec4<f32>, ra:f32) -> f32 {
             var oc : vec4<f32>  = ce - ro;  
             var rd : vec4<f32>  = normalize(rdir);
-
-            // var b : f32 = dot( oc, rd );
-            // var c : f32 = dot( oc, oc ) - ra*ra;
-            // var h : f32 = b*b - c;
-           
-            // if( h < 0.0 ) return -1.0; // no intersection
-            // h = sqrt( h );
-            // return  -b-h;
-
             var t : f32 = dot(oc, rd);
             var qc: vec4<f32> = ro + t * rd;
-            // var q : f32 = dot( oc, oc ) - ra*ra;
+           
             var a : f32 = t * t; // 18.5
             var c : f32 = dot( oc, oc ); // 25.0
             var b : f32 = c - a;
@@ -73,36 +67,105 @@ export const shaderRayTracing = {
             if(sqrt( b ) > ra){
               return 1e09;
             }  
-
-
             return t - f;
           }
 
-          // // sphere of size ra centered at point ce
-          // vec2 sphIntersect( in vec3 ro, in vec3 rd, in vec3 ce, float ra )
-          // {
-          //     vec3 oc = ro - ce;
-          //     float b = dot( oc, rd );
-          //     float c = dot( oc, oc ) - ra*ra;
-          //     float h = b*b - c;
-          //     if( h<0.0 ) return vec2(-1.0); // no intersection
-          //     h = sqrt( h );
-          //     return vec2( -b-h, -b+h );
-          // }
+         
         
-          // struct Ray{
-          //   ori : vec4<f32>,
-          //   dir : vec4<f32>,
-          //   power : f32
-          // }
+          struct Ray{
+            ori : vec4<f32>,
+            dir : vec4<f32>,
+            power : f32
+          }
 
-          // struct TraceResult{
-          //   one : Ray,
-          //   two : Ray,
-          //   ok  : bool
-          // }
+          struct TraceResult{
+            one : Ray,
+            two : Ray,
+            ok  : i32
+          }
 
-          // const noRay = Ray(vec4<f32>(0.),vec4<f32>(0.), 0.);
+          const noRay : Ray = Ray(vec4<f32>(0.),vec4<f32>(0.), 0.);
+
+          fn rayTrace(r : Ray) -> TraceResult {
+            
+            if (r.power == 0.) {
+              var output : TraceResult;
+              output.one = noRay;
+              output.two = noRay;
+              output.ok  = 0;
+  
+              return output;   
+            }
+
+            ///////////////////////////////////
+            var t:f32 = 0.0; 
+            var minD:f32 = 1000.0; 
+            var minPos: vec4<f32> = vec4<f32>(0.0);
+            var indexSph: i32 = -1;
+  
+            var ra: f32 = 0.0;
+            var iC = iCount-1;
+            //Перебираем все сферы и ищем самую ближнюю сферу
+            for (var i = 0; i < iC; i++) {
+             
+              t = sphIntersect(r.ori, r.dir, instansPosition[i], instansRadius[i]);
+              if(t < minD && t > 0.0) {
+                minD = t;
+                indexSph = i;    
+              }             
+            } 
+          
+            if (minD > 999.0){ 
+              var output : TraceResult;
+              output.one = r;
+              output.two = noRay;
+              output.ok  = 0;
+  
+              return output;           
+            }  
+  
+            //Рисуем самую ближнюю сферу  
+            let opticalDensity:f32 = 1.5;
+            //-- IN HIT       
+            var hit: vec4<f32> = r.ori + minD * r.dir;
+            var N: vec4<f32> = normalize(hit - instansPosition[indexSph]);
+  
+            var dirReflect: vec4<f32> =  reflect(r.dir,N);
+            var dirRefract: vec4<f32> =  refract(r.dir,N,1.0/opticalDensity);
+  
+            //Fresnel
+            let R0 : f32 = (opticalDensity - 1.0) / (opticalDensity + 1.0) *  (opticalDensity - 1.0) / (opticalDensity + 1.0);
+            var reflectPower: f32 = R0 + (1.0 - R0) * pow(1.0 - abs(dot(r.dir,N)) ,5.0);
+           
+            //-- OUT HIT
+            var outOrigin: vec4<f32> = hit + dirRefract * 10.0;
+            var tOut:f32 = sphIntersect(outOrigin, -dirRefract, instansPosition[indexSph], instansRadius[indexSph]);
+            var outHit: vec4<f32> = outOrigin - tOut * dirRefract;
+            var outN: vec4<f32> = normalize(instansPosition[indexSph] - outHit);
+            var outDirRefract: vec4<f32> = refract(dirRefract,outN, opticalDensity / 1.0);
+            
+           
+            if(dot(outDirRefract,outDirRefract) == 0.0){
+              reflectPower = 1.0;
+            }
+            
+            var refractPower: f32 = 1.0 - reflectPower;
+           
+            var decay: f32  = exp(-0.2 * distance(hit, outHit));
+
+            let one : Ray = Ray(hit, dirReflect, reflectPower * r.power * 0.96);
+            let two : Ray = Ray(outHit, outDirRefract, refractPower * r.power * 0.96 * decay);
+              
+
+            ///////////////////////////////////
+            var output : TraceResult;
+            output.one = one;
+            output.two = two;
+            output.ok  = 1;
+
+            return output;
+          }
+        
    
 
           @fragment
@@ -115,41 +178,56 @@ export const shaderRayTracing = {
             
           var targetPoint: vec4<f32> = uiMatrix.viMatrix * uiMatrix.piMatrix * color;
           var rd: vec4<f32> = normalize(vec4(targetPoint.xyz/targetPoint.w - ro.xyz,1.0));
-          //rd = vec4(rd.x,rd.y,-rd.z,1.0);
+         
 
-          var color1: vec4<f32> = vec4(0.2, 0.4, 0.8, 1.0);
-          var color2: vec4<f32> = vec4(1.0, 1.0, 1.0, 1.0);  
+          var r:Ray = Ray(ro, rd, 1.0);
+          let res: TraceResult = rayTrace(r);
           
-          var color3: vec4<f32> = mix(color1,color2,rd.y);
+          var colorReflect : vec4<f32> = textureSample(myTexture, mySampler, res.one.dir.xyz);
+          var colorRefract : vec4<f32> = textureSample(myTexture, mySampler, res.two.dir.xyz);
+         
+          //var colorFinal : vec4<f32>  = colorReflect * res.one.power + colorRefract * res.two.power;
 
-          var t:f32 = 0.0; 
-          var minD:f32 = 1000.0; 
-          var minPos: vec4<f32> = vec4<f32>(0.0);
-          var indexSph: i32 = -1;
+          if (res.ok != 1){
+            discard;
+          }
 
-          var ra: f32 = 0.0;
-          var iC = iCount - 5;
-          //Перебираем все сферы и ищем самую ближнюю сферу
-          for (var i = 0; i < iC; i++) {
-           
-            t = sphIntersect(ro, rd, instansPosition[i], instansRadius[i]);
-            if(t < minD && t > 0.0) {
-              minD = t;
-              indexSph = i;
-              //ra = instansRadius[i];
-            }             
-          } 
-        
-          if (minD > 999.0){ 
-             discard;
-          }  
+          let res11: TraceResult = rayTrace(res.one);
+          let res12: TraceResult = rayTrace(res.two);
 
-          //Рисуем самую ближнюю сферу         
-          var hit: vec4<f32> = ro + minD * rd;
-          var N: vec4<f32> = normalize(hit - instansPosition[indexSph]);
+          let res21: TraceResult = rayTrace(res11.one);
+          let res22: TraceResult = rayTrace(res12.two);
 
-          var colorReflect: vec4<f32> = reflect(rd,N);
+          let res31: TraceResult = rayTrace(res21.one);
+          let res32: TraceResult = rayTrace(res22.two);
 
-          return colorReflect;
+          let res41: TraceResult = rayTrace(res21.one);
+          let res42: TraceResult = rayTrace(res22.two);
+
+          var colorFinal : vec4<f32>  =
+          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power + 
+          textureSample(myTexture, mySampler, res11.two.dir.xyz)  * res11.two.power +
+
+          textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power +  
+          textureSample(myTexture, mySampler, res12.two.dir.xyz) * res12.two.power +
+
+          textureSample(myTexture, mySampler, res21.one.dir.xyz) * res21.one.power +  
+          textureSample(myTexture, mySampler, res21.two.dir.xyz) * res21.two.power +
+
+          textureSample(myTexture, mySampler, res22.one.dir.xyz) * res22.one.power +  
+          textureSample(myTexture, mySampler, res22.two.dir.xyz) * res22.two.power + 
+
+          textureSample(myTexture, mySampler, res31.one.dir.xyz) * res31.one.power +  
+          textureSample(myTexture, mySampler, res31.two.dir.xyz) * res31.two.power + 
+
+          textureSample(myTexture, mySampler, res32.one.dir.xyz) * res32.one.power +  
+          textureSample(myTexture, mySampler, res32.two.dir.xyz) * res32.two.power + 
+
+          textureSample(myTexture, mySampler, res41.one.dir.xyz) * res41.one.power +  
+          textureSample(myTexture, mySampler, res41.two.dir.xyz) * res41.two.power + 
+
+          textureSample(myTexture, mySampler, res42.one.dir.xyz) * res42.one.power +  
+          textureSample(myTexture, mySampler, res42.two.dir.xyz) * res42.two.power; 
+          return colorFinal;
 
        }`};

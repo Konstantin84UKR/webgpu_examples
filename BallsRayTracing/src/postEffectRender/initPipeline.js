@@ -1,8 +1,11 @@
-export async function initPipeline(device, canvas, format, shader,sampleCount,instance_count,uBuffers) {
+export async function initPipeline(device, canvas, format, shader,sampleCount,instance_count,uBuffers,textureCUBE) {
     //   ***********************************************
     //   *************** _PostEffect *******************
     //   ***********************************************
-     
+    const sampler = device.createSampler({
+      magFilter: 'linear',
+      minFilter: 'linear',
+    }); 
  
     const pipeline = device.createRenderPipeline({
       label: "pipeline_PostEffect",
@@ -98,7 +101,23 @@ export async function initPipeline(device, canvas, format, shader,sampleCount,in
   ]
 }); 
 
-
+const uniformCubeTexture = device.createBindGroup({
+  label : "uniformCubeTexture",
+  layout: pipeline.getBindGroupLayout(2),
+  entries: [
+    {
+      binding: 0,
+      resource: sampler
+    },
+    {
+      binding: 1,
+      resource: textureCUBE.createView({
+        dimension: 'cube',
+      }),
+    },
+  
+]
+}); 
 
 
     const depthTexture = device.createTexture({
@@ -118,7 +137,8 @@ export async function initPipeline(device, canvas, format, shader,sampleCount,in
   
     pipeline.BindGroup = {
       uniformBindGroup,
-      uniformInstansPosition
+      uniformInstansPosition,
+      uniformCubeTexture
     };
    
     pipeline.depthTexture = depthTexture;

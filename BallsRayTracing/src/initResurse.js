@@ -37,5 +37,49 @@ export async function initResurse(device) {
         { texture: texture },
         [imageBitmap.width, imageBitmap.height]);
 
-        return { modelSphere, texture, sampler}
+      //CUBE Texture
+      //TEXTURE 
+      //Создаем картинку и загрудаем в нее данные из файла
+      
+      const imgSrcs = [
+        './res/tex/nx.png',
+        './res/tex/px.png',
+        './res/tex/py.png',
+        './res/tex/ny.png',
+        './res/tex/pz.png',
+        './res/tex/nz.png'
+      ];
+     
+      const promises = imgSrcs.map(async (src) => {
+        let img = new Image();
+        img.src = src; //'./tex/yachik.jpg';
+        await img.decode();
+        return await createImageBitmap(img);
+      });      
+
+      const imageBitmapsTextureCUBE = await Promise.all(promises);
+
+      // Создаем саму текстуру
+      const textureCUBE = device.createTexture({
+        size: [imageBitmapsTextureCUBE[0].width, imageBitmapsTextureCUBE[0].height, 6], //??
+        format: 'rgba8unorm',
+        usage: GPUTextureUsage.TEXTURE_BINDING |
+          GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT,
+        dimension: '2d',
+      });
+      
+      //передаем данные о текстуре и данных текстуры в очередь
+      for (let i = 0; i < imageBitmapsTextureCUBE.length; i++) {
+        const imageBitmap = imageBitmapsTextureCUBE[i];
+        device.queue.copyExternalImageToTexture(
+        { source: imageBitmap },
+        { texture: textureCUBE, origin: [0, 0, i] },
+        [imageBitmap.width, imageBitmap.height]);
+      }
+  
+
+
+
+        return { modelSphere, texture, sampler,textureCUBE}
 }
