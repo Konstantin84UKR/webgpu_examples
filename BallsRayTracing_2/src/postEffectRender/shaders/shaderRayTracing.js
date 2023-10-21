@@ -105,7 +105,7 @@ export const shaderRayTracing = {
             var indexSph: i32 = -1;
   
             var ra: f32 = 0.0;
-            var iC = iCount - 3;
+            var iC = iCount - 0;
             //Перебираем все сферы и ищем самую ближнюю сферу
             for (var i = 0; i < iC; i++) {
              
@@ -207,10 +207,10 @@ export const shaderRayTracing = {
           var orange : vec4<f32> = vec4(1.0 ,0.5, 0.0, 1.0);
 
           var colorFinal : vec4<f32>  =
-          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * 1.0 + green * 0.1 + 
+          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * 1.0 + green * 0.05 + 
           textureSample(myTexture, mySampler, res11.two.dir.xyz)  * res11.two.power +
 
-          textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power  +  
+          textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power  + 
           textureSample(myTexture, mySampler, res12.two.dir.xyz) * res12.two.power  +
 
           textureSample(myTexture, mySampler, res21.one.dir.xyz) * res21.one.power  +  

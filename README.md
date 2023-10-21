@@ -90,3 +90,5 @@ BallsPhysics : https://konstantin84ukr.github.io/webgpu_examples/BallsPhysics/
 
 computeBalls3D : https://konstantin84ukr.github.io/webgpu_examples/computeBalls3D/
 
+RayTracing : https://konstantin84ukr.github.io/webgpu_examples/BallsRayTracing_2/
+
