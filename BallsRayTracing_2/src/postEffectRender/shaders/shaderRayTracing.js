@@ -222,7 +222,7 @@ export const shaderRayTracing = {
           let res32: TraceResult = rayTrace(res22.two);
          
           var green : vec4<f32> = vec4(0.0 , 1.0, 0.0, 1.0);
-          var blue : vec4<f32> = vec4(0.0 ,0.5, 1.0, 1.0);
+          var blue : vec4<f32> = vec4(0.0 ,0.4, 1.0, 1.0);
           var orange : vec4<f32> = vec4(1.0 ,0.5, 0.0, 1.0);
           var black : vec4<f32> = vec4(0.0 ,0.0, 0.0, 1.0);
         
