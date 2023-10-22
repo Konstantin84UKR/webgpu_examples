@@ -105,7 +105,7 @@ export const shaderRayTracing = {
             var indexSph: i32 = -1;
   
             var ra: f32 = 0.0;
-            var iC = iCount - 0;
+            var iC = iCount;
             //Перебираем все сферы и ищем самую ближнюю сферу
             for (var i = 0; i < iC; i++) {
              
@@ -126,7 +126,9 @@ export const shaderRayTracing = {
             }  
             var posSph: vec4<f32> = instansPosition[indexSph];
             var radiusSph:f32 = instansRadius[indexSph];
-            //Рисуем самую ближнюю сферу  
+            
+            //Рисуем самую ближнюю сферу 
+
             let opticalDensity:f32 = 1.5;
             //-- IN HIT       
             var hit: vec4<f32> = r.ori + minD * r.dir;
@@ -134,7 +136,7 @@ export const shaderRayTracing = {
   
             var dirReflect: vec4<f32> =  reflect(r.dir,N);
             var dirRefract: vec4<f32> =  refract(r.dir,N,1.0/opticalDensity);
-  
+
             //Fresnel
             let R0 : f32 = (opticalDensity - 1.0) / (opticalDensity + 1.0) *  (opticalDensity - 1.0) / (opticalDensity + 1.0);
             var reflectPower: f32 = R0 + (1.0 - R0) * pow(1.0 - abs(dot(r.dir,N)) ,5.0);
@@ -153,7 +155,7 @@ export const shaderRayTracing = {
             
             var refractPower: f32 = 1.0 - reflectPower;
            
-            var decay: f32  = exp(-0.5 * distance(hit, outHit));
+            var decay: f32  = exp(-0.2 * distance(hit, outHit));
 
             let one : Ray = Ray(hit, dirReflect, reflectPower * r.power * 0.6);
             let two : Ray = Ray(outHit, outDirRefract, refractPower * r.power * 0.6 * decay);
@@ -179,11 +181,28 @@ export const shaderRayTracing = {
             
           var targetPoint: vec4<f32> = uiMatrix.viMatrix * uiMatrix.piMatrix * color;
           var rd: vec4<f32> = normalize(vec4(targetPoint.xyz/targetPoint.w - ro.xyz,1.0));
+                    
          
 
           var r:Ray = Ray(ro, rd, 1.0);
           let res: TraceResult = rayTrace(r);
+
+          //-------------------------------shadow ----------------------------------------------//
+          var ligthPos : vec4<f32> = vec4(25.0 , 50.0, 50.0, 1.0);
+          var pointPos : vec4<f32> = res.one.ori;
+          var pointDir : vec4<f32> = normalize(ligthPos - pointPos);
           
+          var rLigth:Ray = Ray(pointPos - pointDir * 0.01, pointDir, 1.0);
+          let resLigth: TraceResult = rayTrace(rLigth);   
+              
+          var shadow : f32 = 0.3; 
+          if (resLigth.ok != 1){ 
+            shadow = 1.0;        
+          } 
+        
+          ///////////////////////////////////////////////////////////////////////////////////////
+
+
           // var colorReflect : vec4<f32> = textureSample(myTexture, mySampler, res.one.dir.xyz);
           // var colorRefract : vec4<f32> = textureSample(myTexture, mySampler, res.two.dir.xyz);
          
@@ -202,18 +221,21 @@ export const shaderRayTracing = {
           let res31: TraceResult = rayTrace(res21.one);
           let res32: TraceResult = rayTrace(res22.two);
          
-          var green : vec4<f32> = vec4(0.0 ,0.5, 0.0, 1.0);
+          var green : vec4<f32> = vec4(0.0 , 1.0, 0.0, 1.0);
           var blue : vec4<f32> = vec4(0.0 ,0.5, 1.0, 1.0);
           var orange : vec4<f32> = vec4(1.0 ,0.5, 0.0, 1.0);
+          var black : vec4<f32> = vec4(0.0 ,0.0, 0.0, 1.0);
+        
 
           var colorFinal : vec4<f32>  =
-          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * 1.0 + green * 0.05 + 
+          
+          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * green +    
           textureSample(myTexture, mySampler, res11.two.dir.xyz)  * res11.two.power +
 
-          textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power  + 
-          textureSample(myTexture, mySampler, res12.two.dir.xyz) * res12.two.power  +
+          textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power + 
+          textureSample(myTexture, mySampler, res12.two.dir.xyz) * res12.two.power +
 
-          textureSample(myTexture, mySampler, res21.one.dir.xyz) * res21.one.power  +  
+          textureSample(myTexture, mySampler, res21.one.dir.xyz) * res21.one.power +  
           textureSample(myTexture, mySampler, res21.two.dir.xyz) * res21.two.power;
 
           // textureSample(myTexture, mySampler, res22.one.dir.xyz) * res22.one.power  +  
@@ -225,14 +247,14 @@ export const shaderRayTracing = {
           // textureSample(myTexture, mySampler, res32.one.dir.xyz) * res32.one.power  +  
           // textureSample(myTexture, mySampler, res32.two.dir.xyz) * res32.two.power * 0.3; 
 
+          colorFinal = colorFinal * shadow;
+       
+          
+          
+          //////////////////////////////////////////////////////////////////////////////////
 
-          //Lw = Y = 0.212671 * R + 0.71560 * G + 0.072169 * B,
-
-
-           const gamma: f32 = 2.2;
-                  
+          const gamma: f32 = 2.2;
           // exposure tone mapping
-
           var mapped : vec4<f32> = vec4(1.0) - exp(-colorFinal * 1.0);
           // gamma correction 
           mapped = pow(mapped, vec4(1.0 / gamma));
