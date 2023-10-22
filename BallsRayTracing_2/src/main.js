@@ -25,7 +25,7 @@ async function main() {
   
     //---create uniform data
     const sampleCount = 4;
-    const instance_count = 18;
+    const instance_count = 12;
   //---------------------------------------------------
   //initWebGPU
   const { device, context, format, canvas} = await initWebGPU(false);
@@ -48,7 +48,7 @@ async function main() {
     let NORMALMATRIX_ARRAY = new Float32Array(instance_count * 16 ); // Model
     let INSTANSPOSITION_ARRAY = new Float32Array(instance_count * 4 ); // Model
     //---create uniform data
-    let camera = new Camera(canvas, vec3.create(0.0, 0.0, 20.0), vec3.create(0.0, 0.0, -1.0));
+    let camera = new Camera(canvas, vec3.create(0.0, 0.0, 30.0), vec3.create(0.0, 0.0, -1.0));
 
     let VIEWMATRIXinvert = mat4.invert(camera.vMatrix); 
     let PROJMATRIXinvert = mat4.invert(camera.pMatrix);
@@ -68,7 +68,7 @@ async function main() {
      return v}           
     );
    
-   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 1.0 + 1.0);
+   const radiuses = new Array(instance_count).fill(0).map(_ => Math.random() * 2.0 + 1.0);
 
    //const radiuses = new Array(instance_count).fill(0).map(_ =>  2.0);
 

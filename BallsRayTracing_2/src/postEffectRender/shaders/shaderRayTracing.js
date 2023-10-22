@@ -229,8 +229,8 @@ export const shaderRayTracing = {
 
           var colorFinal : vec4<f32>  =
           
-          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * green +    
-          textureSample(myTexture, mySampler, res11.two.dir.xyz)  * res11.two.power +
+          textureSample(myTexture, mySampler, res11.one.dir.xyz)  * res11.one.power * blue +    
+          textureSample(myTexture, mySampler, res11.two.dir.xyz)  * res11.two.power * blue +
 
           textureSample(myTexture, mySampler, res12.one.dir.xyz) * res12.one.power + 
           textureSample(myTexture, mySampler, res12.two.dir.xyz) * res12.two.power +
