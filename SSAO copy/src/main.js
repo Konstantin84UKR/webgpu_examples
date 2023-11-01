@@ -10,6 +10,7 @@ import { shaderPostEffect } from './postEffectRender/shaders/shaderPostEffect.js
 import { shadergBufferPass } from './gBufferRender/shader/shadergBufferPass.js';
 import { shaderDeferredRendering } from './deferredRender/shaders/shaderDeferredRendering.js';
 import { shaderLigthHelpers } from './forvardRender/shaders/shaderLigthHelpers.js';
+import { shaderSSAORendering } from './ssaoRender/shaders/shaderSSAORendering.js';
 
 import { initResurse } from './initResurse.js';
 import { initUniformBuffers } from './initUniformBuffers.js';
@@ -19,6 +20,7 @@ import { initPipeline as initPostEffectPipeline } from './postEffectRender/initP
 import { initPipeline as initPipelineDeferredRender } from './deferredRender/initPipeline.js';
 import { initPipeline as initPipelineGBuffer} from './gBufferRender/initPipeline.js';
 import { initPipeline as initPipelineForvardRender } from './forvardRender/initPipeline.js';
+import { initPipeline as initPipelineSSAORender } from './ssaoRender/initPipeline.js';
 
 
 async function main() {
@@ -109,6 +111,7 @@ async function main() {
   const { pipeline : pipelineGBuffer } = await initPipelineGBuffer(device, canvas, format, uBiffers, shadergBufferPass, texture, sampler,shaderDeferredRendering);
   const { pipeline : pipelineDeferredRender } = await initPipelineDeferredRender(device, canvas, format, uBiffers, pipelineGBuffer.gBufferTexture ,shaderDeferredRendering);
   const { pipeline : forvardRender_pipeline } = await initPipelineForvardRender(device, canvas, format, uBiffers,shaderLigthHelpers);
+  const { pipeline : pipelineSSAORender } = await initPipelineSSAORender(device, canvas, format, uBiffers, pipelineGBuffer.gBufferTexture ,shaderSSAORendering);
   //---------------------------------------------------
   //initRenderPassDescription
   let depthPipelineGBufferView = pipelineGBuffer.gBufferTexture[2].createView(); //  pipelineGBuffer.Depth.depthTexture  == pipelineGBuffer.gBufferTexture[2]
@@ -173,6 +176,26 @@ async function main() {
     ],    
   };
 
+  const SSAOtextureSSAORender = device.createTexture({
+    size: [canvas.width , canvas.height ],
+    format: format,
+    usage: GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.RENDER_ATTACHMENT
+  });
+
+  const SSAORenderPassDescription = {
+    colorAttachments: [   
+      {
+        view: SSAOtextureSSAORender.createView(),
+
+        clearValue: { r: 0.3, g: 0.4, b: 0.0, a: 1.0 },
+        loadOp: 'clear',
+        storeOp: 'store',
+      }     
+    ],    
+  };
+
   const postEffectRenderPassDescription = {  // натсраиваем проход рендера, подключаем текстуру канваса это значать выводлить результат на канвас
     colorAttachments: [{
       view: undefined,
@@ -186,7 +209,9 @@ async function main() {
       depthStoreOp: 'store',} // "store", "discard",
   };
 
-  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(device, canvas, format, shaderPostEffect, SSAOtextureDeferredRender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
+  const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(
+    device, canvas, format, 
+    shaderPostEffect, SSAOtextureSSAORender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
   //--------------------------------------------------
   //BUFFERS EDIT
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
@@ -238,7 +263,7 @@ async function main() {
     camera.setDeltaTime(dt);
 
     //------------------MATRIX EDIT---------------------
-    // MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
+    MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
     // MODELMATRIX = mat4.rotateX( MODELMATRIX, dt * 0.0002);
     // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
 
@@ -334,6 +359,17 @@ async function main() {
     renderPass.setBindGroup(3, pipelineDeferredRender.BindGroup.SSAOKernelBindGroup);
     renderPass.draw(6);
     renderPass.end();
+
+    // // //SSAORender 
+    const renderSSAOPass = commandEncoder.beginRenderPass(SSAORenderPassDescription);
+
+    renderSSAOPass.setPipeline(pipelineSSAORender);
+    renderSSAOPass.setBindGroup(0, pipelineSSAORender.BindGroup.gBufferTexturesBindGroup);
+    renderSSAOPass.setBindGroup(1, pipelineSSAORender.BindGroup.gBufferUniformBindGroup);
+    renderSSAOPass.setBindGroup(2, pipelineSSAORender.BindGroup.gBufferCameraBindGroup);
+    renderSSAOPass.setBindGroup(3, pipelineSSAORender.BindGroup.SSAOKernelBindGroup);
+    renderSSAOPass.draw(6);
+    renderSSAOPass.end();
 
     // _PostEffect 
     const textureView_PostEffect = context.getCurrentTexture().createView(); // тектура к которой привязан контекст

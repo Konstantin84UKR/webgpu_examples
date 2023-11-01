@@ -14,8 +14,8 @@ export async function initResurse(device) {
     plane.index = new Uint32Array(rectangleGeometry.indices);
 
     // BUNNY
-    //let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
-    let gltf = await LoadJSONUsingPromise('./res/sponza.gltf');
+    let gltf = await LoadJSONUsingPromise('./res/bunny.gltf');
+    //let gltf = await LoadJSONUsingPromise('./res/sponza.gltf');
     const gltfModel = new gltfLoader(device,gltf);
     gltfModel.getMesh();
 

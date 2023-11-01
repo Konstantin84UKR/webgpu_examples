@@ -130,10 +130,8 @@ export const shaderDeferredRendering = {
         }
 
         //SSAO
-               
-
         let fragPos = fragPosition;
-        let radius = 1.0;
+        let radius = 0.5;
         let sampleSize = 64.0;
         var occlusion = 0.0;
 
@@ -141,7 +139,7 @@ export const shaderDeferredRendering = {
         let noiseY = u32(((coord.y / 4) - floor(coord.y / 4)) * 4);
         let randomVec : vec3<f32> =  normalize(ssaoNoise[noiseX + noiseY].xyz);
 
-        for (var i = 0; i < 8; i++) {
+        for (var i = 0; i < 16; i++) {
 
           let tangent : vec3<f32> = normalize(randomVec - N * dot(randomVec, N));
           let bitangent : vec3<f32> = cross(N, tangent);
@@ -176,17 +174,17 @@ export const shaderDeferredRendering = {
           if((samplePos.z + 0.01) < sampleDepth.z){
               occlusion = (occlusion + 1.0) * rangeCheck;                       
            }
-              occlusion = occlusion + 0.0;  
+              occlusion = occlusion;  
            }
-          occlusion =  (1.0 - (occlusion / 8));
+          occlusion =  (1.0 - (occlusion / 16));
 
         var output : GBufferOutput;
         output.colorBuffer = vec4(finalColor , 1.0);
-        output.ssaoBuffer = vec4(finalColor, 1.0);
+        // output.ssaoBuffer = vec4(finalColor, 1.0);
         // output.ssaoBuffer = vec4(fragPosition.z, fragPosition.z, fragPosition.z, 1.0);
         // output.ssaoBuffer = vec4(sampleDepth, 1.0);
-        //output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
-        output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
+        output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
+        //output.ssaoBuffer = vec4(finalColor * occlusion , 1.0);
         //output.ssaoBuffer = vec4(randomVec, 1.0);
        
         return output;     

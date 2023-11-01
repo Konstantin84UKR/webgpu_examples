@@ -199,7 +199,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
     
   
     const pipeline = device.createRenderPipeline({
-      label: 'pipeline2 ',
+      label: 'pipeline DefRender ',
       layout: device.createPipelineLayout({
         label: 'gBuffer bindGroupLayouts ',
         bindGroupLayouts: [
