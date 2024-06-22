@@ -70,7 +70,7 @@ async function main() {
   //---INIT WEBGPU
 
   const canvas = document.getElementById("canvas-webgpu");
-  const scaleCanvas = 1.3;
+  const scaleCanvas = 1.0;
   canvas.width = 1200 * scaleCanvas * 1.2;
   canvas.height = 800 * scaleCanvas;
 
