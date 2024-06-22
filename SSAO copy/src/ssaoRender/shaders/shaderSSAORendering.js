@@ -110,15 +110,15 @@ export const shaderSSAORendering = {
       
         //SSAO
         let fragPos = fragPosition;
-        let radius = 0.5;
-        let sampleSize = 64.0;
+        let radius = 1.5;
+        let sampleSize = 32;
         var occlusion = 0.0;
 
         let noiseX = u32(((coord.x / 4) - floor(coord.x / 4)) * 4);
         let noiseY = u32(((coord.y / 4) - floor(coord.y / 4)) * 4);
         let randomVec : vec3<f32> =  normalize(ssaoNoise[noiseX + noiseY].xyz);
 
-        for (var i = 0; i < 64; i++) {
+        for (var i = 0; i < sampleSize; i++) {
 
           let tangent : vec3<f32> = normalize(randomVec - N * dot(randomVec, N));
           let bitangent : vec3<f32> = cross(N, tangent);
@@ -155,7 +155,7 @@ export const shaderSSAORendering = {
            }
               occlusion = occlusion;  
            }
-          occlusion =  (1.0 - (occlusion / 64));
+          occlusion =  (1.0 - (occlusion / f32(sampleSize)));
 
         var output : GBufferOutput;
         output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);

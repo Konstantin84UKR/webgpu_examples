@@ -211,7 +211,7 @@ async function main() {
 
   const { pipeline : pipeline_PostEffect } = await initPostEffectPipeline(
     device, canvas, format, 
-    shaderPostEffect, SSAOtextureSSAORender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender
+    shaderPostEffect, SSAOtextureSSAORender , sampler); // pipelineGBuffer.gBufferTexture[2] // textureDeferredRender SSAOtextureSSAORender
   //--------------------------------------------------
   //BUFFERS EDIT
   device.queue.writeBuffer(uBiffers.uniformBuffer, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)

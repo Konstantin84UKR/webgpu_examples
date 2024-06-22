@@ -122,7 +122,7 @@ async function main() {
   const openEnded = false;
   const thetaStart = 0;
   const thetaLength = Math.PI * 2;
-  const meshGeometry = new CylinderGeometry(1.0, 1.0, 2, 16, 3, false, 0, Math.PI * 2);
+  const meshGeometry = new CylinderGeometry(1.0, 1.0, 6, 4, 8, false, 0, Math.PI * 2);
 
   //const meshGeometry = new BoxGeometry(4, 4, 6, 2, 2, 2);
 
@@ -288,8 +288,8 @@ async function main() {
         ],
       },
       primitive: {
-        //topology: "line-list", 
-        topology: "triangle-list",
+        topology: "line-list", 
+        // topology: "triangle-list",
         //topology: "point-list",
         //cullMode: 'back',  //'back'  'front'  
         frontFace: 'ccw' //'ccw' 'cw'
@@ -418,8 +418,8 @@ let time_old=0;
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
-      //MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
-      MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0003);
+      MODELMATRIX = mat4.rotateY(MODELMATRIX, dt * 0.0002);
+      // MODELMATRIX = mat4.rotateX(MODELMATRIX, dt * 0.0003);
       //MODELMATRIX = mat4.rotateZ(MODELMATRIX, dt * 0.0001);
       //--------------------------------------------------
 

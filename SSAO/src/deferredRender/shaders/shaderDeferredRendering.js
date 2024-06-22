@@ -134,7 +134,7 @@ export const shaderDeferredRendering = {
 
         let fragPos = fragPosition;
         let radius = 0.5;
-        //let sampleSize : i32 = 64;
+        let sampleSize : i32 = 16;
         var occlusion = 0.0;
 
         let noiseX = u32(((coord.x / 4) - floor(coord.x / 4)) * 4);
@@ -151,7 +151,7 @@ export const shaderDeferredRendering = {
         let N_view = (camera.vMatrix *  vec4<f32>(N,0.0)).xyz;
         let fragPos_view = (camera.vMatrix *  vec4<f32>(fragPos,1.0)).xyz;
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < sampleSize; i++) {
 
           tangent  = normalize(randomVec - N_view * dot(randomVec, N_view));
           bitangent  = cross(N_view, tangent);
@@ -193,7 +193,7 @@ export const shaderDeferredRendering = {
            occlusion = occlusion + 0.0;        
         }
               
-        occlusion =  1.0 - (occlusion / 4.0);
+        occlusion =  1.0 - (occlusion / f32(sampleSize));
 
         var output : GBufferOutput;
         output.colorBuffer = vec4(finalColor , 1.0);
@@ -203,7 +203,18 @@ export const shaderDeferredRendering = {
         output.ssaoBuffer = vec4(occlusion, occlusion, occlusion, 1.0);
         //output.ssaoBuffer = vec4(finalColor * occlusion,1.0);
         //output.ssaoBuffer = vec4(N_view.xyz, 1.0);
+
+        let ssaoBuffer : vec4<f32> = vec4(occlusion, occlusion, occlusion, 1.0);
+        let ssaoColor : vec4<f32> = vec4(finalColor,1.0);
        
+        output.ssaoBuffer =  vec4(finalColor * occlusion,1.0);;
+        
+        if(fragUV.x < 0.33){
+          output.ssaoBuffer = ssaoColor;
+        }else if(fragUV.x < 0.63){
+          output.ssaoBuffer = ssaoBuffer;
+        }
+              
         return output;     
     }
     `,

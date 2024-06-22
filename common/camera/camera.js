@@ -8,7 +8,7 @@ export class Camera {
 
         this.speedCamera = 0.01;
 
-        this.fovy = 40 * Math.PI / 180;
+        this.fovy = 45 * Math.PI / 180;
 
         this.eye = eye;
         this.front = front;
