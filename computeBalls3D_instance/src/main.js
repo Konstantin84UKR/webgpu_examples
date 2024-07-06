@@ -10,13 +10,14 @@ import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
 import { simulation } from './simulation.js';
 import { Ray } from './Ray.js';
+import { Ball } from './Ball.js';
 
 
 let r; //ray
-const radius = 1;
+const radius = 3;
 const instance_count = 100;
-let curent_ball = 1;
-let countRenderBall = 1;
+let curent_ball = 0;
+let countRenderBall = 0;
 
 let balls = await initBalls(instance_count);
 
@@ -417,7 +418,7 @@ async function main() {
     //MODELMATRIX_meshGeometry = mat4.setTranslation(MODELMATRIX_meshGeometry, ball.position);
     // MODELMATRIX_meshGeometry = mat4.rotateY(MODELMATRIX_meshGeometry, Math.PI * 0.0001 * dt );
     for (let i = 0; i <  instance_count ; i++) {
-      let ball = simulation(balls[i], dt); 
+      let ball = simulation(i, dt, balls); 
       MODELMATRIX_meshGeometry = mat4.identity();
       MODELMATRIX_meshGeometry = mat4.translate(MODELMATRIX_meshGeometry, ball.position); 
       MODELMATRIX_ARRAY.set(MODELMATRIX_meshGeometry, (i) * 16);  
@@ -473,6 +474,7 @@ async function mouseDown(e){
   let p = r.at(10);
   
   balls[curent_ball].position = p;
+  balls[curent_ball].activ = true;
   
   let velocity = vec3.sub(p, r.camera.eye);
 
@@ -491,18 +493,12 @@ async function mouseDown(e){
 async function initBalls(count){
   let arr = [];
   for (let index = 0; index < count; index++) {
-    
-    let ball = {
-      mass: 1,
-      position: vec3.set(0, 0, 0),
-      // velocity:  vec3.set(Math.random() - 0.5, 0.5 + Math.random(), Math.random() - 0.5),
-      velocity:  vec3.set(0, 0, 0),
-     //acc: vec3.set(Math.random() - 0.5, 0.5 + Math.random(), Math.random() - 0.5),
-      gravity: vec3.set(0, -0.01, 0),
-      oldPosition: vec3.set(0, 0, 0),
-      radius: radius,
-      bounce: - 0.9
-    }
+
+    const position = vec3.set(0, 0, 0);
+    const velocity = vec3.set(0, 0, 0);
+    const mass = radius;
+
+    let ball = new Ball(radius, radius * radius, position, velocity,index)
 
     arr.push(ball);   
   }
