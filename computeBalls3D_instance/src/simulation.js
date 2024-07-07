@@ -1,7 +1,12 @@
 
 import {
-    mat4, vec3
+    mat4, vec3,
+    vec4
 } from './wgpu-matrix.module.js';
+import { RADIUS , INSTANS_COUNT ,DEBAG_INDEX , TABLE_SCALE} from './settings.js';
+import { Ball } from './Ball.js';
+import { HashTable } from './HashTable.js';
+
 
     // Scene ---------------------------------------
 export let physicsScene = 
@@ -10,23 +15,24 @@ export let physicsScene =
 		//dt : 1.0 / 60.0,
 		//worldSize : new Vector2(simWidth,simHeight),
 		// paused: true,
-		//balls: [],				
+		balls: [],				
 		restitution : .95,
-        friction : .99,
+        friction : 0.99,
+        HashTable : undefined,
 
         fit : true,
 
         boxScene: {
-           xp: 15, 
-           xn: -15, 
-           yp: 35, 
+           xp: 25, 
+           xn: -25, 
+           yp: 50, 
            yn: 0, 
-           zp: 30, 
-           zn: -80, 
+           zp: 25, 
+           zn: -25, 
         }
 	};
 
-export function simulation(indexBall, dt , balls) {
+export function simulation(indexBall, dt , balls,scene) {
      
     
 
@@ -40,38 +46,44 @@ export function simulation(indexBall, dt , balls) {
 
     ball.oldPosition = vec3.clone(ball.position);
     ball.position = vec3.add(ball.position, ball.velocity);
+
+    
+    let cell = physicsScene.HashTable.cellCoords(ball);
+			let BallsForTestCollision = [];
+			for (let xi = -1; xi < 2; xi++) {
+
+				for (let yj = -1; yj < 2; yj++) {
+
+                    for (let zj = -1; zj < 2; zj++) {
+					
+					const Xh = cell.x + xi;
+					const Yh = cell.y + yj;
+                    const Zh = cell.z + zj;
+
+					let arr = physicsScene.HashTable.getGrid({x:Xh,y:Yh,z:Zh});
+					BallsForTestCollision.push(arr);
+
+                    if(indexBall == DEBAG_INDEX){
+                        scene.updateDebagColor(arr, vec4.set(1.0,0.0,0.0,1.0));
+                    }else{
+                        //scene.updateDebagColor(arr, vec4.set(0.2,0.2,0.2,1.0));
+                    }
+
+                    }
+									
+				}
+			} 
+		
+			BallsForTestCollision = BallsForTestCollision.flat();
     
     //---------------------------------------------------------------------
-    for (let j = 0; j < balls.length; j++) {			
-        let ball2 = balls[j];	
+    for (let j = 0; j < BallsForTestCollision.length; j++) {			
+        let ball2 = BallsForTestCollision[j];	
         
         handleBallCollision(ball, ball2);
     }
     //----------------------------------------------------------------------
-
-    if ((ball.position[0]) > physicsScene.boxScene.xp - ball.radius || (ball.position[0]) < physicsScene.boxScene.xn + ball.radius) {
-        ball.position = ball.oldPosition;
-        ball.position[0] = Math.min(Math.max(ball.position[0], (physicsScene.boxScene.xn + ball.radius)), (physicsScene.boxScene.xp - ball.radius));
-        ball.velocity[0] *= ball.bounce;
-    }
-
-    if ((ball.position[2]) > physicsScene.boxScene.zp - ball.radius || (ball.position[2]) < physicsScene.boxScene.zn+ ball.radius) {
-        ball.position = ball.oldPosition;
-        ball.position[2] = Math.min(Math.max(ball.position[2], (physicsScene.boxScene.zn + ball.radius)), (physicsScene.boxScene.zp - ball.radius));
-        ball.velocity[2] *= ball.bounce;
-    }
-
-    if ((ball.position[1] - ball.radius) < physicsScene.boxScene.yn || (ball.position[1]) > physicsScene.boxScene.yp + ball.radius) {
-        ball.position = ball.oldPosition;
-        ball.position[1] = Math.min(Math.max(ball.position[1], ball.radius), physicsScene.boxScene.yp + ball.radius);
-        ball.velocity[1] *= ball.bounce;
-
-        if (vec3.lenSq(ball.velocity) < 0.001) {
-            ball.position[1] = ball.radius;
-            ball.velocity = vec3.set(0, 0, 0);
-        }
-    }
-    
+    handleWallCollision(ball);
     
 
     ball.velocity = vec3.add(ball.velocity, physicsScene.gravity);
@@ -81,6 +93,25 @@ export function simulation(indexBall, dt , balls) {
 
     return ball;
 }
+
+export async function initBalls(count){
+    
+    let arr = [];
+    for (let index = 0; index < count; index++) {
+  
+      const position = vec3.set(0, 0, 0);
+      const velocity = vec3.set(0, 0, 0);
+      const mass = RADIUS * RADIUS;
+  
+      let ball = new Ball(RADIUS, mass, position, velocity, index)
+  
+      arr.push(ball);   
+    }
+
+    physicsScene.HashTable = new HashTable(TABLE_SCALE,50);
+  
+    return arr;
+  }
 
 function handleBallCollision(ball1, ball2){
    
@@ -120,6 +151,31 @@ function handleBallCollision(ball1, ball2){
     ball1.velocity = vec3.add( ball1.velocity, vec3.scale(dir, newV1 - v1));
     ball2.velocity = vec3.add( ball2.velocity, vec3.scale(dir, newV2 - v2));
 
+}
+
+function handleWallCollision(ball){
+    if ((ball.position[0]) > physicsScene.boxScene.xp - ball.radius || (ball.position[0]) < physicsScene.boxScene.xn + ball.radius) {
+        ball.position = ball.oldPosition;
+        ball.position[0] = Math.min(Math.max(ball.position[0], (physicsScene.boxScene.xn + ball.radius)), (physicsScene.boxScene.xp - ball.radius));
+        ball.velocity[0] *= ball.bounce;
+    }
+
+    if ((ball.position[2]) > physicsScene.boxScene.zp - ball.radius || (ball.position[2]) < physicsScene.boxScene.zn+ ball.radius) {
+        ball.position = ball.oldPosition;
+        ball.position[2] = Math.min(Math.max(ball.position[2], (physicsScene.boxScene.zn + ball.radius)), (physicsScene.boxScene.zp - ball.radius));
+        ball.velocity[2] *= ball.bounce;
+    }
+
+    if ((ball.position[1] - ball.radius) < physicsScene.boxScene.yn || (ball.position[1]) > physicsScene.boxScene.yp + ball.radius) {
+        ball.position = ball.oldPosition;
+        ball.position[1] = Math.min(Math.max(ball.position[1], ball.radius), physicsScene.boxScene.yp + ball.radius);
+        ball.velocity[1] *= ball.bounce;
+
+        if (vec3.lenSq(ball.velocity) < 0.001) {
+            ball.position[1] = ball.radius;
+            ball.velocity = vec3.set(0, 0, 0);
+        }
+    }
 }
 
 // accelerate(accel) {

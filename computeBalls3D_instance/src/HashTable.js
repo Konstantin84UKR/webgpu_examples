@@ -1,40 +1,27 @@
 export class HashTable{
-	constructor(tablScale,simMinWidth,cScale){
+	constructor(tablScale,simMinWidth,boxWidth){
 		
-		this.tablScale = tablScale;
+		// this.tablScale = tablScale;
 		this.map = new Map();		
-		this.tableColumns = tablScale * simMinWidth;
-		this.cells = tablScale * tablScale;
-		this.pixelOneCells = cScale / tablScale;
-		this.cScale = cScale;
+		//this.tableColumns = tablScale * simMinWidth;
+		this.cells = tablScale * tablScale * tablScale;
+		this.pixelOneCells = simMinWidth/tablScale;
+		// this.cScale = cScale;
 
 	}
 
 	hashCoords(xi, yi, zi) {
 
-		xi = Math.trunc(xi);
-		yi = Math.trunc(yi);
-		zi = Math.trunc(zi);
+		// xi = Math.trunc(xi);
+		// yi = Math.trunc(yi);
+		// zi = Math.trunc(zi);
 
 		var h = (xi * 92837111) ^ (yi * 689287499) ^ (zi * 283923481);	// fantasy function
 		return Math.abs(h) % this.cells; 
 	}
 	
 	hashCoordsNew(xi, yi, zi) {
-
-
-		if(xi == undefined){
-			zi= 1;
-		}
-
-		if(yi == undefined){
-			zi= 1;
-		}
-		//  xi = Math.max(xi,0);
-		//  yi = Math.max(yi,0);
-		// zi = Math.trunc(zi);
-
-		var h = 'x'+xi+'y'+yi;	// fantasy function
+		var h = 'x'+xi+'y'+yi +'z'+zi;	// fantasy function
 		return h; 
 	}
 
@@ -69,9 +56,13 @@ export class HashTable{
 
 	cellCoords(ball){
 		
-		let x = Math.max(Math.trunc((ball.position[0] / this.pixelOneCells)),0); //Math.trunc()
-		let y = Math.max(Math.trunc((ball.position[1] / this.pixelOneCells)),0);
-        let z = Math.max(Math.trunc((ball.position[2] / this.pixelOneCells)),0);	
+		// let x = Math.max(Math.trunc(((ball.position[0] + 50) / this.pixelOneCells)),0); //Math.trunc()
+		// let y = Math.max(Math.trunc(((ball.position[1] + 50) / this.pixelOneCells)),0);
+        // let z = Math.max(Math.trunc(((ball.position[2] + 50) / this.pixelOneCells)),0);	
+
+		let x = Math.trunc(((ball.position[0]) / this.pixelOneCells)); //Math.trunc()
+		let y = Math.trunc(((ball.position[1]) / this.pixelOneCells));
+        let z = Math.trunc(((ball.position[2]) / this.pixelOneCells));	
 
 		return {x,y,z}
 	}

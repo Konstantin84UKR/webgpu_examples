@@ -45,75 +45,20 @@ export class Ray{
           
             this.origin = this.camera.eye;
 
-            // this.dX = 2.0 * (e.layerX) / this.canvas.width - 1.0;
-            // this.dY = -2.0 * (e.layerY) / this.canvas.height + 1.0;
-            //const coords = { x: this.dX, y:this.dY }
-                                   
-            //let dir = vec4.set(coords.x, coords.y, 0.0,1.0);
-
+           
             const screenSpaceObject = {x:e.layerX, y:e.layerY};
             const windowSize = {x:this.canvas.width, y:this.canvas.height};
             
             const screenWorldCoords = this.screenToWorld(screenSpaceObject,windowSize,this.camera.vMatrix,this.camera.pMatrix);
-            console.log("///////////////////////////");
-            console.log("screenWorldCoords");
-            console.log(screenWorldCoords);
+            // console.log("///////////////////////////");
+            // console.log("screenWorldCoords");
+            // console.log(screenWorldCoords);
 
-            // unproject(camera) {
-            //     return this.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.matrixWorld);
-            // }
-
-            //.unproject(camera).sub(this.ray.origin).normalize();
-            // this.ray.direction.set(coords.x, coords.y, 0.5).unproject(camera).sub(this.ray.origin).normalize();
             
-            // let pInverse = mat4.inverse(this.camera.pMatrix); 
-            // let vInverse = mat4.inverse(this.camera.vMatrix); 
-
-            // let matrixWorld = this.camera.worldMatrix;
-            // //matrixWorld = mat4.translate(matrixWorld, this.camera.eye);
-
-            // //let m = mat4.multiply(pInverse, vInverse);
-
-            // dir = vec4.transformMat4(dir, pInverse);
-            // dir = vec4.transformMat4(dir, vInverse);
-            //dir = vec4.normalize(dir);
-            // //dir = vec3.sub(this.origin,dir);
-            //dir = vec3.negate(dir);
-            //dir = vec3.set(0.0,0.0,0.0);
-            //console.log(dir);
-            // dir[0] = dir[0] / dir[3];
-            // dir[1] = dir[1] / dir[3];
-            // dir[2] = dir[2] / dir[3];
-
-            //dir = vec4.normalize(dir);
-            //let dir3 = vec3.sub(vec3.set(screenWorldCoords[0],screenWorldCoords[1],screenWorldCoords[3]), this.camera.eye)
-            //let dir3 = vec3.sub(vec3.set(dir[0],dir[1],dir[3]), vec3.set(0.0,0.0,0.0))
-            //dir = vec4.set(dir3[0],dir3[1],dir3[2],1.0);
-           // dir = vec3.sub(vec3.set(0.0,0.1,-1.0), vec3.set(0.0,0.0,0.0));
-            //dir[2] = 0.;
-           
-            //let vInverse = mat4.identity(); //mat4.clone(this.camera.vMatrix); 
-            //vInverse = mat4.translation([2.0,2.0,2.0]);
-            // let vInverse = mat4.clone(this.camera.vMatrix); 
-            // vInverse[12] = 0 
-            // vInverse[13] = 0 
-            // vInverse[14] = 0 
-
-           //this.dir = vec4.transformMat4(screenWorldCoords, vInverse);
-           // let dir3 = vec3.sub(vec3.set(dir[0],dir[1],dir[3]), vec3.set(0.0,0.0,0.0))
-            //this.dir = screenWorldCoords;
             this.dir = vec4.normalize(screenWorldCoords);
-//        
-            console.log("dir");
-            console.log("x = " +  this.dir[0] + " y = " +  this.dir[1] +  " z = " +  this.dir[2]);
-
-           
-            // const planeNormal = vec3.set(0,0,1);
-            // const denominator = vec3.dot(planeNormal, this.dir);
-            // this.t = - (vec3.dot(this.origin, planeNormal) + 0) / denominator;
-            
-            //this.dir = vec3.normalize(vec3.set(coords.x, coords.y, -1.0));
-            //this.dir = dir;
+      
+            // console.log("dir");
+            // console.log("x = " +  this.dir[0] + " y = " +  this.dir[1] +  " z = " +  this.dir[2]);
             
             e.preventDefault();
             return false;
