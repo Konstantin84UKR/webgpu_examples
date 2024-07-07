@@ -4,7 +4,7 @@ import {
 } from './wgpu-matrix.module.js';
 
     // Scene ---------------------------------------
-    let physicsScene = 
+export let physicsScene = 
 	{
 		gravity : vec3.set(0, -0.01, 0),
 		//dt : 1.0 / 60.0,
@@ -13,6 +13,8 @@ import {
 		//balls: [],				
 		restitution : .95,
         friction : .99,
+
+        fit : true,
 
         boxScene: {
            xp: 15, 
@@ -24,13 +26,16 @@ import {
         }
 	};
 
-
-
 export function simulation(indexBall, dt , balls) {
      
     
 
     let ball = balls[indexBall];
+
+    
+    if(!ball.activ){
+        return ball;
+    }
   
 
     ball.oldPosition = vec3.clone(ball.position);

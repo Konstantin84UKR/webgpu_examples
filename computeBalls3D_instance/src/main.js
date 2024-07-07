@@ -8,14 +8,14 @@ import { Camera } from '../../common/camera/camera.js';
 import { initWebGPU } from '../../common/initWebGPU.js';
 import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
-import { simulation } from './simulation.js';
+import { simulation, physicsScene } from './simulation.js';
 import { Ray } from './Ray.js';
 import { Ball } from './Ball.js';
 
 
 let r; //ray
 const radius = 3;
-const instance_count = 100;
+const instance_count = 5000;
 let curent_ball = 0;
 let countRenderBall = 0;
 
@@ -395,6 +395,7 @@ async function main() {
   };
 
   canvas.addEventListener("mousedown", mouseDown.bind(this), false);
+  document.addEventListener("keydown", keyDown.bind(this), false);
 
   // UPDATE - RENDER   
   let time_old = 0;
@@ -488,6 +489,54 @@ async function mouseDown(e){
   if(countRenderBall<=instance_count){
     countRenderBall++;
   }
+};
+
+async function keyDown(e){
+ 
+  console.log(e)
+
+  
+  if(e.code == "Space"){
+
+   // if(physicsScene.fit){
+      physicsScene.boxScene.xn = -100;
+      physicsScene.boxScene.xp = 100;
+
+      physicsScene.boxScene.zn = -100;
+      physicsScene.boxScene.zp = 100;
+
+      physicsScene.boxScene.yn = -0;
+      physicsScene.boxScene.yp = 100;
+     
+   // }
+  }
+
+  if(e.code == "KeyZ"){
+
+      physicsScene.boxScene.xn += -1;
+      physicsScene.boxScene.xp += 1;
+
+      physicsScene.boxScene.zn += -1;
+      physicsScene.boxScene.zp += 1;
+
+      // physicsScene.boxScene.yn += -1;
+      // physicsScene.boxScene.yp += 1;
+     
+    
+  }
+  if(e.code == "KeyX"){
+    physicsScene.boxScene.xn += 1;
+    physicsScene.boxScene.xp -= 1;
+
+    physicsScene.boxScene.zn += 1;
+    physicsScene.boxScene.zp -= 1;
+
+    // physicsScene.boxScene.yn += 1;
+    // physicsScene.boxScene.yp -= 1;
+  }
+  
+     
+
 };
 
 async function initBalls(count){
