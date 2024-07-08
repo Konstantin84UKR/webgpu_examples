@@ -11,7 +11,7 @@ import { Ray } from './Ray.js';
 import { Ball } from './Ball.js';
 
 import { Scene } from './Scene.js';
-import { RADIUS , INSTANS_COUNT ,DEBAG_INDEX} from './settings.js';
+import { RADIUS , INSTANS_COUNT ,DEBAG_INDEX, TABLE_SCALE} from './settings.js';
 import { createUniformData, updateUniformBuffer } from './uniformData.js';
 
 
@@ -38,7 +38,7 @@ async function main() {
 
 
   //---create uniform data
-  let camera = new Camera(scene.canvas, vec3.create(0.0, 15.0, 50.0), vec3.create(0.0, -0.0, -1.0));
+  let camera = new Camera(scene.canvas, vec3.create(0.0, 50.0, 100.0), vec3.create(0.0, -0.3, -1.0));
   r = new Ray(camera.eye, camera.front, scene.canvas, camera);
  
   // create uniform buffer and layout
@@ -100,9 +100,6 @@ async function main() {
 
     for (let i = 0; i <  INSTANS_COUNT ; i++) {    
       
-     // scene.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(1.0,1.0,1.0,1.0), (i) * (16 + 4) + 16);  
-      
-      
       let ball = simulation(i, dt, physicsScene.balls, scene); 
 
       scene.model.Sphere1.MODELMATRIX_meshGeometry = mat4.identity();
@@ -111,10 +108,7 @@ async function main() {
       
        if(i == DEBAG_INDEX){
          scene.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(0.0,0.0,1.0,1.0), (i) * (16 + 4) + 16);  
-       }
-      //  else if(ball.marker){
-      //    scene.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(1.0,1.0,0.0,1.0), (i) * (16 + 4) + 16);  
-      //  }
+       }    
          
     }
 
@@ -206,6 +200,10 @@ async function keyDown(e){
 
       physicsScene.boxScene.yn = -0;
       physicsScene.boxScene.yp = 100;
+
+
+      //physicsScene.HashTable.pixelOneCells = 200/TABLE_SCALE;
+
      
    // }
   }
@@ -220,6 +218,9 @@ async function keyDown(e){
 
       // physicsScene.boxScene.yn += -1;
       // physicsScene.boxScene.yp += 1;
+
+
+      //physicsScene.HashTable.pixelOneCells = Math.abs(physicsScene.boxScene.xn - physicsScene.boxScene.xp) / TABLE_SCALE;
      
     
   }
@@ -232,11 +233,13 @@ async function keyDown(e){
 
     // physicsScene.boxScene.yn += 1;
     // physicsScene.boxScene.yp -= 1;
+
+    //physicsScene.HashTable.pixelOneCells = Math.abs(physicsScene.boxScene.xn - physicsScene.boxScene.xp) / TABLE_SCALE;
   }
   
   if(e.code == "KeyP"){
    
-    let intervalID = setInterval(rain, 100);
+    let intervalID = setInterval(rain, 50);
     
   }   
 

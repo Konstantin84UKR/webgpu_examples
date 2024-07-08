@@ -68,7 +68,6 @@ export class Scene{
           for (let i = 0; i <  INSTANS_COUNT ; i++) {
             this.model.Sphere1.MODELMATRIX_meshGeometry = mat4.identity();
             this.model.Sphere1.MODELMATRIX_meshGeometry = mat4.translate(this.model.Sphere1.MODELMATRIX_meshGeometry, this.balls[i].position); 
-            //this.model.Sphere1.MODELMATRIX_ARRAY.set(this.model.Sphere1.MODELMATRIX_meshGeometry, (i) * 16);  
             this.model.Sphere1.MODELMATRIX_ARRAY.set(this.model.Sphere1.MODELMATRIX_meshGeometry, (i) * (16 + 4) );  
             this.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(0.5,0.5,0.5,0.5), (i) * (16 + 4) + 16);  
         }  
@@ -85,11 +84,8 @@ export class Scene{
             index: this.model.Plane1.index,
             label: "Plane1"
           });
-
-           
-          //this.model.Plane1.MODELMATRIX_meshPlane = mat4.translate(this.model.Plane1.MODELMATRIX_meshPlane,  vec3.set(0, 0, -25));
-          //this.model.Plane1.MODELMATRIX_meshPlane = mat4.rotateX(this.model.Plane1.MODELMATRIX_meshPlane, Math.PI*-0.5);
-          this.model.Plane1.MODELMATRIX_meshPlane = mat4.scale(this.model.Plane1.MODELMATRIX_meshPlane, vec3.set(50,0.1,50)); 
+ 
+        this.model.Plane1.MODELMATRIX_meshPlane = mat4.scale(this.model.Plane1.MODELMATRIX_meshPlane, vec3.set(50,0.1,50)); 
         //---------------------------------------------------
        
         //pipelines
@@ -190,11 +186,7 @@ export class Scene{
         if(ball.id != DEBAG_INDEX){
           this.model.Sphere1.MODELMATRIX_ARRAY.set(color, (ball.id) * (16 + 4) + 16);  
         }
-       // this.model.Sphere1.MODELMATRIX_ARRAY.set(color, (ball.id) * (16 + 4) + 16);  
-      
-           
       }
-  
     }
 
 }

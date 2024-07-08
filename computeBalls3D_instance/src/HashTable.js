@@ -1,20 +1,16 @@
 export class HashTable{
-	constructor(tablScale,simMinWidth,boxWidth){
+	constructor(tablScale,boxWidth){
 		
 		// this.tablScale = tablScale;
 		this.map = new Map();		
 		//this.tableColumns = tablScale * simMinWidth;
 		this.cells = tablScale * tablScale * tablScale;
-		this.pixelOneCells = simMinWidth/tablScale;
+		this.pixelOneCells = boxWidth/tablScale;
 		// this.cScale = cScale;
 
 	}
 
 	hashCoords(xi, yi, zi) {
-
-		// xi = Math.trunc(xi);
-		// yi = Math.trunc(yi);
-		// zi = Math.trunc(zi);
 
 		var h = (xi * 92837111) ^ (yi * 689287499) ^ (zi * 283923481);	// fantasy function
 		return Math.abs(h) % this.cells; 
@@ -27,7 +23,7 @@ export class HashTable{
 
 
 	getGrid(cell) {
-		let hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
+		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
 		if(this.map.has(hashCode)){
 			return this.map.get(hashCode)	
 		}else{
@@ -39,7 +35,7 @@ export class HashTable{
 
 	setGrid(cell, ball) {
 		
-		let hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
+		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
 		let arr = [];
 		if(this.map.has(hashCode)){
 			arr = this.getGrid(cell);
