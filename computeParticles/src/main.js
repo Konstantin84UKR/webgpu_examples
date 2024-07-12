@@ -266,7 +266,7 @@ const webGPU_Start = async () => {
     //--------------------------------------------
 
     //const input = new Float32Array([0, 0, 0, 0, 0]);
-    const numParticles = 4000;
+    const numParticles = 10000;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
         input[4 * i + 0] = (Math.random() * (2) - 1) * 0.9;

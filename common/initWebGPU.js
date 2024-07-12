@@ -9,7 +9,7 @@ export async function initWebGPU(debag = false, width = 1600, height = 900) {
       canvas.height = height;
     }    
   
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await navigator.gpu.requestAdapter({powerPreference:"high-performance"});
     const device = await adapter.requestDevice();
     const context = canvas.getContext("webgpu");
   

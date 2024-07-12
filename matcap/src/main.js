@@ -82,7 +82,7 @@ async function main() {
     canvas.height = 800;
 
     // Получаем данные о физическом утсройстве ГПУ
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await navigator.gpu.requestAdapter({powerPreference:"high-performance"});
     //** Получаем данные о логическом устройсве ГПУ */
     //** Пока не понятно можно ли переключаться между разными физ устройсвами или создавать несколько логический устройств */
     const device = await adapter.requestDevice();

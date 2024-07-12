@@ -110,7 +110,7 @@ export async function updateUniformBuffer(scene,camera){
   scene.device.queue.writeBuffer(scene.UNIFORM.uniformBufferCamera, 0, camera.pMatrix); // пишем в начало буффера с отступом (offset = 0)
   scene.device.queue.writeBuffer(scene.UNIFORM.uniformBufferCamera, 64, camera.vMatrix); // следуюшая записать в буфер с отступом (offset = 64)
   scene.device.queue.writeBuffer(scene.UNIFORM.uniformBufferBall, 0, scene.model.Sphere1.MODELMATRIX_ARRAY); // и так дале прибавляем 64 к offset
-  scene.device.queue.writeBuffer(scene.UNIFORM.uniformBuffer_Plane, 0, scene.model.Plane1.MODELMATRIX); // и так дале прибавляем 64 к offset
+  scene.device.queue.writeBuffer(scene.UNIFORM.uniformBuffer_Plane, 0, scene.model.Plane1.MODELMATRIX_meshPlane); // и так дале прибавляем 64 к offset
   scene.device.queue.writeBuffer(scene.UNIFORM.uniformBuffer_Plane, 64, vec4.set(1.0,1.0,1.0,1.0)); // и так дале прибавляем 64 к offset
 
 }
