@@ -108,7 +108,7 @@ async function keyDown(e){
   
   if(e.code == "KeyP"){
    
-    let intervalID = setInterval(rain, 50);
+    let intervalID = setInterval(rain, 10);
     
   }   
 
