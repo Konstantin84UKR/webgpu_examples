@@ -62,5 +62,20 @@ export class HashTable{
 
 		return {x,y,z}
 	}
+
+	fillHashTable(physicsScene){
+   
+		for (let i = 0; i < physicsScene.balls.length; i++) {
+			let ball = physicsScene.balls[i];
+			if(!ball.activ){
+			  continue;
+			}
+			let cell = physicsScene.HashTable.cellCoords(ball);         
+			physicsScene.HashTable.setGrid(cell, ball); 		
+		
+		}
+	
+	}
+	
 	
 }
