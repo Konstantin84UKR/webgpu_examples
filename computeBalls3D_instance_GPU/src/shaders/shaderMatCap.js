@@ -10,7 +10,6 @@ export const shaderMatCap =
       }; 
 
       @group(0) @binding(0) var<uniform> uniformsCamera : UniformCamera;
-      //@group(1) @binding(0) var<uniform> uniforms : Uniform;
       @group(1) @binding(0) var<storage, read> uniforms : array<Uniform>;
               
       struct Output {
@@ -38,8 +37,8 @@ export const shaderMatCap =
             return output;
         }
    
-      @binding(1) @group(1) var textureSampler : sampler;
-      @binding(2) @group(1) var textureData : texture_2d<f32>;
+      @group(1) @binding(1) var textureSampler : sampler;
+      @group(1) @binding(2) var textureData : texture_2d<f32>;
 
       @fragment
       fn main_fragment(@builtin(front_facing) is_front: bool, 
