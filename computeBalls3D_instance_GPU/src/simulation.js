@@ -99,8 +99,8 @@ export async function initBalls(count){
     let arr = [];
     for (let index = 0; index < count; index++) {
   
-      const position = vec3.set(0, 0, 0);
-      const velocity = vec3.set(0, 0, 0);
+      const position = vec3.set(Math.random() * 5, 5, Math.random() * 5);
+      const velocity = vec3.set(Math.random() * 1, Math.random() * 1, Math.random() * 1);
       const mass = RADIUS * RADIUS;
   
       let ball = new Ball(RADIUS, mass, position, velocity, index)
@@ -108,7 +108,7 @@ export async function initBalls(count){
       arr.push(ball);   
     }
 
-    physicsScene.HashTable = new HashTable(TABLE_SCALE,50);
+    physicsScene.HashTable = new HashTable(TABLE_SCALE,Math.abs(physicsScene.boxScene.xp - physicsScene.boxScene.xn));
   
     return arr;
   }

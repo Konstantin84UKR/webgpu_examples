@@ -20,6 +20,12 @@ export async function createUniformData(scene){
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
   });
 
+      // create uniform buffer and layout
+  scene.UNIFORM.uniformBuffer = scene.device.createBuffer({
+    size: 1,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+  });
+
   //-------------------- TEXTURE ---------------------
 
   scene.UNIFORM.sampler = scene.device.createSampler({
@@ -41,10 +47,7 @@ export async function createUniformData(scene){
   scene.device.queue.copyExternalImageToTexture(
     { source: scene.asset.imageBitmap },
     { texture: scene.UNIFORM.texture },
-    [scene.asset.imageBitmap.width, scene.asset.imageBitmap.height]);
-
-
- 
+    [scene.asset.imageBitmap.width, scene.asset.imageBitmap.height]); 
   
 }
 

@@ -57,21 +57,34 @@ async function mouseDown(e){
   scene.ray.mouseDown(e);
   let p = scene.ray.at(10);
   
-  scene.physicsScene.balls[curent_ball].position = p;
-  scene.physicsScene.balls[curent_ball].activ = true;
+  // scene.physicsScene.balls[curent_ball].position = p;
+  // scene.physicsScene.balls[curent_ball].activ = true;
   
-  let velocity = vec3.sub(p, scene.ray.camera.eye);
+  // let velocity = vec3.sub(p, scene.ray.camera.eye);
 
-  scene.physicsScene.balls[curent_ball].velocity =  vec3.scale(vec3.normalize(velocity),2);
+  // scene.physicsScene.balls[curent_ball].velocity =  vec3.scale(vec3.normalize(velocity),2);
+ 
+
+  // scene.dataForCurrentBall[0] = scene.physicsScene.balls[curent_ball].position[0]; 
+  // scene.dataForCurrentBall[1] = scene.physicsScene.balls[curent_ball].position[1]; 
+  // scene.dataForCurrentBall[2] = scene.physicsScene.balls[curent_ball].position[2]; 
+  // scene.dataForCurrentBall[3] = curent_ball;  
   
-  curent_ball++;
-  if(curent_ball==INSTANS_COUNT){
-    //curent_ball = 0;
-  }
-  
-  if(scene.countRenderBall<=INSTANS_COUNT){
-    scene.countRenderBall++;
-  }
+  // scene.dataForCurrentBall[4] = scene.physicsScene.balls[curent_ball].velocity[0]; 
+  // scene.dataForCurrentBall[5] = scene.physicsScene.balls[curent_ball].velocity[1]; 
+  // scene.dataForCurrentBall[6] = scene.physicsScene.balls[curent_ball].velocity[2]; 
+  // scene.dataForCurrentBall[7] = 1.0; 
+
+
+  // curent_ball++;
+  // if(curent_ball==INSTANS_COUNT){
+  //   curent_ball = 0;
+  // }
+
+
+  // if(scene.countRenderBall<=INSTANS_COUNT){
+  //   scene.countRenderBall++;
+  // }
 };
 
 async function keyDown(e){

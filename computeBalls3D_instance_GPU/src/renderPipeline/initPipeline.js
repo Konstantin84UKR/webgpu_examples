@@ -9,7 +9,7 @@ export async function initPipeline( scene, shaderMatCap) {
     entries: [
       {
         binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT ,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: {},
       }
     ],
@@ -104,7 +104,7 @@ export async function initPipeline( scene, shaderMatCap) {
 
   const pipelineLayoutRender = scene.device.createPipelineLayout({
     label: 'render Layouts',
-    bindGroupLayouts: [scene.LAYOUT.cameraLayout, scene.LAYOUT.instanseLayout]
+    bindGroupLayouts: [scene.LAYOUT.cameraLayout, scene.LAYOUT.instanseLayout, scene.LAYOUT.computeLayout]
   });
 
   const pipeline = scene.device.createRenderPipeline({

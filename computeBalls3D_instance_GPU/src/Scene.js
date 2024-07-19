@@ -12,7 +12,7 @@ import { BoxGeometry } from '../../common/primitives/BoxGeometry.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
 import { RADIUS, INSTANS_COUNT, DEBAG_INDEX } from './settings.js';
 import { createBufferFromData } from './createBufferFromData.js';
-import { updateUniformBuffer,createUniformData } from './uniformData.js';
+import { updateUniformBuffer,createUniformData} from './uniformData.js';
 import { simulation } from './simulation.js';
 import { Mesh } from './Mesh.js';
 import { Ray } from './Ray.js';
@@ -21,7 +21,7 @@ import { Camera } from '../../common/camera/camera.js';
 import { initPipeline as initComputePipeline } from './simulation/initPipeline.js';
 import { initPipeline as initRenderipeline } from './renderPipeline/initPipeline.js';
 
-import { createSimBuffer , initSimBuffer} from './simulation/createSimBuffer.js';
+import { createSimBuffer , initSimBuffer,updateSimBuffer} from './simulation/createSimBuffer.js';
 
 
 
@@ -45,14 +45,16 @@ export class Scene {
     this.RENDER_SETTINGS = {}
 
     this.time_old = 0;
-    this.countRenderBall = 0;
-    this.curent_ball = 0;
+
+    this.countRenderBall = INSTANS_COUNT;
+    this.curent_ball = INSTANS_COUNT;
     this.Ray = undefined;
 
     this.model = {};
     this.update = this.animate.bind(this);
 
     this.t = 0;
+    this.inputTime = new Float32Array([0]);
   }
 
   async preloader() {
@@ -78,7 +80,7 @@ export class Scene {
 
     //---------------------------------------------------
     //Uniform
-    this.camera = new Camera(this.canvas, vec3.create(0.0, 50.0, 100.0), vec3.create(0.0, -0.3, -1.0));
+    this.camera = new Camera(this.canvas, vec3.create(0.0, 50.0, 250.0), vec3.create(0.0, -0.3, -1.0));
     this.ray = new Ray(this.camera.eye, this.camera.front, this.canvas, this.camera);
     await createUniformData(this);
     //---------------------------------------------------
@@ -122,31 +124,34 @@ export class Scene {
     for (let i = 0; i < INSTANS_COUNT; i++) {
 
         const ball = this.physicsScene.balls[i];
-        const indexCurrentBall = 4*4*4 * i ;
+        const indexCurrentBall = (4+4+4) * i ;
         const offsetPos = 0;
         const offsetPosOld = 4;
         const offsetVel = 4+4;
         //Pos
-        this.dataForBufferSim[indexCurrentBall + 0 + offsetPos] = 1;
-        this.dataForBufferSim[indexCurrentBall + 1 + offsetPos] = 2;
-        this.dataForBufferSim[indexCurrentBall + 2 + offsetPos] = 3;
-        this.dataForBufferSim[indexCurrentBall + 3 + offsetPos] = 100.1; //offset
+        this.dataForBufferSim[indexCurrentBall + 0 + offsetPos] = Math.random() * 10 -10;
+        this.dataForBufferSim[indexCurrentBall + 1 + offsetPos] = Math.random() * 20;
+        this.dataForBufferSim[indexCurrentBall + 2 + offsetPos] = Math.random() * 10 -10;
+        this.dataForBufferSim[indexCurrentBall + 3 + offsetPos] = 1; 
 
-        //PosOLD
-        this.dataForBufferSim[indexCurrentBall + 0 + offsetPosOld] = 5;
-        this.dataForBufferSim[indexCurrentBall + 1 + offsetPosOld] = 6;
-        this.dataForBufferSim[indexCurrentBall + 2 + offsetPosOld] = 7;
-        this.dataForBufferSim[indexCurrentBall + 3 + offsetPosOld] = 200.2; //offset
+        //PosOLD vec3.set(Math.random() * 1, Math.random() * 1, Math.random() * 1)
+        this.dataForBufferSim[indexCurrentBall + 0 + offsetPosOld] = 0; //offset
+        this.dataForBufferSim[indexCurrentBall + 1 + offsetPosOld] = 20; //offset
+        this.dataForBufferSim[indexCurrentBall + 2 + offsetPosOld] = 0; //offset
+        this.dataForBufferSim[indexCurrentBall + 3 + offsetPosOld] = 1; //offset
 
         //Vel
-        this.dataForBufferSim[indexCurrentBall + 0 + offsetVel] = 9;
-        this.dataForBufferSim[indexCurrentBall + 1 + offsetVel] = 10;
-        this.dataForBufferSim[indexCurrentBall + 2 + offsetVel] = 11;
-        this.dataForBufferSim[indexCurrentBall + 3 + offsetVel] = 300.3; //offset
+        this.dataForBufferSim[indexCurrentBall + 0 + offsetVel] = (Math.random()- 0.5) * 0.1;
+        this.dataForBufferSim[indexCurrentBall + 1 + offsetVel] = (Math.random()- 0.5) * 0.1;
+        this.dataForBufferSim[indexCurrentBall + 2 + offsetVel] = (Math.random()- 0.5) * 0.1;
+        this.dataForBufferSim[indexCurrentBall + 3 + offsetVel] = 1.0; //offset
     }
-     
+    
+    this.dataForCurrentBall = new Float32Array(8);
+        
     await createSimBuffer(this);
     await initSimBuffer(this,this.dataForBufferSim); 
+  
        
     //--------------------------------------------------- 
     //pipelines
@@ -209,26 +214,27 @@ export class Scene {
     this.device.queue.writeBuffer(this.UNIFORM.SIM.bufferUniform, 0, new Float32Array([dt * 0.005]));
 
     //--------------SIMULATION--------------------------    
-    this.physicsScene.HashTable.fillHashTable(this.physicsScene);
-    this.clearBallColorForDebag();
+    // this.physicsScene.HashTable.fillHashTable(this.physicsScene);
+    // this.clearBallColorForDebag();
 
-    for (let i = 0; i < INSTANS_COUNT; i++) {
+    // for (let i = 0; i < INSTANS_COUNT; i++) {
 
-      let ball = simulation(i, dt, this.physicsScene.balls, this);
+    //   let ball = simulation(i, dt, this.physicsScene.balls, this);
 
-      this.model.Sphere1.MODELMATRIX = mat4.translate(mat4.identity(), ball.position);
-      this.model.Sphere1.MODELMATRIX_ARRAY.set(this.model.Sphere1.MODELMATRIX, (i) * (16 + 4));
+    //   this.model.Sphere1.MODELMATRIX = mat4.translate(mat4.identity(), ball.position);
+    //   this.model.Sphere1.MODELMATRIX_ARRAY.set(this.model.Sphere1.MODELMATRIX, (i) * (16 + 4));
 
-      if (i == DEBAG_INDEX) {
-        this.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(0.0, 0.0, 1.0, 1.0), (i) * (16 + 4) + 16);
-      }
+    //   if (i == DEBAG_INDEX) {
+    //     this.model.Sphere1.MODELMATRIX_ARRAY.set(vec4.set(0.0, 0.0, 1.0, 1.0), (i) * (16 + 4) + 16);
+    //   }
 
-    }
+    // }
 
-    this.physicsScene.HashTable.clearHashSet();
+    // this.physicsScene.HashTable.clearHashSet();
     //--------------------------------------------------
     //SIM Shader
-
+    this.inputTime[0] = dt;
+    updateSimBuffer(this,this.inputTime);
     //Encode commands to do the computation
     const commandEncoder_compute =  this.device.createCommandEncoder({
       label: 'doubling encoder',
@@ -240,6 +246,8 @@ export class Scene {
     const computepPipeline =  this.pipelines.pipeline_Compute;
     computePass.setPipeline(computepPipeline);
     computePass.setBindGroup(0,computepPipeline.bindGroupsCompute[this.t % 2].bindGroup);
+    computePass.setBindGroup(1,computepPipeline.bindGroupsCompute[2].bindGroupUniform);
+    computePass.setBindGroup(2,computepPipeline.BINDGROUP.bindGroupCurrentBall);
     computePass.dispatchWorkgroups(Math.ceil(INSTANS_COUNT / 64));
     computePass.end();
 
@@ -273,19 +281,22 @@ export class Scene {
     renderPass.setIndexBuffer(this.model.Sphere1.sphereByffers.indexBuffer, "uint32");
     renderPass.setBindGroup(0, this.UNIFORM.BINDGROUP.uniformBindGroup_Camera);
     renderPass.setBindGroup(1, this.UNIFORM.BINDGROUP.uniformBindGroup_Ball);
+    renderPass.setBindGroup(2, computepPipeline.bindGroupsCompute[this.t % 2].bindGroup);
     renderPass.drawIndexed(this.model.Sphere1.geometry.index.length, this.countRenderBall, 0, 0, 0);
 
-    //Plane1
-    renderPass.setVertexBuffer(0, this.model.Plane1.planeByffers.vertexBuffer);
-    renderPass.setVertexBuffer(1, this.model.Plane1.planeByffers.uvBuffer);
-    renderPass.setVertexBuffer(2, this.model.Plane1.planeByffers.normalBuffer);
-    renderPass.setIndexBuffer(this.model.Plane1.planeByffers.indexBuffer, "uint32");
-    renderPass.setBindGroup(0, this.UNIFORM.BINDGROUP.uniformBindGroup_Camera);
-    renderPass.setBindGroup(1, this.UNIFORM.BINDGROUP.uniformBindGroup_Plane);
-    renderPass.drawIndexed(this.model.Plane1.geometry.index.length);
+    // //Plane1
+    // renderPass.setVertexBuffer(0, this.model.Plane1.planeByffers.vertexBuffer);
+    // renderPass.setVertexBuffer(1, this.model.Plane1.planeByffers.uvBuffer);
+    // renderPass.setVertexBuffer(2, this.model.Plane1.planeByffers.normalBuffer);
+    // renderPass.setIndexBuffer(this.model.Plane1.planeByffers.indexBuffer, "uint32");
+    // renderPass.setBindGroup(0, this.UNIFORM.BINDGROUP.uniformBindGroup_Camera);
+    // renderPass.setBindGroup(1, this.UNIFORM.BINDGROUP.uniformBindGroup_Plane);
+    // renderPass.drawIndexed(this.model.Plane1.geometry.index.length);
 
     renderPass.end();
     this.device.queue.submit([commandEncoder.finish()]);
+
+    ++this.t;
 
     window.requestAnimationFrame(this.update);
 

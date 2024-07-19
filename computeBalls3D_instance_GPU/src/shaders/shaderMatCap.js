@@ -9,9 +9,20 @@ export const shaderMatCap =
        color : vec4<f32>
       }; 
 
+      struct Particle {
+        pos : vec4<f32>,
+        posOld : vec4<f32>,
+        vel : vec4<f32>,
+      };
+              
+      // struct Particles {
+      //   particles : array<Particle>,
+      // };
+
       @group(0) @binding(0) var<uniform> uniformsCamera : UniformCamera;
       @group(1) @binding(0) var<storage, read> uniforms : array<Uniform>;
-              
+      @group(2) @binding(0) var<storage, read> data: array<Particle>;
+                    
       struct Output {
           @builtin(position) Position : vec4<f32>,
           @location(0) vUV : vec2<f32>,
@@ -26,9 +37,13 @@ export const shaderMatCap =
         @location(0) pos: vec4<f32>, 
         @location(1) uv: vec2<f32>,
         @location(2) normal: vec3<f32>) -> Output {
+
+            let positionInstance = data[index].pos; 
+            //let velInstance = data[index].vel; 
            
             var output: Output;
-            output.Position = uniformsCamera.pMatrix * uniformsCamera.vMatrix * uniforms[index].mMatrix * pos;
+            //output.Position = uniformsCamera.pMatrix * uniformsCamera.vMatrix * uniforms[index].mMatrix * pos;
+            output.Position = uniformsCamera.pMatrix * uniformsCamera.vMatrix * vec4<f32>((positionInstance.xyz + pos.xyz),1.0);
             output.vUV = uv;
             output.vNormal = normalize((uniforms[index].mMatrix * vec4<f32>(normal, 0.0)).xyz); // Normal in model space
             output.dNormal = normal;
@@ -53,7 +68,7 @@ export const shaderMatCap =
       let textureColor:vec3<f32> = (textureSample(textureData, textureSampler, vec2<f32>(muv.x, 1.0 - muv.y))).rgb;
      
       if(is_front){
-        return vec4<f32>(textureColor , 1.0) * indexColor;
+        return vec4<f32>(textureColor , 1.0) * 1.0;
       }else{
         return vec4<f32>(1.0, 0.0, 0.0, 1.0);
       }
