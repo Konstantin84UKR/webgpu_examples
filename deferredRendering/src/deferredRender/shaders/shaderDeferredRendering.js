@@ -41,8 +41,8 @@ export const shaderDeferredRendering = {
       };
       @group(1) @binding(0) var<uniform> uniforms : Uniforms;
    
-      @group(1) @binding(1) var<uniform> lightPositionArray : array<vec4<f32>, 3>;
-      @group(1) @binding(2) var<uniform> lightColorArray : array<vec4<f32>, 3>;
+      @group(1) @binding(1) var<uniform> lightPositionArray : array<vec4<f32>, 5>;
+      @group(1) @binding(2) var<uniform> lightColorArray : array<vec4<f32>, 5>;
 
       struct Camera {
         viewProjectionMatrix : mat4x4<f32>,
@@ -98,7 +98,7 @@ export const shaderDeferredRendering = {
         
         var finalColor:vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
 
-        for (var i = 0; i < 3; i++) {
+        for (var i = 0; i < 5; i++) {
             
         
             let N:vec3<f32> = normalize(normal.xyz);
@@ -112,11 +112,12 @@ export const shaderDeferredRendering = {
             // light *= smoothstep(0., light, dist);
 
             let distlight = distance(lightPositionArray[i].xyz, fragPosition.xyz); 
-            let diffuse = 30.0 / (4.0 * PI * distlight * distlight) * max(dot(N,L), 0.0); // pointLight       
+            let distlightPower = 5.0 / (4.0 * PI * distlight * distlight);
+            let diffuse = distlightPower * max(dot(N,L), 0.0); // pointLight       
             //let irradiance : f32 = 1.0 * max(dot(N, L), 0.0); // sun
-            let specular = pow(max(dot(N, H),0.0), 50.0) * .1; //0.9 Просто уменьшаю яркость блика
-            // let specular = 0.0;
-            let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
+            let specular = pow(max(dot(N, H),0.0), 50.0) * .5 * distlightPower; //0.9 Просто уменьшаю яркость блика
+            //let specular = 0.0;
+            let ambient:vec3<f32> = vec3<f32>(0.00, 0.00, 0.00);
       
             finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
            

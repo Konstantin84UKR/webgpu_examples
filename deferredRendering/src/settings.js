@@ -1,0 +1,1 @@
+export const LIGTH_COUNT = 5;

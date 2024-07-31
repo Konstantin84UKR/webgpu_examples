@@ -1,3 +1,5 @@
+import { LIGTH_COUNT } from '../settings.js';
+
 export async function initPipeline(device, canvas, format, uBiffers, gBufferTexture,shaderDeferredRendering) {
   
     //-------------------------------------------------------------------------------------------------------
@@ -83,7 +85,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
           resource: {
             buffer: uBiffers.fragmentUniformLightPositionBuffer,
             offset: 0,          
-            size: 16 + 16 + 16 //   lightPosition : array<vec3<f32>, 3>;   
+            size: 16 * LIGTH_COUNT //   lightPosition : array<vec3<f32>, 3>;   
           }
         },
         {
@@ -91,7 +93,7 @@ export async function initPipeline(device, canvas, format, uBiffers, gBufferText
           resource: {
             buffer: uBiffers.fragmentUniformLightColorBuffer,
             offset: 0,          
-            size: 16 + 16 + 16 //   lightColor : array<vec3<f32>, 3>;   
+            size: 16 * LIGTH_COUNT //   lightColor : array<vec3<f32>, 3>;   
           }
         }
       ]

@@ -20,6 +20,8 @@ import { initPipeline as initPipelineDeferredRender } from './deferredRender/ini
 import { initPipeline as initPipelineGBuffer} from './gBufferRender/initPipeline.js';
 import { initPipeline as initPipelineForvardRender } from './forvardRender/initPipeline.js';
 
+import { LIGTH_COUNT } from './settings.js';
+
 
 async function main() {
   //---------------------------------------------------
@@ -39,8 +41,8 @@ async function main() {
   let MODELMATRIX_PLANE = mat4.identity();
   let MODELMATRIX_ligthHelper = mat4.identity();
   
-  let MODELMATRIX_ARRAY = new Float32Array(3 * (4 * 4));
-  let LIGTHCOLOR_ARRAY = new Float32Array(3 * (4));
+  let MODELMATRIX_ARRAY = new Float32Array(LIGTH_COUNT * (4 * 4));
+  let LIGTHCOLOR_ARRAY = new Float32Array(LIGTH_COUNT * (4));
  
   let camera = new Camera(canvas);
   camera.setPosition([0.0, 5.0, 8.0]);
@@ -49,13 +51,17 @@ async function main() {
   let lightPosition = [
     new Float32Array([2.0, 2.0, 1.0]),
     new Float32Array([-2.0, 2.0, 1.0]),
-    new Float32Array([0.0, 3.0, 0.0])
+    new Float32Array([0.0, 3.0, 0.0]),
+    new Float32Array([2.5, 3.0, 0.0]),
+    new Float32Array([2.0, 2.0, 2.0]),
   ]
 
   let lightColor = [
-    [1.0, 0.5, 0.1],
-    [0.0, 0.9, 0.0],
-    [0.1, 0.5, 0.9]
+    [1.0, 0.5, 0.0],
+    [0.3, 1.0, 0.3],
+    [0.0, 0.5, 1.0],
+    [0.9, 0.0, 0.9],
+    [0.9, 0.9, 0.0]
   ];
  
   const depthRangeRemapMatrix = mat4.identity();
@@ -163,15 +169,21 @@ async function main() {
   device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 0, new Float32Array([-2.0, 2.0, 1.0])); // пишем в начало буффера с отступом (offset = 0)
   device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 16, new Float32Array([0.0, 3.0, 0.0])); // следуюшая записать в буфер с отступом (offset = 16)
   device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 32, new Float32Array([2.0, 2.0, 1.0])); // следуюшая записать в буфер с отступом (offset = 32)
+  device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 48, new Float32Array([2.0, 2.0, 2.0])); // следуюшая записать в буфер с отступом (offset = 32)
+  device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 64, new Float32Array([2.0, 1.0, 1.0])); // следуюшая записать в буфер с отступом (offset = 32)  
+
 
   device.queue.writeBuffer(uBiffers.fragmentUniformLightColorBuffer, 0, new Float32Array([lightColor[0],1.0].flat())); // пишем в начало буффера с отступом (offset = 0)
   device.queue.writeBuffer(uBiffers.fragmentUniformLightColorBuffer, 16, new Float32Array([lightColor[1],1.0].flat())); // следуюшая записать в буфер с отступом (offset = 16)
   device.queue.writeBuffer(uBiffers.fragmentUniformLightColorBuffer, 32, new Float32Array([lightColor[2],1.0].flat())); // следуюшая записать в буфер с отступом (offset = 32)
-  
+  device.queue.writeBuffer(uBiffers.fragmentUniformLightColorBuffer, 48, new Float32Array([lightColor[3],1.0].flat())); // следуюшая записать в буфер с отступом (offset = 32)
+  device.queue.writeBuffer(uBiffers.fragmentUniformLightColorBuffer, 64, new Float32Array([lightColor[4],1.0].flat())); // следуюшая записать в буфер с отступом (offset = 32)
 
   LIGTHCOLOR_ARRAY.set(lightColor[0], (0) * 4);
   LIGTHCOLOR_ARRAY.set(lightColor[1], (1) * 4);
   LIGTHCOLOR_ARRAY.set(lightColor[2], (2) * 4);
+  LIGTHCOLOR_ARRAY.set(lightColor[3], (3) * 4);
+  LIGTHCOLOR_ARRAY.set(lightColor[4], (4) * 4);
 
   device.queue.writeBuffer(uBiffers.instanceColorBuffer, 0, LIGTHCOLOR_ARRAY);
 
@@ -191,19 +203,27 @@ async function main() {
     // MODELMATRIX = mat4.rotateZ( MODELMATRIX, dt * 0.0001);
 
     lightPosition[0] = new Float32Array([(Math.sin(time * 0.001) - 0.0) * 2.5,
-                                         (Math.cos(time * 0.002) + 1.0) * 2.0 ,
-                                         (Math.sin(time * 0.001) * Math.cos(time * 0.003)) * 2.5 ]);
-    
-    
-    lightPosition[1] = new Float32Array([(Math.cos(time * 0.001) + 0.0) * 2.0 , 
-                                        (Math.sin(time * 0.002) + 1.0) * 2.0,
-                                        (Math.cos(time * 0.002) - 0.0) * 2.5 ]);
+                                          (Math.cos(time * 0.002) + 1.0) * 2.0,
+                                          (Math.sin(time * 0.001) * Math.cos(time * 0.003)) * 2.5]);
 
 
-    lightPosition[2] = new Float32Array([(Math.cos(time * 0.0005) - 0.0) * 3.0 , 
-                                         (Math.sin(time * 0.0015) + 5.0) * 0.5,
-                                         (Math.sin(time * 0.0005) + 0.0) * 2.0]);
-  
+    lightPosition[1] = new Float32Array([(Math.cos(time * 0.001) + 0.0) * 2.0,
+                                          (Math.sin(time * 0.002) + 1.0) * 2.0,
+                                          (Math.cos(time * 0.002) - 0.0) * 2.5]);
+
+
+    lightPosition[2] = new Float32Array([(Math.cos(time * 0.0005) - 0.0) * 3.0,
+                                          (Math.sin(time * 0.0015) + 5.0) * 0.5,
+                                          (Math.sin(time * 0.0005) + 0.0) * 2.0]);
+   
+    lightPosition[3] = new Float32Array([(Math.cos(time * 0.0015) - 0.0) * 3.0,
+                                          (Math.sin(time * 0.0005) + 5.0) * 0.5,
+                                          (Math.sin(time * 0.0005) + 0.0) * 1.0]);
+
+    lightPosition[4] = new Float32Array([(Math.cos(time * 0.0010) - 0.0) * 2.0,
+                                            (Math.sin(time * 0.0015) + 3.0) * 0.5,
+                                            (Math.sin(time * 0.0005) - 0.0) * 2.0]);                                 
+                                        
     //--------------------------------------------------
     //------------------BUFFER EDIT---------------------
     const reversZpMatrix = mat4.multiply(depthRangeRemapMatrix, camera.pMatrix);
@@ -224,8 +244,10 @@ async function main() {
     device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 0, lightPosition[0]); // пишем в начало буффера с отступом (offset = 0)
     device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 16, lightPosition[1]); // следуюшая записать в буфер с отступом (offset = 16)
     device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 32, lightPosition[2]); // следуюшая записать в буфер с отступом (offset = 32)
+    device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 48, lightPosition[3]); // следуюшая записать в буфер с отступом (offset = 48)
+    device.queue.writeBuffer(uBiffers.fragmentUniformLightPositionBuffer, 64, lightPosition[4]); // следуюшая записать в буфер с отступом (offset = 52)
 
-    for (let indexLigth = 0; indexLigth < 3; indexLigth++) {
+    for (let indexLigth = 0; indexLigth < LIGTH_COUNT; indexLigth++) {
       MODELMATRIX_ligthHelper = mat4.identity();
       MODELMATRIX_ligthHelper = mat4.translate(MODELMATRIX_ligthHelper, lightPosition[indexLigth]);
 
@@ -287,7 +309,7 @@ async function main() {
     renderPass_PostEffect.setVertexBuffer(0, ligthHelper.vertexBuffer);
     renderPass_PostEffect.setIndexBuffer(ligthHelper.indexBuffer, "uint32");
     renderPass_PostEffect.setBindGroup(0, forvardRender_pipeline.layout.forvardRender_UniformBindGroupLayout.BindGroup.forvardRender_uniformBindGroup);
-    renderPass_PostEffect.drawIndexed(ligthHelper.index.length,3,0,0,0);         
+    renderPass_PostEffect.drawIndexed(ligthHelper.index.length,LIGTH_COUNT,0,0,0);         
     
     renderPass_PostEffect.end();
 

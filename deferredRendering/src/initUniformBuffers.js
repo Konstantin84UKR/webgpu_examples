@@ -1,3 +1,5 @@
+import { LIGTH_COUNT } from './settings.js';
+
 export async function initUniformBuffers(device) {
   
     const uBiffers = {};
@@ -60,27 +62,27 @@ export async function initUniformBuffers(device) {
 
 
     const fragmentUniformLightPositionBuffer = device.createBuffer({
-      size: 16 + 16 + 16,
+      size: 16 * LIGTH_COUNT ,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     }); 
     uBiffers.fragmentUniformLightPositionBuffer = fragmentUniformLightPositionBuffer;
 
     const fragmentUniformLightColorBuffer = device.createBuffer({
-      size: 16 + 16 + 16,
+      size: 16 * LIGTH_COUNT,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     }); 
     uBiffers.fragmentUniformLightColorBuffer = fragmentUniformLightColorBuffer;
 
     const instanceBuffer = device.createBuffer({
       label : "instanceBuffer",
-      size : 64 * 3, // три Light
+      size : 64 * LIGTH_COUNT, // три Light
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
     });
     uBiffers.instanceBuffer = instanceBuffer;
 
     const instanceColorBuffer = device.createBuffer({
       label : "instanceBuffer",
-      size : 16 * 3, // три Light
+      size : 16 * LIGTH_COUNT, // три Light
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
     });
     uBiffers.instanceColorBuffer = instanceColorBuffer;

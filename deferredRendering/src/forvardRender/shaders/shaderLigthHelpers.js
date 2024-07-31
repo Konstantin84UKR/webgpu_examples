@@ -26,7 +26,7 @@ export const shaderLigthHelpers = {
 
     fragment: `     
   
-    @binding(2) @group(0) var<storage, read> lightColor : array<vec4<f32>,3>;
+    @binding(2) @group(0) var<storage, read> lightColor : array<vec4<f32>,5>;
 
     @fragment
     fn main(@location(0) @interpolate(flat) instanceColor: u32) -> @location(0) vec4<f32> {
