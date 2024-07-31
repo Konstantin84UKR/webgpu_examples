@@ -117,7 +117,7 @@ export const shaderDeferredRendering = {
             //let irradiance : f32 = 1.0 * max(dot(N, L), 0.0); // sun
             let specular = pow(max(dot(N, H),0.0), 50.0) * .5 * distlightPower; //0.9 Просто уменьшаю яркость блика
             //let specular = 0.0;
-            let ambient:vec3<f32> = vec3<f32>(0.00, 0.00, 0.00);
+            let ambient:vec3<f32> = vec3<f32>(0.001, 0.001, 0.001);
       
             finalColor += albedo * ((lightColorArray[i].rgb * diffuse) + ambient) + (specularColor * specular ); 
            
