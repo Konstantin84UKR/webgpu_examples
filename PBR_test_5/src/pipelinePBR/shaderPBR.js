@@ -280,7 +280,7 @@ export const shaderPBR = {
         
              
         //-------------------------
-        let finalColor : vec3<f32> = texturEmissive * 0.0 + Lo * 1.0 + Lo_IBL * 1.0 ; //radiance          
+        let finalColor : vec3<f32> = texturEmissive * 0.0 + Lo * 0.0 + Lo_IBL * 1.0 ; //radiance          
         return vec4<f32>(lin2rgb(finalColor), 0.5);
         // return vec4<f32>(texturRoughness, 1.0);
     }

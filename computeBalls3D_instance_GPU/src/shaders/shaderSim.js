@@ -97,7 +97,7 @@ export const shaderSim =
                     var dir = newPos_B1.xyz - vPos_B2.xyz;
                     let d = length(dir);            
                     
-                    if (d == 0.0 || d > (2.0 + 2.0)){
+                    if (d == 0.0 || d > (vRadius_B2 + vRadius_B2)){
                         continue;
                     }   
                     

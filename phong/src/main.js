@@ -134,7 +134,7 @@ async function main() {
 
         let finalColor:vec3<f32> =  vec3<f32>(L.x,L.y,L.z); 
        
-       // return vec4<f32>(finalColor, 1.0);            
+        //return vec4<f32>(finalColor, 1.0);            
         return vec4<f32>(lin2rgb(radiance), 1.0);
     }
     `,
