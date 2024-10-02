@@ -13,6 +13,7 @@ import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
 import { CylinderGeometry } from '../../common/primitives/CylinderGeometry.js';
 import { Mesh } from './Mesh.js';
 import { Scene } from './Scene.js';
+import { Group } from './Group.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -70,14 +71,30 @@ async function main() {
 
 
   let Mesh2 = new Mesh(meshBoxGeometry);
-  Mesh2.origin = vec3.set(0,0,-5);
+  Mesh2.origin = vec3.set(0,0,0);
 
   let Mesh3 = new Mesh(meshSphereGeometry);
-  Mesh3.origin = vec3.set(-4,0,0);
+  Mesh3.origin = vec3.set(0,0,0);
   let Mesh4 = new Mesh(meshSphereGeometry);
-  Mesh4.origin = vec3.set(4,0,0);
+  Mesh4.origin = vec3.set(0,0,0);
+  Mesh4.translate(4, 0, 0);
+ 
   let Mesh5 = new Mesh(meshSphereGeometry);
   Mesh5.origin = vec3.set(0,0,0);
+
+  let Group1 = new Group();
+  // Group1.origin = vec3.set(0,0,0);
+  // //Group1.rotateZ(3);
+  // Group1.translate = vec3.set(0,0,0);
+  // Group1.upDateMatrix();
+  
+  Mesh3.parent = Group1;
+  
+  Mesh3.translate(-4, 0, 0);
+  Mesh3.upDateMatrix();
+  
+  //Mesh3.parent = Group1;
+  //Group1.upDateMatrix();
   //---------------------------------------------------
   //---------------------------------------------------
   //initWebGPU
@@ -92,6 +109,7 @@ async function main() {
     scene.meshes.push(Mesh3);
     scene.meshes.push(Mesh4);
     scene.meshes.push(Mesh5);
+    //scene.meshes.push(Group1);
    
     
 
@@ -148,8 +166,14 @@ async function main() {
     // device.queue.writeBuffer(scene.UNIFORM.fragmentUniformBuffer,16, lightPosition);
 
 
+    // const depthTexture = device.createTexture({
+    //   size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+    //   format: "depth24plus",
+    //   usage: GPUTextureUsage.RENDER_ATTACHMENT
+    // });
+    
     const depthTexture = device.createTexture({
-      size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
+      size: [canvas.clientWidth , canvas.clientHeight , 1],
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT
     });  
@@ -186,9 +210,24 @@ let time_old=0;
       //------------------MATRIX EDIT---------------------
       Mesh1.matrix = mat4.rotateY(Mesh1.matrix, dt * 0.0002);
      
-      Mesh1.translate(vec3.set(Math.sin(time * 0.005) * 0.1,  0 ,  0));
-      Mesh2.translate(vec3.set(0,  Math.cos(time * 0.005) * 0.1 ,  Math.sin(time * 0.005) * 0.3));
-      Mesh3.matrix =  mat4.rotateY(Mesh3.matrix, dt * 0.0002);
+      // Mesh1.translate(vec3.set(Math.sin(time * 0.005) * 0.1,  0 ,  0));
+      // Mesh1.rotateZ(0.02);
+      
+      //Mesh2.translate(vec3.set(0,  Math.cos(time * 0.005) * 0.1 ,  0));
+      
+      //Mesh3.rotateY(0.01);
+     
+      Group1.rotateZ(0.01);
+      Group1.upDateMatrix();
+
+      // Mesh1.upDateMatrix();
+      // Mesh2.upDateMatrix();
+      Mesh3.upDateMatrix();
+      Mesh4.upDateMatrix();
+      Mesh5.upDateMatrix();
+           
+  
+      // Mesh3.matrix =  mat4.rotateY(Mesh3.matrix, dt * 0.0002);
       //--------------------------------------------------
       camera.setDeltaTime(dt);
       

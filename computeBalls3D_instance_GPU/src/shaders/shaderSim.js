@@ -67,16 +67,14 @@ export const shaderSim =
                 vVel_B1 = particlesA.particles[index].vel;
                   
                 
-                var vPosOld_B1 = vPos_B1;
+                var vPosOld_B1 = vec4<f32>(vPos_B1);
                 //var vVel_B1 = particlesA.particles[index].vel; 
 
                 let friction : f32 = 0.99;
-                let grav : vec3<f32> = vec3<f32>( 0.0,  0.0, 0.0);
-                var newPos_B1 =  vec4<f32>(vPos_B1.xyz + vVel_B1.xyz * uniforms.dTime,f32(index));
-                //var newPos_B1 =  vPos_B1;
-                var newVel_B1 = vec4<f32>((vVel_B1.xyz + grav) * friction , 1.0);
-
-
+                let grav : vec3<f32> = vec3<f32>( 0.0,  -0.001, 0.0);
+               
+                var newVel_B1 = vec4<f32>((vVel_B1.xyz + grav) * friction, 1.0);
+                var newPos_B1 = vec4<f32>(vPos_B1.xyz + (vVel_B1.xyz) * uniforms.dTime,f32(index));
                 // // /////////////////////////////////////////////////////////
                 
                 var vPos_B2 : vec3<f32>;
@@ -90,11 +88,11 @@ export const shaderSim =
                     }
 
                     vPos_B2 = particlesA.particles[i].pos.xyz;
-                    vRadius_B2 = 2.0;
+                    vRadius_B2 = 4.0;
                     vVel_B2 = particlesA.particles[i].vel.xyz;
 
-                   //let d = distance(newPos_B1.xyz, vPos_B2.xyz);
-                    var dir = newPos_B1.xyz - vPos_B2.xyz;
+                    //let d = distance(newPos_B1.xyz, vPos_B2.xyz);
+                    var dir = vPos_B1.xyz - vPos_B2.xyz;
                     let d = length(dir);            
                     
                     if (d == 0.0 || d > (vRadius_B2 + vRadius_B2)){
@@ -120,19 +118,19 @@ export const shaderSim =
                     // newPos_B1 = vec4<f32>(vPosOld_B1.xyz,1.0);
                     // vPos_B2 = vPos_B2.xyz - dirCoor.xyz;   
   
-                       let v1 =  dot(newVel_B1.xyz,dir);
-                       let v2 =  dot(vVel_B2.xyz,dir);
+                      //  let v1 =  dot(newVel_B1.xyz,dir);
+                      //  let v2 =  dot(vVel_B2.xyz,dir);
 
-                       let m1 = 1.0;
-                       let m2 = 1.0;
+                      //  let m1 = 1.0;
+                      //  let m2 = 1.0;
 
-                       let newV1 = (v1 + v2 - (v1 - v2) * 0.9) * 0.5;
+                      //  let newV1 = (v1 + v2 - (v1 - v2) * 0.9) * 0.5;
                       // let newV2 = (m1 * v1 + m2 * v2 - m1 * (v2 - v1) * 0.9) / (m1 + m2);
 
                       //newVel_B1 = vec4<f32>(newVel_B1.xyz + (dir * (newV1 - v1)), 1.0);
                        newVel_B1 = vec4<f32>(newVel_B1.xyz + dir * 0.001, 1.0) ; 
                       //vVel_B2 = vVel_B2.xyz + (dir * (newV2 - v2)); 
-                                                         
+                       //newPos_B1 = vPosOld_B1;                                  
                   }              
             
                 // ////////////////////////////////////////////////////////
@@ -161,20 +159,24 @@ export const shaderSim =
 
                 //
 
-                if(newPos_B1.y > (100)){
-                   newVel_B1.y = newVel_B1.y *-0.95 ;
-                   newPos_B1.y = vPosOld_B1.y;
-                }
+                // if(newPos_B1.y > (100)){
+                //    newVel_B1.y = newVel_B1.y *-0.95;
+                //    newPos_B1.y = vPosOld_B1.y;
+                // }
                 
                 if(newPos_B1.y < (-50)){
                  
                     newVel_B1.y = newVel_B1.y *-0.95 ; 
                     newPos_B1.y = vPosOld_B1.y;
-                    if(length(newVel_B1) < 0.001 ){
-                      newVel_B1.y = 0.0;
-                      newPos_B1.y = -50.0;
-                    } 
+                    
                 }
+                
+                if(abs(length(newVel_B1.xyz)) < 0.0001 ){
+                      newVel_B1.y = 0.0;
+                      newVel_B1.x = 0.0;
+                      newVel_B1.z = 0.0;
+                      newPos_B1 = vPosOld_B1;
+                }            
                
                particlesB.particles[index].pos = newPos_B1; 
                particlesB.particles[index].vel = newVel_B1;   
