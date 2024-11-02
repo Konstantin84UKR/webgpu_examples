@@ -123,12 +123,13 @@ const webGPU_Start = async () => {
                    return;
                 }
 
+                let gravity : vec2<f32> = vec2<f32>(0.0,-0.01);
                 let index = id.x;
                 var vPos = particlesA.particles[index].pos;
                 var vVel = particlesA.particles[index].vel;
 
                 let friction : f32 = 0.99;
-                var newPos = vPos + vVel * 1.0 * uniforms.dTime;
+                var newPos = vPos + vVel * 1.0 * uniforms.dTime + gravity * 1.0 * uniforms.dTime;
                 var newVel = vVel * friction + vec2<f32>(0.0, -0.000);
                 
                 /////////////////////////////////////////////////////////
@@ -192,13 +193,16 @@ const webGPU_Start = async () => {
                 
                 if(newPos.y < (-0.95)){
                  
-                   newVel.y = vVel.y * -0.95; 
-                   newPos = newPos + newVel;
-                   if(length(newVel) < 0.001 ){
-                     newPos.y = -0.95;
-                     newVel.y = 0.0;
-                   } 
+                   newVel.y = vVel.y * -0.99; 
+                   newPos = vPos + newVel;
+                   
+                //    if(length(newVel) < 0.001 ){
+                //      newPos.y = -0.95;
+                //      newVel.y = 0.0;
+                //    } 
+
                 }
+
                 particlesB.particles[index].pos = newPos; 
                 particlesB.particles[index].vel = newVel + vec2<f32>(0.0, -0.000); 
                                                
@@ -250,7 +254,7 @@ const webGPU_Start = async () => {
 
     device.queue.writeBuffer(bufferUniform, 0, inputTime);
     //const input = new Float32Array([0, 0, 0, 0, 0]);
-    const numParticles = 50;
+    const numParticles = 100;
     const input = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
         input[4 * i + 0] = (Math.random() * (2) - 1) * 0.5;

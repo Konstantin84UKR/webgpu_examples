@@ -27,6 +27,14 @@ export async function initWebGPU(debag = false, width = 1600, height = 900) {
       size: size,
       compositingAlphaMode: "opaque",  
     }); 
+
+    const aspect = new Float32Array([ 1.0, 1.0]); 
+    if(canvas.width > canvas.height){
+      aspect[1] = canvas.width/canvas.height; 
+    }else{
+      aspect[0] = canvas.height/canvas.width; 
+    }
+
   
-    return { device, context, format, size, canvas }
+    return { device, context, format, size, canvas ,aspect}
   }
