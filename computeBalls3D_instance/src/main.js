@@ -116,7 +116,7 @@ async function keyDown(e){
 
 function rain(){
  
-  scene.physicsScene.balls[curent_ball].position = vec3.set(20 * Math.random() - 10, 45, 20 * Math.random() - 10);
+  scene.physicsScene.balls[curent_ball].position = vec3.set(20 * Math.random() - 10, 60, 20 * Math.random() - 10);
   scene.physicsScene.balls[curent_ball].activ = true;
       
   curent_ball++;

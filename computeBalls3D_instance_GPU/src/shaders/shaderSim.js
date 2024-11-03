@@ -71,7 +71,7 @@ export const shaderSim =
                 //var vVel_B1 = particlesA.particles[index].vel; 
 
                 let friction : f32 = 0.99;
-                let grav : vec3<f32> = vec3<f32>( 0.0,  0.0, 0.0);
+                let grav : vec3<f32> = vec3<f32>( 0.0,  -0.01, 0.0);
                 var newPos_B1 =  vec4<f32>(vPos_B1.xyz + vVel_B1.xyz * uniforms.dTime,f32(index));
                 //var newPos_B1 =  vPos_B1;
                 var newVel_B1 = vec4<f32>((vVel_B1.xyz + grav) * friction , 1.0);
