@@ -12,8 +12,6 @@ import { HashTable } from './HashTable.js';
 export let physicsScene = 
 	{
 		gravity : vec3.set(0, -0.01, 0),
-        //gravity : vec3.set(1, 1.01, 1),
-        acceleration : vec3.set(1, 1.00, 1),
 		//dt : 1.0 / 60.0,
 		//worldSize : new Vector2(simWidth,simHeight),
 		// paused: true,
@@ -87,10 +85,8 @@ export function simulation(indexBall, dt , balls,scene) {
     //----------------------------------------------------------------------
     handleWallCollision(ball);
     
-    //ball.velocity = vec3.scale(ball.velocity, physicsScene.acceleration);
+
     ball.velocity = vec3.add(ball.velocity, physicsScene.gravity);
-    ball.velocity = vec3.mul(ball.velocity, physicsScene.acceleration);
-   // ball.velocity = vec3.scale(ball.velocity, physicsScene.acceleration);
     ball.velocity = vec3.scale(ball.velocity, physicsScene.friction);
     let velocity = vec3.scale(ball.velocity, dt / 1000);
     ball.position = vec3.add(ball.position, velocity);

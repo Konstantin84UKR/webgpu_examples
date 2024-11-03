@@ -23,7 +23,7 @@ export class HashTable{
 
 
 	getGrid(cell) {
-		let hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
+		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
 		if(this.map.has(hashCode)){
 			return this.map.get(hashCode)	
 		}else{
@@ -35,7 +35,7 @@ export class HashTable{
 
 	setGrid(cell, ball) {
 		
-		let hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
+		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
 		let arr = [];
 		if(this.map.has(hashCode)){
 			arr = this.getGrid(cell);
