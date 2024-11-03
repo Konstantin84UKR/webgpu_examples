@@ -12,18 +12,19 @@ export class HashTable{
 
 	hashCoords(xi, yi, zi) {
 
-		var h = (xi * 92837111) ^ (yi * 689287499) ^ (zi * 283923481);	// fantasy function
+		const h = (xi * 92837111) ^ (yi * 689287499) ^ (zi * 283923481);	// fantasy function
 		return Math.abs(h) % this.cells; 
 	}
 	
 	hashCoordsNew(xi, yi, zi) {
-		var h = 'x'+xi+'y'+yi +'z'+zi;	// fantasy function
+		//var h = 'x'+xi+'y'+yi +'z'+zi;	// fantasy function
+		const h = 'x'+xi+''+yi +''+zi;	// fantasy function
 		return h; 
 	}
 
 
 	getGrid(cell) {
-		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
+		const hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
 		if(this.map.has(hashCode)){
 			return this.map.get(hashCode)	
 		}else{
@@ -35,7 +36,7 @@ export class HashTable{
 
 	setGrid(cell, ball) {
 		
-		let hashCode = this.hashCoords(cell.x, cell.y, cell.z);
+		const hashCode = this.hashCoordsNew(cell.x, cell.y, cell.z);
 		let arr = [];
 		if(this.map.has(hashCode)){
 			arr = this.getGrid(cell);
@@ -56,9 +57,9 @@ export class HashTable{
 		// let y = Math.max(Math.trunc(((ball.position[1] + 50) / this.pixelOneCells)),0);
         // let z = Math.max(Math.trunc(((ball.position[2] + 50) / this.pixelOneCells)),0);	
 
-		let x = Math.trunc(((ball.position[0]) / this.pixelOneCells)); //Math.trunc()
-		let y = Math.trunc(((ball.position[1]) / this.pixelOneCells));
-        let z = Math.trunc(((ball.position[2]) / this.pixelOneCells));	
+		const x = Math.trunc(((ball.position[0]) / this.pixelOneCells)); //Math.trunc()
+		const y = Math.trunc(((ball.position[1]) / this.pixelOneCells));
+        const z = Math.trunc(((ball.position[2]) / this.pixelOneCells));	
 
 		return {x,y,z}
 	}
@@ -66,11 +67,11 @@ export class HashTable{
 	fillHashTable(physicsScene){
    
 		for (let i = 0; i < physicsScene.balls.length; i++) {
-			let ball = physicsScene.balls[i];
+			const ball = physicsScene.balls[i];
 			if(!ball.activ){
 			  continue;
 			}
-			let cell = physicsScene.HashTable.cellCoords(ball);         
+			const cell = physicsScene.HashTable.cellCoords(ball);         
 			physicsScene.HashTable.setGrid(cell, ball); 		
 		
 		}
