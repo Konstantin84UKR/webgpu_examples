@@ -61,7 +61,7 @@ export async function initUniformBuffers(device, inputData, aspect) {
 function initBufferForCompute(device,label,inputData){
   const _buffer = device.createBuffer({
     label: label,
-    size: inputData.position.byteLength,
+    size: inputData.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
   });
   device.queue.writeBuffer(_buffer, 0, inputData); 
