@@ -1,6 +1,7 @@
 export async function initPipeline(device, canvas, format, uBiffers, shader, texture, sampler,shaderDeferredRendering) {
-  
-    // gBufferPipeline
+    
+  // gBufferPipeline  
+    //--Layout--
     const bindGroupLayout_0_pipeline = device.createBindGroupLayout({
       label: 'bindGroupLayout_0_pipeline ',
       entries: [{
@@ -25,7 +26,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         buffer: {}
       }]
     });
-  
+   //--BindGroup
     const uniformBindGroup = device.createBindGroup({
       //layout: pipeline.getBindGroupLayout(0),
       label: 'uniformBindGroup ',
@@ -65,7 +66,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         }
       ]
     });
-  
+   //--Layout--
     const bindGroupLayout_2_pipeline = device.createBindGroupLayout({
       label: 'bindGroupLayout_2_pipeline ',
       entries: [{
@@ -76,7 +77,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         }
       }]
     });
-  
+   //--BindGroup
     const uniformBindGroup2 = device.createBindGroup({
       label: 'uniformBindGroup2 ',
       //layout: pipeline.getBindGroupLayout(1),
@@ -92,7 +93,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
         }
       ]
     });
-  
+   //--BindGroup
     const uniformBindGroup2_1 = device.createBindGroup({
       label: 'uniformBindGroup2_1 ',
       //layout: pipeline.getBindGroupLayout(1),
@@ -115,6 +116,7 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
       format: 'rgba16float',
     });
+
     const gBufferTextureAlbedo = device.createTexture({
       size: [canvas.width, canvas.height],
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,

@@ -1,5 +1,5 @@
 
-import * as Matrix from "./gl-matrix.js";
+import * as glMatrix from "./gl-matrix.js";
 
 async function main() {
     ///**  Шейдеры тут все понятно более мение. */ 

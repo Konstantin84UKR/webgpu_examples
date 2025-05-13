@@ -133,7 +133,7 @@ export const shaderDeferredRendering = {
         //SSAO               
 
         let fragPos = fragPosition;
-        let radius = 0.5;
+        let radius = .5;
         let sampleSize : i32 = 16;
         var occlusion = 0.0;
 
@@ -193,6 +193,7 @@ export const shaderDeferredRendering = {
            occlusion = occlusion + 0.0;        
         }
               
+        //occlusion =  1.0 - (occlusion / f32(sampleSize));
         occlusion =  1.0 - (occlusion / f32(sampleSize));
 
         var output : GBufferOutput;

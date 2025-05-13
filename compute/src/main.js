@@ -14,14 +14,24 @@ const webGPU_Start = async () => {
     const moduleСompute = device.createShaderModule({
         label: 'compute module',
         code: `
+
+              struct Uniforms {
+                length: u32,
+              };
+
               @group(0) @binding(0) var<storage, read> data: array<f32>;
               @group(0) @binding(1) var<storage, read_write> data1: array<f32>;
-        
-              @compute @workgroup_size(64) fn computeSomething(
+              @group(0) @binding(2) var<uniform> uniforms: Uniforms;
+                     
+              @compute @workgroup_size(4) fn computeSomething(
                 @builtin(global_invocation_id) id: vec3<u32>
               ) {
                 
-                if (id.x >= u32(arrayLength(&data))) {
+                // if (id.x >= u32(arrayLength(&data))) {
+                //     return;
+                // }
+
+                if (id.x >= u32(Uniforms.length)) {) {
                     return;
                 }
 
