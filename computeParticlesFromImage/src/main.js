@@ -368,7 +368,7 @@ const webGPU_Start = async () => {
     updateInputParams();    
 
     //--------------------------------------------
-    const numParticles = 4000;
+    const numParticles = 4096;
     const input = await loadImageData(numParticles);
     
     // const input = new Float32Array(numParticles * 4);
