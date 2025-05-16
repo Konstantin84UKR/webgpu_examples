@@ -134,7 +134,7 @@ export const shaderDeferredRendering = {
 
         let fragPos = fragPosition;
         let radius = .5;
-        let sampleSize : i32 = 16;
+        let sampleSize : i32 = 32;
         var occlusion = 0.0;
 
         let noiseX = u32(((coord.x / 4) - floor(coord.x / 4)) * 4);

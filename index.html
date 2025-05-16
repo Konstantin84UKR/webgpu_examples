@@ -131,6 +131,30 @@
   outline: none;
   border-color: #888;
 }
+#contact{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap ;
+    justify-content :center;
+    /* background-color: rgb(243, 242, 1);  */
+    margin: 10px;
+  }
+  .logo{
+    margin: 5px;
+    border: 2px solid black;
+    width: 48px;
+    height: 48px;   
+    border-radius: 10px;
+    overflow: hidden;
+
+}
+.logoEmpty{
+  
+    margin: 5px;   
+    width: 48px;
+    height: 48px;    
+
+}
   </style>
   <script>
   function setLanguage(lang) {
@@ -145,11 +169,65 @@
 </head>
 <body>
   <header>
-    <h1>WebGPU Demos</h1>
-    <p>Коллекция интерактивных демо и видео, посвящённых изучению WebGPU. Каждое демо сопровождается коротким описанием, ссылкой на живую версию и видео с пояснением.</p>
+    <h1>"Learn WebGPU just for fun"</h1>
+    <p>A collection of interactive demos dedicated to learning WebGPU.</p>
     <div class="language-select"> 
+      
 </div>  
+<div id="contact">
+                <div class="logo">
+                    <a href="https://www.youtube.com/channel/UCdD1kIGUO5m5C31eXLwY30w">
+                        <img class="icon" src="img/icons/logoYoutube.png" alt="YouTube">
+                    </a>
+                </div>
+                <div class="logo">
+                    <a href="https://www.linkedin.com/in/konstantin-bondarenko-a91238a5/">
+                        <img class="icon" src="img/icons/LogoLinkedin.png" alt="LinkedIn">
+                    </a>
+                </div>
+                <div class="logo">
+                    <a href="https://github.com/Konstantin84UKR">
+                        <img class="icon" src="img/icons/logoGit.png" alt="Github">
+                    </a>
+                </div>
+                
+                <div class="logo">
+                    <a href="https://twitter.com/Konstantin84U">
+                        <img class="icon" src="img/icons/logoTwitter.png" alt="Twitter">
+                    </a>
+                </div>
+
+
+                <div class="logoEmpty">
+
+                </div>
+            </div>
 </header>
+<!-- 22. deferredRendering -->
+<section class="demo-block">
+  <h2>23.SSAO</h2>
+  <div class="demo-container">
+    <a href="https://konstantin84ukr.github.io/webgpu_examples/SSAO/" target="_self">
+      <img 
+        src="./img/preview/23.jpg" 
+        alt="Превью демо PBR" 
+        class="preview"
+      />
+    </a>
+    <div class="demo-text">
+      <p> Screen space ambient occlusion.<br>
+        <!-- SSAO на WebGPU.<br><br> -->
+      </p>
+      <div class="links">
+<!--        
+        <a href="https://www.youtube.com/watch?v=LRqRoKjEf8E" target="_self">YouTube</a> -->
+        <a href="https://konstantin84ukr.github.io/webgpu_examples/SSAO/" target="_self">Demo</a>
+        <a href="https://github.com/Konstantin84UKR/webgpu_examples/tree/master/SSAO" target="_self">Code</a>
+
+      </div>      
+    </div>
+  </div>
+</section>
 
 <!-- 22. deferredRendering -->
 <section class="demo-block">
@@ -157,14 +235,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/deferredRendering/" target="_self">
       <img 
-        src="./preview/22.jpg" 
+        src="./img/preview/22.jpg" 
         alt="Превью демо PBR" 
         class="preview"
       />
     </a>
     <div class="demo-text">
       <p> Deferred Rendering.<br>
-        Базовая реализация отложенного рендеринга на WebGPU.<br><br>
+        Basic implementation of deferred rendering on WebGPU.<br><br>
       </p>
       <div class="links">
        
@@ -183,7 +261,7 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/PBR_test_4/" target="_self">
       <img 
-        src="./preview/21.jpg" 
+        src="./img/preview/21.jpg" 
         alt="Превью демо PBR" 
         class="preview"
       />
@@ -206,13 +284,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/reversedZ/" target="_self">
       <img 
-        src="./preview/20.jpg" 
+        src="./img/preview/20.jpg" 
         alt="Превью демо ReversedZ" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Пример показано использование метода обратного z для лучшего использования точности буфера глубины.</p>
+      <p>The example shows the use of the inverse z method to better exploit the precision of the depth buffer.</p>
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/reversedZ/" target="_self">Demo</a>
         <!-- <a href="https://www.youtube.com/watch?v=UyUUNe8zl9I" target="_self">YouTube</a> -->
@@ -220,7 +298,7 @@
       </div>
       </div>
        ------------------------------------<br>
-       Дополнительные материалы для изучения <br>
+       Additional study materials <br>
        <div class="links">
         <a href="https://developer.nvidia.com/content/depth-precision-visualized" target="_self">depth-precision-visualized</a><br>        
       </div>
@@ -234,14 +312,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/GLTF/" target="_self">
       <img 
-        src="./preview/19.jpg" 
+        src="./img/preview/19.jpg" 
         alt="Превью демо GLTF" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Пример базовой загрузки GLTF<br><br>
-        Загрузка только одного меше без анимаций и других элементов сцены<br>
+      <p> Example of a basic GLTF load<br><br>
+        Loading only one mesh without animations and other scene elements<br>
          
       <div class="links">
        
@@ -252,7 +330,7 @@
         
       </div>
        ------------------------------------<br>
-       Дополнительные материалы для изучения<br>
+       Additional study materials<br>
        <div class="links">
         <a href="https://github.khronos.org/glTF-Tutorials/gltfTutorial/" target="_self">gltf Tutorial</a><br>        
       </div>
@@ -266,7 +344,7 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/bloom/" target="_self">
       <img 
-        src="./preview/18.jpg" 
+        src="./img/preview/18.jpg" 
         alt="Превью демо Bloom" 
         class="preview"
       />
@@ -289,13 +367,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/cube_Map/" target="_self">
       <img 
-        src="./preview/17.jpg" 
+        src="./img/preview/17.jpg" 
         alt="Превью демо Shadow map" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> СubeMap на WebGPU и WebGL<br><br>
+      <p> ubeMap on WebGPU and WebGL<br><br>
            
       <div class="links">
         <a href="https://www.youtube.com/watch?v=YME9kVjLYNM" target="_self">YouTube</a><br>
@@ -316,13 +394,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/matcapMSAA/" target="_self">
       <img 
-        src="./preview/16.jpg" 
+        src="./img/preview/16.jpg" 
         alt="Превью демо Shadow map" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Реализация Matcap и MSAA на WebGPU<br><br>
+      <p> Matcap implementation on WebGPU. Also uses MSAA.<br><br>
            
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/matcapMSAA/" target="_self">Demo</a>
@@ -339,13 +417,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/shadow/" target="_self">
       <img 
-        src="./preview/15.jpg" 
+        src="./img/preview/15.jpg" 
         alt="Превью демо Shadow map" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Реализация Shadow map на WebGPU<br><br>
+      <p> Implementation of Shadow map on WebGPU<br><br>
            
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/shadow/" target="_self">Demo</a>
@@ -361,13 +439,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/normalMap/" target="_self">
       <img 
-        src="./preview/14.jpg" 
+        src="./img/preview/14.jpg" 
         alt="Превью демо Normal map" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Реализация Normal map на WebGPU<br><br>
+      <p> Implementation of Normal map on WebGPU<br><br>
            
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/normalMap/" target="_self">Demo</a>
@@ -384,13 +462,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/multple_objects_inctance/" target="_self">
       <img 
-        src="./preview/13.jpg" 
+        src="./img/preview/13.jpg" 
         alt="Превью демо Point ligth Phong" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Реализация Instance на WebGPU<br><br>
+      <p> Implementation of Instance on WebGPU<br><br>
            
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/multple_objects/" target="_self">Demo 1</a>
@@ -413,13 +491,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/phong/" target="_self">
       <img 
-        src="./preview/12.jpg" 
+        src="./img/preview/12.jpg" 
         alt="Превью демо Point ligth Phong" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Реализация Point ligth Phong<br><br>
+      <p> Point light Phone implementation<br><br>
            
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/phong/" target="_self">Demo</a>
@@ -432,19 +510,19 @@
 
 <!-- 11. mesh_obj -->
 <section class="demo-block">
-  <h2>11. Загрузка меша из внешнего файла</h2>
+  <h2>11. Loading a mesh from an external file</h2>
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/mesh_obj/" target="_self">
       <img 
-        src="./preview/11.jpg" 
+        src="./img/preview/11.jpg" 
         alt="Превью демо mesh_obj" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p> Загрузка меша из внешнего файла<br><br>
-        1.OBJ формат.<br>
-        2.JSON формат.<br>       
+      <p> Loading a mesh from an external file<br><br>
+        1.OBJ format.<br>
+        2.JSON format.<br>       
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/mesh_obj/" target="_self">Demo 1</a>
         <a href="https://konstantin84ukr.github.io/webgpu_examples/mesh/" target="_self">Demo 2</a>
@@ -462,16 +540,16 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/postEffect/" target="_self">
       <img 
-        src="./preview/10.jpg" 
+        src="./img/preview/10.jpg" 
         alt="Превью демо Post Effect" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Post Effect на WebGPU.<br><br>
-        1.Загрузка массива данных в текстуру.<br>
-        2.Загрузка фрагмента динамической сцены в другую текстуру.<br>
-        3.Изменение цвета пикселей текушей отсновной текстуры.</p><br>
+      <p>Post Effect on WebGPU.<br><br>
+        1.Loading an array of data into a texture.<br>
+        2.Loading a fragment of a dynamic scene into another texture.<br>
+        3.Change the color of the pixels of the current main texture.</p><br>
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/postEffect/" target="_self">Demo</a>
         <a href="https://www.youtube.com/watch?v=sJS0MDTYksw" target="_self">YouTube</a>
@@ -483,18 +561,18 @@
 
 <!-- 9. quad_image  -->
 <section class="demo-block">
-  <h2>9. Texture пикселизация изображения</h2>
+  <h2>9.Texture pixelation of the image</h2>
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/quad_image/" target="_self">
       <img 
-        src="./preview/9.jpg" 
+        src="./img/preview/9.jpg" 
         alt="Превью демо quad_image  " 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Простой постэффект c 2D картинкой. <br><br> 
-         На плейне рисуем текстуру и пиксилизируем изображение<br><br>  
+      <p>Simple post effect with 2D image. <br><br> 
+         We draw a texture on the plane and the image is pixelated<br><br>  
         <br>
       </p>
       <div class="links">
@@ -512,14 +590,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/texture_import_canvas/" target="_self">
       <img 
-        src="./preview/8.jpg" 
+        src="./img/preview/8.jpg" 
         alt="Превью демо Texture import canvas" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Использование 2D_Canvas как текстуру. <br><br> 
-         Рисуем на 2D_Canvas, а результат помешаем в текстуру WebGPU<br><br>  
+      <p>Using 2D_Canvas as a texture. <br><br> 
+         Draw on 2D_Canvas, and place the result into a WebGPU texture<br><br>  
         <br>
       </p>
       <div class="links">
@@ -537,14 +615,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/texture_mipmap_on_GPU/" target="_self">
       <img 
-        src="./preview/7.jpg" 
+        src="./img/preview/7.jpg" 
         alt="Превью демо Texture" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Пример загрузки mipmap и генирация mipmap на стороне GPU. <br><br> 
-         Mipmap згенируируеться отдельным шейдепрон и гуружаеться в основную текстуру для увждого уровня  mipmap<br><br>  
+      <p>Example of loading mipmap and generating mipmap on the GPU side.<br><br> 
+         Mipmap is generated by a separate shader and is loaded into the main texture for each mipmap level.<br><br>  
         <br>
       </p>
       <div class="links">
@@ -562,14 +640,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/texture_mipmap_on_CPU/" target="_self">
       <img 
-        src="./preview/6.jpg" 
+        src="./img/preview/6.jpg" 
         alt="Превью демо Texture" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Пример загрузки mipmap. <br><br> 
-         Mipmap загруженые как отдельные тестуры для каждого уровня mipmap <br><br>  
+      <p>Example of loading mipmap. <br><br> 
+         Mipmaps loaded as separate textures for each mipmap level <br><br>  
         <br>
       </p>
       <div class="links">
@@ -587,14 +665,14 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/texture_from_Uint8Array/" target="_self">
       <img 
-        src="./preview/5.jpg" 
+        src="./img/preview/5.jpg" 
         alt="Превью демо Texture" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Пример Загрузка данных текстуры из массива. <br><br> 
-        В этом примере мы создаем текстуру, используя данные из массива Uint8Array. Мы используем WebGPU для создания текстуры и отображения ее на экране. <br><br>  
+      <p>Example Loading texture data from an array. <br><br> 
+        In this example, we create a texture using data from a Uint8Array. We use WebGPU to create the texture and display it on the screen. <br><br>  
         <br>
       </p>
       <div class="links">
@@ -618,8 +696,8 @@
       />
     </a>
     <div class="demo-text">
-      <p>Пример использования текстуры. Рассмотрение что такое sampler, texture_2d, vUV. <br><br> 
-        Получение цвета из текстуры с помощью функции textureSample.
+      <p>Example of using texture. Consideration of what is sampler, texture_2d, vUV. <br><br> 
+        Getting color from a texture using the texture Sample function.
         <br>
       </p>
       <div class="links">
@@ -637,13 +715,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/cube_rotation/" target="_self">
       <img 
-        src="./preview/3.jpg" 
+        src="./img/preview/3.jpg" 
         alt="Превью демо Cube Rotation" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Пример применения матриц приобразования геометрии. Матрицы перспективы, вида и модели.</p>
+      <p>An example of the application of geometry transformation matrices. Perspective, view and model matrices.</p>
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/cube_rotation/" target="_self">Demo</a>
         <a href="https://www.youtube.com/watch?v=xa9mZDVdMos" target="_self">YouTube</a>
@@ -659,13 +737,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/quad_buffer_index/" target="_self">
       <img 
-        src="./preview/2.jpg" 
+        src="./img/preview/2.jpg" 
         alt="Превью демо Quad Buffer Index" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Отрисовка геомптрии с использованием буффера варшин и буффера индексов.</p>
+      <p>Rendering geometry using a vertex buffer and an index buffer.</p>
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/quad_buffer_index/" target="_self">Demo</a>
         <a href="https://www.youtube.com/watch?v=XvVbCVWKHl8" target="_self">YouTube</a>
@@ -681,13 +759,13 @@
   <div class="demo-container">
     <a href="https://konstantin84ukr.github.io/webgpu_examples/triangle/" target="_self">
       <img 
-        src="./preview/1.jpg" 
+        src="./img/preview/1.jpg" 
         alt="Превью демо Hello Triangle" 
         class="preview"
       />
     </a>
     <div class="demo-text">
-      <p>Инициализация WebGPU и отрисовка первого треугольника.</p>
+      <p>Initializing WebGPU and rendering the first triangle.</p>
       <div class="links">
         <a href="https://konstantin84ukr.github.io/webgpu_examples/triangle/" target="_self">Demo</a>
         <a href="https://www.youtube.com/watch?v=UyUUNe8zl9I" target="_self">YouTube</a>
@@ -696,10 +774,6 @@
     </div>
   </div>
 </section>
-
-
-
-
 
 
   <footer>
