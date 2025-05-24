@@ -5,6 +5,11 @@ import {
 export class Camera {
     constructor(canvas, eye = vec3.create(0.0, 0.0, 10.0), front = vec3.create(0.0, 0.0, -1.0),) {
         this.canvas = canvas;
+        this.cameraBuffer = null;
+        this.pMatrix = mat4.identity();
+        this.vMatrix = mat4.identity();
+        this.vMatrixRotOnly = mat4.identity();
+        this.worldMatrix = mat4.identity();
 
         this.speedCamera = 0.01;
 
@@ -16,7 +21,7 @@ export class Camera {
         this.right = vec3.cross(this.front, this.upWorld);
         this.up = vec3.cross(this.right, this.front);
 
-        this.worldMatrix = mat4.identity();
+        
 
         // console.log(this.front);
         // console.log(this.up);
@@ -293,4 +298,19 @@ export class Camera {
 
     }
 
+    createBuffer(device) {
+       
+        const cameraBuffer = device.createBuffer({
+                size: 64 + 64,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        }); 
+
+        this.cameraBuffer = cameraBuffer;
+    }
+
+    updateBuffer(device) {
+       // this.updateCameraVectors();
+        device.queue.writeBuffer(this.cameraBuffer, 0, this.pMatrix);
+        device.queue.writeBuffer(this.cameraBuffer, 64, this.vMatrix);
+    }
 }

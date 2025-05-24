@@ -1,6 +1,8 @@
 
-export class RectangleGeometry {
+import { Geometry } from '../Geometry.js';
+export class RectangleGeometry extends Geometry {
     constructor(width, height, segmentsX, segmentsY) {
+        super();
         this.width = width;
         this.height = height;
         this.segmentsX = segmentsX;

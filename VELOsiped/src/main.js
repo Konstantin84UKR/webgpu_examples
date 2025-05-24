@@ -217,7 +217,7 @@ let time_old=0;
       
       //Mesh3.rotateY(0.01);
      
-      Group1.rotateZ(0.01);
+      Group1.rotateZ(0.05);
       Group1.upDateMatrix();
 
       // Mesh1.upDateMatrix();

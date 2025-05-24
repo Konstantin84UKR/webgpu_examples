@@ -1,7 +1,9 @@
 
-
-export class BoxGeometry {
+import { Geometry } from '../Geometry.js';
+export class BoxGeometry extends Geometry{
     constructor(width = 1, height = 1, depth = 1, widthSegments = 1, heightSegments = 1, depthSegments = 1) {
+        super();
+        this.type = 'BoxGeometry';
         this.width = width;
         this.height = height;
         this.depth = depth;

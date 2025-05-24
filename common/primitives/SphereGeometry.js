@@ -1,5 +1,8 @@
-export class SphereGeometry {
+import { Geometry } from '../Geometry.js';
+export class SphereGeometry extends Geometry {
     constructor(radius = 1, widthSegments = 32, heightSegments = 16, phiStart = 0, phiLength = Math.PI * 2, thetaStart = 0, thetaLength = Math.PI) {
+        super();
+        this.type = 'SphereGeometry';
         this.radius = radius;
         this.widthSegments = widthSegments;
         this.heightSegments = heightSegments;
@@ -9,11 +12,11 @@ export class SphereGeometry {
         this.thetaLength = thetaLength;
 
         // Generate vertex positions, texture coordinates, normals, tangents, and vertex indices
-        this.vertices = [];
-        this.uvs = [];
-        this.normals = [];
-        this.tangents = [];
-        this.indices = [];
+        // this.vertices = [];
+        // this.uvs = [];
+        // this.normals = [];
+        // this.tangents = [];
+        // this.indices = [];
 
         const vertexCount = (widthSegments + 1) * (heightSegments + 1);
         const phiEnd = phiStart + phiLength;

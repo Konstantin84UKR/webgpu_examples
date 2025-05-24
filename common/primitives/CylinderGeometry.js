@@ -1,6 +1,9 @@
-export class CylinderGeometry {
+import { Geometry } from '../Geometry.js';
+
+export class CylinderGeometry extends Geometry {
     constructor(radiusTop = 1, radiusBottom = 1, height = 1, radialSegments = 32, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2) {
-       
+        super();
+        this.type = 'CylinderGeometry';
         this.radiusTop = radiusTop;
         this.radiusBottom = radiusBottom;
         this.height = height;
@@ -11,11 +14,11 @@ export class CylinderGeometry {
         this.thetaLength = thetaLength;
 
         // Generate vertex positions, texture coordinates, normals, tangents, and vertex indices
-        this.vertices = [];
-        this.uvs = [];
-        this.normals = [];
-        this.tangents = [];
-        this.indices = [];
+        // this.vertices = [];
+        // this.uvs = [];
+        // this.normals = [];
+        // this.tangents = [];
+        // this.indices = [];
 
         const heightHalf = height / 2;
         const radialStep = thetaLength / radialSegments;

@@ -1,12 +1,12 @@
-export async function initWebGPU(debag = false, width = 1600, height = 900) {
+export async function initWebGPU(debag = false, width = undefined, height =  undefined) {
 
     const canvas = document.getElementById("canvas-webgpu");
     if(debag){
       canvas.width = 400;
       canvas.height = 400;
     }else{
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width ? width : window.innerWidth;
+      canvas.height = height? height : window.innerHeight;
     }    
   
     const adapter = await navigator.gpu.requestAdapter({powerPreference:"high-performance"});
