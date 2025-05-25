@@ -1,4 +1,4 @@
-import { PARTICLE_COUNT } from '../settings.js';
+import { PARTICLE_COUNT , SIM_RESOLUTION} from '../settings.js';
 
 export async function simulationData() {
 
@@ -14,18 +14,18 @@ export async function simulationData() {
    let neighbours = new Float32Array(numParticles * 8);
 
   
-   position = new Float32Array(numParticles * 2);
+   
    for (let i = 0; i < numParticles; ++i) {
-        position[8 * i + 0] = 2 * (Math.random() - 0.5) * 0.9; //pos
-        position[8 * i + 1] = 2 * (Math.random() - 0.5) * 0.9;      
+        position[2 * i + 0] = (Math.random()) * 1.0 * SIM_RESOLUTION.width; //pos
+        position[2 * i + 1] = (Math.random()) * 1.0 * SIM_RESOLUTION.height;      
    }
    
-   previousPosition = new Float32Array(numParticles * 2);
+   //previousPosition = new Float32Array(numParticles * 2);
     
-   velocity = new Float32Array(numParticles * 2);
+   
    for (let i = 0; i < numParticles; ++i) {
-    velocity[8 * i + 2] = 2 * (Math.random() - 0.5) * 0.5; //vel
-    velocity[8 * i + 3] = 2 * (Math.random() - 0.5) * 0.3;   
+    velocity[2 * i + 2] = 2 * (Math.random() - 0.5) * 0.5; //vel
+    velocity[2 * i + 3] = 2 * (Math.random() - 0.5) * 0.3;   
    }  
 
 

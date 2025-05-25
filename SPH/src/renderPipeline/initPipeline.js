@@ -1,6 +1,6 @@
 import { renderShader } from './shaders/shader.js';
 
-export async function initPipeline(device, format, uBiffers,uBindGroup) {
+export async function initPipeline(device, format, uBiffers, uBindGroup) {
     
     //-------------------------------------------------------------------------------------------------------
     // настраеваем объект pipeline
@@ -10,7 +10,9 @@ export async function initPipeline(device, format, uBiffers,uBindGroup) {
             label: 'render_pipeline',
             layout: device.createPipelineLayout({
                 label: 'render_bindGroupLayouts ',
-                bindGroupLayouts: [uBindGroup.layout.renderBindGroupLayout,uBindGroup.layout.renderBindGroupLayout_Uniform],
+                //bindGroupLayouts: [uBindGroup.layout.renderBindGroupLayout, uBindGroup.layout.renderBindGroupLayout_Uniform],
+                bindGroupLayouts: [ uBindGroup.layout.renderBindGroupLayout, 
+                                    uBindGroup.layout.renderBindGroupLayout_Uniform],
             }),
             vertex: {
                 module: device.createShaderModule({
