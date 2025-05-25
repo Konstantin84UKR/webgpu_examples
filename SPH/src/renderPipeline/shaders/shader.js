@@ -28,7 +28,7 @@ export const renderShader = {
     ) -> VertexOutput{
 
       //let scale:f32 = data[InstanceIndex].radius[0];
-      let scale:f32 = 0.01;
+      let scale:f32 = 0.05;
     
       let a:f32 = 1.0 * scale;
       let b:f32 = 0.71 * scale;  
@@ -78,16 +78,7 @@ export const renderShader = {
         output.Position = vec4<f32>(VertexAspectScale.x + (VertexSimScale.x) * PaddingSimScale, // x
                                     VertexAspectScale.y + (VertexSimScale.y) * PaddingSimScale, // y
                                     0.0, 1.0); // zw  
-
-
-        // output.Position = vec4<f32>(pos[VertexIndex].x + data[InstanceIndex].pos[0], // x
-        //                             pos[VertexIndex].y + data[InstanceIndex].pos[1], // y
-        //                             0.0, 1.0); // zw
-        
-        // output.color = vec3(
-        //     lengthVelInstance + data[InstanceIndex].radius[1], 
-        //     data[InstanceIndex].radius[2],  
-        //     1.0 - lengthVelInstance) + data[InstanceIndex].radius[3];
+     
 
         output.color = vec3(0.0, 0.5, 1.0);
 

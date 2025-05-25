@@ -53,7 +53,7 @@ async function init() {
     const inputDataLength = 1024; // длина входного массива 
 
     let arr = [];
-    for (let i = 0; i <= inputDataLength; i++) {
+    for (let i = 0; i < inputDataLength; i++) {
         arr[i] = Math.ceil(Math.random() * 10);
         // arr[i] = i;
     }
@@ -77,18 +77,18 @@ async function init() {
         
               var<workgroup> sharedData: array<u32, ${workgroupSize}>;  // shared memory
                            
-              @compute @workgroup_size(${workgroupSize}) fn computeSomething(
+              @compute @workgroup_size(${workgroupSize}) fn computeMain(
                 @builtin(workgroup_id) workgroup_id : vec3<u32>,
-                @builtin(global_invocation_id) id: vec3<u32>,
-                @builtin(local_invocation_index) localIndex: u32
+                @builtin(global_invocation_id) global_id: vec3<u32>,
+                @builtin(local_invocation_index) local_id: u32
               ) {          
                       
   
                 // Каждый поток записывает свой элемент в shared memory
-                if (id.x < uniforms.length) {
-                    sharedData[localIndex] = inputData[id.x]; // номер локального потока это номер в sharedData номер глобального потока это номер в inputData 
+                if (global_id.x < uniforms.length) {
+                    sharedData[local_id] = inputData[global_id.x]; // номер локального потока это номер в sharedData номер глобального потока это номер в inputData 
                 } else {
-                    sharedData[localIndex] = 0u;  // дополняем нулями, если не хватает элементов                  
+                    sharedData[local_id] = 0u;  // дополняем нулями, если не хватает элементов                  
                 }
                               
 
@@ -97,16 +97,16 @@ async function init() {
                 // Редукция внутри workgroup (суммируем элементы в группе)
                 var offset = ${workgroupSize}u >> 1u; // делим на 2
                 while (offset > 0u) {
-                  if (localIndex < offset) {
+                  if (local_id < offset) {
                     // Каждый поток суммирует свой элемент в shared memory
-                    sharedData[localIndex] += sharedData[localIndex + offset];
+                    sharedData[local_id] += sharedData[local_id + offset];
                   }
                   offset >>= 1u;
                   workgroupBarrier(); // Ждем, пока все потоки запишут свои данные в shared memory
                 }
 
                 // Первый поток группы записывает частичную сумму
-                if (localIndex == 0u) {
+                if (local_id == 0u) {
                   partialSums[workgroup_id.x] = sharedData[0];   // записываем в выходной массив             
                 }               
 
@@ -121,7 +121,7 @@ async function init() {
         layout: 'auto',
         compute: {
             module: moduleCompute,
-            entryPoint: 'computeSomething',
+            entryPoint: 'computeMain',
         },
     });
 
@@ -196,20 +196,27 @@ async function init() {
         });
 
 
-        lengthSrcArray = Math.ceil(input.length / Math.pow(workgroupSize, i));
-        arrayLength = new Uint32Array([lengthSrcArray]);
+        lengthSrcArray = Math.ceil(input.length / Math.pow(workgroupSize, i)); // Например на первом шаге i = 0, 
+        // Поэтому длина массива будет равна input.length, на втором шаге i = 1,
+        // длина массива будет равна input.length / workgroupSize, 
+        // на третьем шаге i = 2, длина массива будет равна input.length / (workgroupSize * workgroupSize) и т.д.
+        // Получаеться длина массива каждый раз будем уменьшаться в workgroupSize раз, пока не останется 1 элемент или меньше.
 
-        dispatch = Math.ceil(lengthSrcArray / workgroupSize);
-        device.queue.writeBuffer(uniformBuffer, 0, arrayLength);
+        arrayLength = new Uint32Array([lengthSrcArray]); // длина выходного массива для текущего шага
+
+        dispatch = Math.ceil(lengthSrcArray / workgroupSize); // Например для workgroupSize = 8 и input.length = 1024, dispatch будет 16, т.е. 128/8
+        //dispatch это сколько раз нужно запустить шейдер, чтобы обработать весь входной массив
+        device.queue.writeBuffer(uniformBuffer, 0, arrayLength);// Записываем длину входного массива в uniformBuffer
 
 
-        let bindGroup = i % 2 === 0 ? bindGroupCompute0 : bindGroupCompute1;
+        let bindGroup = i % 2 === 0 ? bindGroupCompute0 : bindGroupCompute1; // Меняем bindGroup каждый раз, 
+        // чтобы использовать разные буферы для частичных сумм
 
-        await computePassADD(encoder, pipelineCompute, bindGroup, dispatch);
-
+        await computePassADD(encoder, pipelineCompute, bindGroup, dispatch);// Вызываем функцию для выполнения вычислений
+        
         let partialSums = i % 2 === 0 ? partialSumsBuffer1 : partialSumsBuffer0;
         if (dispatch == 1) {
-            encoder.copyBufferToBuffer(partialSums, 0, resultBuffer, 0, resultBuffer.size); //copyBufferToBuffer
+            encoder.copyBufferToBuffer(partialSums, 0, resultBuffer, 0, resultBuffer.size); // Копируем частичную сумму в выходной буфер
         }
         device.queue.submit([encoder.finish()]);
         i++
