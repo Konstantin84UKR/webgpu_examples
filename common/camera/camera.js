@@ -1,11 +1,14 @@
 import {
-    mat4, vec3, quat
+    mat4, vec3, quat,vec4
 } from '../../camera/src/wgpu-matrix.module.js';
 
 export class Camera {
+
+    static _layout = null;
+
     constructor(canvas, eye = vec3.create(0.0, 0.0, 10.0), front = vec3.create(0.0, 0.0, -1.0),) {
         this.canvas = canvas;
-        this.cameraBuffer = null;
+        this.uniformBuffer = null;
         this.pMatrix = mat4.identity();
         this.vMatrix = mat4.identity();
         this.vMatrixRotOnly = mat4.identity();
@@ -22,6 +25,7 @@ export class Camera {
         this.up = vec3.cross(this.right, this.front);
 
         
+        this.bindGroup = null;
 
         // console.log(this.front);
         // console.log(this.up);
@@ -223,7 +227,6 @@ export class Camera {
     onkeyup(e) {
     }
 
-
     mouseDown(e) {
         // console.log('mouseDown');
         if (e.which == 2) {
@@ -279,38 +282,83 @@ export class Camera {
         //this.drag = false;
     }
 
-
-
     upDateRotate() {
 
-        if (this.pitch > Math.PI * 0.49) {
-            this.pitch = Math.PI * 0.49;
+            if (this.pitch > Math.PI * 0.49) {
+                this.pitch = Math.PI * 0.49;
+            }
+            if (this.pitch < Math.PI * -0.49) {
+                this.pitch = Math.PI * -0.49;
+            }
+
+            this.front[0] += Math.cos(-this.yaw) * Math.cos(this.pitch);
+            this.front[1] += Math.sin(this.pitch);
+            this.front[2] += Math.sin(-this.yaw) * Math.cos(this.pitch);
+
+            this.front = vec3.normalize(this.front);
+
         }
-        if (this.pitch < Math.PI * -0.49) {
-            this.pitch = Math.PI * -0.49;
-        }
 
-        this.front[0] += Math.cos(-this.yaw) * Math.cos(this.pitch);
-        this.front[1] += Math.sin(this.pitch);
-        this.front[2] += Math.sin(-this.yaw) * Math.cos(this.pitch);
 
-        this.front = vec3.normalize(this.front);
 
-    }
+    //////////////////////   
+    //  WebGPU Objects  //
+    //////////////////////
+    
 
     createBuffer(device) {
        
         const cameraBuffer = device.createBuffer({
-                size: 64 + 64,
+                label: 'Camera Uniform Buffer',
+                // Each matrix is 64 bytes, so we need 64 + 64 + 16 = 144 bytes
+                size: 64 + 64 + 16,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         }); 
 
-        this.cameraBuffer = cameraBuffer;
+        this.uniformBuffer = cameraBuffer;
     }
 
     updateBuffer(device) {
        // this.updateCameraVectors();
-        device.queue.writeBuffer(this.cameraBuffer, 0, this.pMatrix);
-        device.queue.writeBuffer(this.cameraBuffer, 64, this.vMatrix);
+        device.queue.writeBuffer(this.uniformBuffer, 0, this.pMatrix);
+        device.queue.writeBuffer(this.uniformBuffer, 64, this.vMatrix);
+       // device.queue.writeBuffer(this.cameraBuffer, 64 + 64, new Float32Array([this.eye,1.0])); // camera position
+        device.queue.writeBuffer(this.uniformBuffer, 64 + 64, new Float32Array([this.eye[0],this.eye[1],this.eye[2],1.0])); // camera position
     }
+
+    static createGroupLayout(device) {
+        Camera._layout =  device.createBindGroupLayout({
+            label: 'Camera Bind Group Layout',
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    buffer: { type: 'uniform' }
+                }
+            ]
+        });
+    }
+
+    createBindGroup(device) {
+        if (this.uniformBuffer) {
+            this.bindGroup = device.createBindGroup({
+                label: "Camera Bind Group",
+                layout: Camera._layout,
+                entries: [
+                    {
+                        binding: 0,
+                        resource: {
+                            buffer: this.uniformBuffer,
+                            offset: 0,
+                            size: this.uniformBuffer.size // PROJMATRIX + VIEWMATRIX + eye
+                        }
+                    }
+                ]
+            });
+        } else {
+            console.error("Camera buffer is not created");
+        }
+    }
+
+    
 }

@@ -11,8 +11,7 @@ export class Scene {
     this.canvas = renderer.canvas;
     
     this.camera = undefined;
-    
-    //this.pipelines = {};
+        
     this.meshes = [];
    
     this.UNIFORM = {};
@@ -42,6 +41,14 @@ export class Scene {
         console.error("Object is not an instance of Object");
       } 
 
+    }
+
+    addPipeline(name, pipeline) {
+        if (pipeline && typeof pipeline === 'object') {
+            this.PIPELINES[name] = pipeline;
+        } else {
+            console.error("Pipeline is not a valid object");
+        }
     }
 
 
@@ -136,10 +143,46 @@ async updateMeshBuffer(){
     // };
   }
 
+  async prerender() {
+    // await this.updateWorldMatrixAllMesh();
+    // await this.updateMeshBuffer();
+    // await this.initRenderSetting();
+    // await this.createBindGroup();
+    await this.createBuffers();
+  }
 
+  async createBuffers() {
+    for (let i = 0; i < this.meshes.length; i++) {
+      const mesh = this.meshes[i];
+      if (mesh instanceof Mesh) {
+        await mesh.createBuffers(this.device);
+        await mesh.createUniformBuffer(this.device);
+       // await mesh.createBindGroupLayout(this.device);
+        await mesh.createBindGroup(this.device);
+      } else {
+        console.error("Mesh is not an instance of Mesh");
+      }
+    }
+  }
+ 
+  async createBindGroup() {
+    
+    //this.createBindGroupForCamera(this.device, this.camera);
+    
+    for (let i = 0; i < this.meshes.length; i++) {
+      const mesh = this.meshes[i];
+      if (mesh instanceof Mesh) {
+        await mesh.createBindGroup(this.device);
+      } else {
+        console.error("Mesh is not an instance of Mesh");
+      }
+    }
+  }
+  
 
   async animate(time) {
     
 
   }
+  
 }

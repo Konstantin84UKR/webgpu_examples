@@ -23,6 +23,7 @@ export class Geometry{
 
         //****************** BUFFER  vertexBuffer
         const vertexBuffer = device.createBuffer({
+            label: "vertexBuffer",
             size: cube_vertex.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
             mappedAtCreation: true
@@ -36,6 +37,7 @@ export class Geometry{
 
         //****************** BUFFER  uvBuffer
         const uvBuffer = device.createBuffer({
+            label: "uvBuffer",
             size: cube_uv.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
             mappedAtCreation: true
@@ -48,6 +50,7 @@ export class Geometry{
 
         //****************** BUFFER  normalBuffer
         const normalBuffer = device.createBuffer({
+            label: "normalBuffer",
             size: cube_normal.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
             mappedAtCreation: true
@@ -60,6 +63,7 @@ export class Geometry{
        
         //****************** BUFFER  indexBuffer
         const indexBuffer = device.createBuffer({
+            label: "indexBuffer",
             size: cube_index.byteLength,
             usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
             mappedAtCreation: true

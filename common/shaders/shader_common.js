@@ -19,7 +19,8 @@ export const srgbUtils = `
 export const cameraStruct = `
     struct Camera {
       pMatrix : mat4x4<f32>,
-      vMatrix : mat4x4<f32>   
+      vMatrix : mat4x4<f32>,
+      position : vec4<f32>   
 }`;
 
 export const lin2rgb = `
@@ -54,5 +55,12 @@ export const brdfPhong = `
         color +=  pow(specDot, phongShiniess) * phongSpecularColor;
         return color;  
  }`;
+
+ export const Light = `
+   struct Light {   
+     lightColor : vec4<f32>,        
+     lightPosition : vec3<f32>,
+     lightType : u32, // 0 - directional, 1 - point, 2 - spot           
+   };`;
 
 

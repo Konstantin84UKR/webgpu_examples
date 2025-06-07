@@ -103,14 +103,14 @@ export const computeShader = {
           @group(0) @binding(0) var<storage, read> positionA: array<Particle>;
           @group(0) @binding(1) var<storage, read_write> positionB: array<Particle>;
 
-          // @group(0) @binding(2) var<storage, read> previousPositionA: array<Particle>;
-          // @group(0) @binding(3) var<storage, read_write> previousPositionB: array<Particle>;
+          @group(0) @binding(2) var<storage, read> previousPositionA: array<Particle>;
+          @group(0) @binding(3) var<storage, read_write> previousPositionB: array<Particle>;
 
-          // @group(0) @binding(4) var<storage, read> velocityA: vec2<f32>;
-          // @group(0) @binding(5) var<storage, read_write> velocityB: vec2<f32>;
+          @group(0) @binding(4) var<storage, read> velocityA: vec2<f32>;
+          @group(0) @binding(5) var<storage, read_write> velocityB: vec2<f32>;
 
-          @group(0) @binding(2) var<storage, read_write> densityBuffer: array<f32>;
-          @group(0) @binding(3) var<storage, read_write> densityNearBuffer: array<f32>;
+          @group(0) @binding(6) var<storage, read_write> densityBuffer: array<f32>;
+          @group(0) @binding(7) var<storage, read_write> densityNearBuffer: array<f32>;
                    
           
           @group(1) @binding(0) var<uniform> uniforms : Uniforms;
@@ -129,9 +129,9 @@ export const computeShader = {
             var particleA = positionA[index];
             var vPos = particleA.pos;
             var newPos = vPos;
-           // var vVel = velocityA[index];
+            var vVel = velocityA[index];
             
-            //previousPositionB[index].pos = particleA.pos;
+            previousPositionB[index].pos = particleA.pos;
           
             workgroupBarrier();   
 
@@ -208,7 +208,7 @@ export const computeShader = {
                           
             // var newVel = (vVel) * friction + gravity;
             //var newPos = vPos + vVel * uniforms.dTime;
-           // var test : vec2<f32>= vPos + vVel * uniforms.dTime;
+            // var test : vec2<f32>= vPos + vVel * uniforms.dTime;
                           
             //newPos = vPos + gravity * uniforms.dTime;
       

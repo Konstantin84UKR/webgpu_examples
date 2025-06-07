@@ -20,80 +20,134 @@ import { basicShaderSrc as phongShader } from '../../common/shaders/phongShader.
 
 import { PhongMaterial } from '../../common/Materials/PhongMaterial.js';
 
+import { DirectionalLight } from '../../common/Lights/DirectionalLight.js';
+
 
 async function main() {
 
-   const { device, context, format, canvas} = await initWebGPU(true);
+   const { device, context, format, canvas} = await initWebGPU(true)
     
-  // Mesh --------------------------------------------------- 
-   const meshGeometry = new CylinderGeometry(1.0, 1.0, 3, 16, 8, false, 0, Math.PI * 2);
-   const mesh1 = new Mesh(meshGeometry);
-   mesh1.createBuffers(device);
-   mesh1.createUniformBuffer(device);
-   mesh1.modelMatrix = mat4.translate(mesh1.modelMatrix ,[0 ,0, 0]);  
- 
-   const meshGeometry2 = new RectangleGeometry(1.0, 1.0, 1, 1);
-   const mesh2 = new Mesh(meshGeometry2);
-   mesh2.createBuffers(device);
-   mesh2.createUniformBuffer(device);
+   //---------------------------------------------------   
+   //---create uniform data   
+   
+   const scene = new Scene({ device, context, format, canvas});
+   
+   let camera = new Camera(canvas);
+   Camera.createGroupLayout(device);
+  
+   camera.createBuffer(device);
+   camera.createBindGroup(device);
+   camera.setPosition([0.0, 0.0, 25.0]);
 
+   scene.setCamera(camera);
+
+  //---DirectionalLight---------------------------------
+   const lightPosition = new Float32Array([1.0, 1.0, 2.0]);
+   const lightColor = new Float32Array([1.0, 1.0, 1.0]);
+
+   const light1 = new DirectionalLight(lightColor, lightPosition);  
+   light1.createBindGroupLayout(device);
+   light1.createUniformBuffer(device);
+   light1.createBindGroup(device); 
+
+
+  // Mesh --------------------------------------------------- 
+   Mesh.createBindGroupLayout(device);
+   const materialPhong = new PhongMaterial(device, 'materialPhong');
+   await PhongMaterial.createBindGroupLayout(device);
+   materialPhong.setDiffuseColor([0.5, 0.8, 0.5, 1.0]);
+   materialPhong.setSpecularColor([1.0, 1.0, 1.0]);
+   materialPhong.setShiniess(32.0);
+   materialPhong.diffuseTexture =  await materialPhong.createTextureFromImage(device, 'diffuseTexture', 
+    {src:'./res/uv.jpg', 
+      mips: true, 
+      sampler: 
+                    {
+                      minFilter:'linear',
+                      magFilter:'linear', 
+                      mipmapFilter : "nearest", 
+                      addressModeU: 'repeat', 
+                      addressModeV: 'repeat'}
+    });  
+
+   materialPhong.createBindGroup(device);
+
+   const meshGeometry = new CylinderGeometry(1.0, 1.0, 3, 16, 8, false, 0, Math.PI * 2);
+   const mesh1 = new Mesh(device,meshGeometry,materialPhong);
+  
+   mesh1.modelMatrix = mat4.translate(mesh1.modelMatrix ,[0 ,0, 0]);  
+  
+   const meshGeometry2 = new RectangleGeometry(1.0, 1.0, 1, 1);
+   const mesh2 = new Mesh(device,meshGeometry2,materialPhong);
+ 
    mesh2.translate([0, -5, 0]);
    mesh2.rotateX(-Math.PI / 2);
    mesh2.scale([20, 20, 20]);
   
    const meshGeometry3 = new BoxGeometry(2.0, 1.0, 1.0, 1, 1, 1);
-   const mesh3 = new Mesh(meshGeometry3);
-   mesh3.createBuffers(device);
-   mesh3.createUniformBuffer(device);
+   const mesh3 = new Mesh(device, meshGeometry3,materialPhong);
+   
    mesh3.translate([-5, 0, 0]);
    mesh3.scale([0.8, 0.8, 0.8]);
 
    const meshGeometry4 = new SphereGeometry(1.0);
-   const materialPhong = new PhongMaterial();
-   const mesh4 = new Mesh(meshGeometry4, materialPhong);
-   mesh4.createBuffers(device);
-   mesh4.createUniformBuffer(device);
+   const mesh4 = new Mesh(device,meshGeometry4, materialPhong);
+   
    mesh4.translate([0, 2, 0]);
    mesh4.scale([0.7, 0.7, 0.7]);
 
    
    const mesh0 = new Object3D();  
    mesh0.translate([8, 2, 0]);
-  
-    
+   
    mesh1.addChild(mesh0);
    //mesh2.setParent(mesh0);
    mesh0.addChild(mesh3);
    mesh3.addChild(mesh4);
-   
-   //Scene----------------------------------------------------
-   
-   const scene = new Scene({ device, context, format, canvas});
+    
+  
    scene.add(mesh0);
    scene.add(mesh1);
    scene.add(mesh2);  
    scene.add(mesh3);
    scene.add(mesh4);
 
+   scene.add(light1);
+
+  //  mesh1.uniformBuffer = await mesh1.createUniformBuffer(device);
+  //  mesh2.uniformBuffer = await mesh2.createUniformBuffer(device);
+  //  mesh3.uniformBuffer = await mesh3.createUniformBuffer(device);
+  //  mesh4.uniformBuffer = await mesh4.createUniformBuffer(device); 
+
+   await scene.prerender(); // Пререндерим сцену, чтобы все буферы были созданы и заполнены
    //mesh3.removeParent(); // Удаляем родителя у mesh3, теперь он не будет отрисовываться
-   //---------------------------------------------------   
-   //---create uniform data   
-  
-   let camera = new Camera(canvas);
-   camera.setPosition([0.0, 0.0, 25.0]);
-   camera.createBuffer(device);
-
-   scene.setCamera(camera);
-   let lightPosition = new Float32Array([1.0, 1.0, 2.0]);
-
+ 
    //*********************************************//
+   
+
+    device.queue.writeBuffer(light1.uniformBuffer, 0, light1.lightColor); // lightPosition
+    device.queue.writeBuffer(light1.uniformBuffer,16, light1.lightPosition); // eyePosition
+    device.queue.writeBuffer(light1.uniformBuffer,16 + 12, light1.type); // type
+
+  const pipelineLayout = device.createPipelineLayout({
+        bindGroupLayouts: [
+          Camera._layout,           //@group(0)
+          DirectionalLight._layout, //@group(1) 
+          Mesh._layout,             //@group(2)
+          PhongMaterial._layout     //@group(3)
+        ]
+      });
 
 
-   const pipeline = device.createRenderPipeline({
-      layout: "auto",
+  const pipeline = device.createRenderPipeline({
+      label: "Phong Pipeline",
+      layout: pipelineLayout,
       vertex: {
         module: device.createShaderModule({
           code: phongShader,
+          constants: {
+           // ambientColor: 'vec3<f32>(0.9, 0.1, 0.1);', // Цвет окружающего света
+          },
         }),
         entryPoint: "mainVertex",
         buffers:[
@@ -148,189 +202,6 @@ async function main() {
     }
     });
 
-    const fragmentUniformBuffer = device.createBuffer({
-      size: 16+16,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
-    // //-------------------- TEXTURE ---------------------
-    const sampler = device.createSampler({
-      minFilter:'linear',
-      magFilter:'linear',
-      mipmapFilter : "nearest", //nearest
-      addressModeU: 'repeat',
-      addressModeV: 'repeat'
-    });
-
-    const texture = await createTextureFromImage(device, './res/uv.jpg',{mips:true});  
-    //--------------------------------------------------
-    const uniformBindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          {
-            binding: 0,
-            resource: {
-                buffer: mesh1.uniformBuffer,
-                offset: 0,
-                size: 64    // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          {
-            binding: 4,
-            resource: {
-                buffer: camera.cameraBuffer,
-                offset: 0,
-                size: 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          { 
-            binding: 1,
-            resource: sampler
-          },
-
-          {
-            binding: 2,
-            resource: texture.createView()
-          },          
-          {
-            binding: 3,
-            resource: {
-                buffer: fragmentUniformBuffer,
-                offset: 0,
-                size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
-            }
-          }
-        ]
-    });
-
-    //--------------------------------------------------
-    const uniformBindGroup2 = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          {
-            binding: 0,
-            resource: {
-                buffer: mesh2.uniformBuffer,
-                offset: 0,
-                size: 64   // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          {
-            binding: 4,
-            resource: {
-                buffer: camera.cameraBuffer,
-                offset: 0,
-                size: 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          { 
-            binding: 1,
-            resource: sampler
-          },
-
-          {
-            binding: 2,
-            resource: texture.createView()
-          },          
-          {
-            binding: 3,
-            resource: {
-                buffer: fragmentUniformBuffer,
-                offset: 0,
-                size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
-            }
-          }
-        ]
-    });
-
-     //--------------------------------------------------
-    const uniformBindGroup3 = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          {
-            binding: 0,
-            resource: {
-                buffer: mesh3.uniformBuffer,
-                offset: 0,
-                size: 64   // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          {
-            binding: 4,
-            resource: {
-                buffer: camera.cameraBuffer,
-                offset: 0,
-                size: 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          { 
-            binding: 1,
-            resource: sampler
-          },
-
-          {
-            binding: 2,
-            resource: texture.createView()
-          },          
-          {
-            binding: 3,
-            resource: {
-                buffer: fragmentUniformBuffer,
-                offset: 0,
-                size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
-            }
-          }
-        ]
-    });
-
-      //--------------------------------------------------
-    const uniformBindGroup4 = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-          {
-            binding: 0,
-            resource: {
-                buffer: mesh4.uniformBuffer,
-                offset: 0,
-                size: 64   // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          {
-            binding: 4,
-            resource: {
-                buffer: camera.cameraBuffer,
-                offset: 0,
-                size: 64 + 64 // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
-            }
-          },
-          { 
-            binding: 1,
-            resource: sampler
-          },
-
-          {
-            binding: 2,
-            resource: texture.createView()
-          },          
-          {
-            binding: 3,
-            resource: {
-                buffer: fragmentUniformBuffer,
-                offset: 0,
-                size: 16 + 16 //   lightPosition : vec4<f32>;    eyePosition : vec4<f32>;   
-            }
-          }
-        ]
-    });
-
-    mesh1.uniformBindGroup = uniformBindGroup;
-    mesh2.uniformBindGroup = uniformBindGroup2;
-    mesh3.uniformBindGroup = uniformBindGroup3;
-    mesh4.uniformBindGroup = uniformBindGroup4;
-
-    device.queue.writeBuffer(fragmentUniformBuffer, 0, new Float32Array(camera.eye));
-    device.queue.writeBuffer(fragmentUniformBuffer,16, lightPosition);
-
 
     const depthTexture = device.createTexture({
       size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
@@ -377,15 +248,16 @@ let time_old=0;
       //mesh2.rotateZ( dt * 0.0002);
       mesh3.rotateX( dt * 0.0002);
       mesh4.rotateY( dt * 0.0004);
-     
 
-      scene.updateWorldMatrixAllMesh();
+      //mesh1.uniformBuffer = await mesh1.updateUniformBuffer(device);
+
+      await scene.updateWorldMatrixAllMesh();
+      await scene.updateMeshBuffer();
       //--------------------------------------------------
 
       scene.camera.setDeltaTime(dt);
       scene.camera.updateBuffer(device);
-      scene.updateMeshBuffer(device);
-    
+      //scene.updateMeshBuffer(device);
      
       const commandEncoder = device.createCommandEncoder();
       const textureView = context.getCurrentTexture().createView();
@@ -397,16 +269,20 @@ let time_old=0;
      
       scene.meshes.forEach((mesh) => {
         
-
-
-
         if (mesh instanceof Mesh && mesh.geometry.buffers.vertexBuffer && mesh.geometry.buffers.indexBuffer) {
+         
           renderPass.setVertexBuffer(0, mesh.geometry.buffers.vertexBuffer);
           renderPass.setVertexBuffer(1, mesh.geometry.buffers.uvBuffer);
           renderPass.setVertexBuffer(2, mesh.geometry.buffers.normalBuffer);
           renderPass.setIndexBuffer(mesh.geometry.buffers.indexBuffer, "uint32");
-          renderPass.setBindGroup(0, mesh.uniformBindGroup);
+        
+          renderPass.setBindGroup(0, camera.bindGroup);
+          renderPass.setBindGroup(1, light1.bindGroup);
+          renderPass.setBindGroup(2, mesh.bindGroup);
+          renderPass.setBindGroup(3, mesh.material.bindGroup);
+        
           renderPass.drawIndexed(mesh.geometry.indices.length);
+
         }
 
       });

@@ -1,6 +1,6 @@
-import { computeShader } from './shaders/shader.js';
+import { computeShader } from './shaderPressure.js';
 
-export async function initPipeline(device, format, uBiffers,uBindGroup) {
+export async function initPipeline(device, uBindGroup) {
     
     //-------------------------------------------------------------------------------------------------------
     // настраеваем объект pipeline
@@ -10,7 +10,7 @@ export async function initPipeline(device, format, uBiffers,uBindGroup) {
         label: 'compute pipeline',
         layout: device.createPipelineLayout({
             label: 'render_bindGroupLayouts ',
-            bindGroupLayouts: [uBindGroup.layout.computeBindGroupLayout, uBindGroup.layout.computeBindGroupLayoutUniform],
+            bindGroupLayouts: [uBindGroup.layout.computeBindGroupLayoutPressure, uBindGroup.layout.computeBindGroupLayoutUniform],
         }),
         compute: {
             module: device.createShaderModule({

@@ -65,28 +65,28 @@ export async function initBindGroup(device, uBiffers) {
                 visibility: GPUShaderStage.COMPUTE,
                 buffer: { type: "storage" }
             },
-            // //Previous position
-            // {
-            //     binding: 2,
-            //     visibility: GPUShaderStage.COMPUTE,
-            //     buffer: { type: "read-only-storage" }
-            // },
-            // {
-            //     binding: 3,
-            //     visibility: GPUShaderStage.COMPUTE,
-            //     buffer: { type: "storage" }
-            // },
-            //Velocity
+            //Previous position
             {
                 binding: 2,
                 visibility: GPUShaderStage.COMPUTE,
-                buffer: { type: "read-only-storage" }
+                buffer: { type: "storage" }
             },
             {
                 binding: 3,
                 visibility: GPUShaderStage.COMPUTE,
                 buffer: { type: "storage" }
             },
+            // //Velocity
+            // {
+            //     binding: 4,
+            //     visibility: GPUShaderStage.COMPUTE,
+            //     buffer: { type: "read-only-storage" }
+            // },
+            // {
+            //     binding: 5,
+            //     visibility: GPUShaderStage.COMPUTE,
+            //     buffer: { type: "storage" }
+            // },
             // //Density
             // {
             //     binding: 6,
@@ -94,7 +94,7 @@ export async function initBindGroup(device, uBiffers) {
             //     buffer: { type: "read-only-storage" }
             // },
             // {
-            //     binding: 7,
+            //     binding: 6,
             //     visibility: GPUShaderStage.COMPUTE,
             //     buffer: { type: "storage" }
             // },
@@ -105,7 +105,7 @@ export async function initBindGroup(device, uBiffers) {
             //     buffer: { type: "read-only-storage" }
             // },
             // {
-            //     binding: 9,
+            //     binding: 7,
             //     visibility: GPUShaderStage.COMPUTE,
             //     buffer: { type: "storage" }
             // },
@@ -146,66 +146,66 @@ export async function initBindGroup(device, uBiffers) {
     });
 
 
-    // const bindGroupCompute_A = device.createBindGroup({
-    //     label: 'bindGroup for work buffer A',
-    //     layout: computeBindGroupLayout,
-    //     entries: [
-    //         //Position
-    //         { binding: 0, resource: { buffer: uBiffers.position_A } },
-    //         { binding: 1, resource: { buffer: uBiffers.position_B } },
-    //         // //Previous position
-    //         // { binding: 2, resource: { buffer: uBiffers.previousPosition_A } },
-    //         // { binding: 3, resource: { buffer: uBiffers.previousPosition_B } },  
-    //         //Velocity
-    //         // { binding: 2, resource: { buffer: uBiffers.velocity_A } },
-    //         // { binding: 3, resource: { buffer: uBiffers.velocity_B } },
-    //         // //Density
-    //         // { binding: 6, resource: { buffer: uBiffers.position_A } },
-    //         // { binding: 7, resource: { buffer: uBiffers.position_B } },  
+    const bindGroupCompute_A = device.createBindGroup({
+        label: 'bindGroup for work buffer A',
+        layout: computeBindGroupLayout,
+        entries: [
+            //Position
+            { binding: 0, resource: { buffer: uBiffers.position_A } },
+            { binding: 1, resource: { buffer: uBiffers.position_B } },
+            //Previous position
+            // { binding: 2, resource: { buffer: uBiffers.previousPosition_A } },
+            // { binding: 3, resource: { buffer: uBiffers.previousPosition_B } },  
+            //Velocity
+            // { binding: 4, resource: { buffer: uBiffers.velocity_A } },
+            // { binding: 5, resource: { buffer: uBiffers.velocity_B } },
+            // //Density
+             { binding: 2, resource: { buffer: uBiffers.density } },
+            // { binding: 7, resource: { buffer: uBiffers.position_B } },  
           
-    //         // //Near density
-    //         // { binding: 8, resource: { buffer: uBiffers.position_A } },
-    //         // { binding: 9, resource: { buffer: uBiffers.position_B } },
-    //         // //Pressure
-    //         // { binding: 10, resource: { buffer: uBiffers.position_A } },
-    //         // { binding: 11, resource: { buffer: uBiffers.position_B } }, 
-    //         // //Near pressure
-    //         // { binding: 12, resource: { buffer: uBiffers.position_A } },
-    //         // { binding: 13, resource: { buffer: uBiffers.position_B } }  
+            // //Near density
+              { binding: 3, resource: { buffer: uBiffers.nearDensity } },
+            // { binding: 9, resource: { buffer: uBiffers.position_B } },
+            // //Pressure
+            // { binding: 10, resource: { buffer: uBiffers.position_A } },
+            // { binding: 11, resource: { buffer: uBiffers.position_B } }, 
+            // //Near pressure
+            // { binding: 12, resource: { buffer: uBiffers.position_A } },
+            // { binding: 13, resource: { buffer: uBiffers.position_B } }  
   
-    //     ],
-    // });
+        ],
+    });
 
     // // Setup a bindGroup to tell the shader which
     // // buffer to use for the computation
-    // const bindGroupCompute_B = device.createBindGroup({
-    //     label: 'bindGroup for work buffer B',
-    //     layout: computeBindGroupLayout,
-    //     entries: [
-    //         //Position
-    //         { binding: 0, resource: { buffer: uBiffers.position_B } },
-    //         { binding: 1, resource: { buffer: uBiffers.position_A } },  
-    //         //Previous position
-    //         // { binding: 2, resource: { buffer: uBiffers.previousPosition_B } },
-    //         // { binding: 3, resource: { buffer: uBiffers.previousPosition_A } },   
-    //         // // //Velocity
-    //         // { binding: 2, resource: { buffer: uBiffers.position_B } },
-    //         // { binding: 3, resource: { buffer: uBiffers.position_A } },   
-    //         // //Density
-    //         // { binding: 6, resource: { buffer: uBiffers.position_B } },
-    //         // { binding: 7, resource: { buffer: uBiffers.position_A } },   
+    const bindGroupCompute_B = device.createBindGroup({
+        label: 'bindGroup for work buffer B',
+        layout: computeBindGroupLayout,
+        entries: [
+            //Position
+            { binding: 0, resource: { buffer: uBiffers.position_B } },
+            { binding: 1, resource: { buffer: uBiffers.position_A } },  
+            //Previous position
+            // { binding: 2, resource: { buffer: uBiffers.previousPosition_B } },
+            // { binding: 3, resource: { buffer: uBiffers.previousPosition_A } },   
+            // //Velocity
+            // { binding: 4, resource: { buffer: uBiffers.velocity_B } },
+            // { binding: 5, resource: { buffer: uBiffers.velocity_A } },   
+            // //Density
+             { binding: 2, resource: { buffer: uBiffers.density } },
+            // { binding: 7, resource: { buffer: uBiffers.position_A } },   
             
-    //         // //Near density
-    //         // { binding: 8, resource: { buffer: uBiffers.position_B } },
-    //         // { binding: 9, resource: { buffer: uBiffers.position_A } },   
-    //         // //Pressure
-    //         // { binding: 10, resource: { buffer: uBiffers.position_B } },
-    //         // { binding: 11, resource: { buffer: uBiffers.position_A } },   
-    //         // //Near pressure
-    //         // { binding: 12, resource: { buffer: uBiffers.position_B } },
-    //         // { binding: 13, resource: { buffer: uBiffers.position_A } }            
-    //     ],
-    // });
+            // //Near density
+             { binding: 3, resource: { buffer: uBiffers.nearDensity } },
+            // { binding: 9, resource: { buffer: uBiffers.position_A } },   
+            // //Pressure
+            // { binding: 10, resource: { buffer: uBiffers.position_B } },
+            // { binding: 11, resource: { buffer: uBiffers.position_A } },   
+            // //Near pressure
+            // { binding: 12, resource: { buffer: uBiffers.position_B } },
+            // { binding: 13, resource: { buffer: uBiffers.position_A } }            
+        ],
+    });
 
     const bindGroupUniform = device.createBindGroup({
         label: 'bindGroupUniform',
@@ -216,29 +216,29 @@ export async function initBindGroup(device, uBiffers) {
     });
 
 
-    // const bindGroupsCompute = [
-    //     {
-    //         bindGroup: bindGroupCompute_A,
-    //         buffer: uBiffers.position_B,
-    //         bindGroupRender: bindGroupRender_A,
-    //     },
-    //     {
-    //         bindGroup: bindGroupCompute_B,
-    //         buffer: uBiffers.position_A,
-    //         bindGroupRender: bindGroupRender_B
-    //     }];
+    const bindGroupsCompute = [
+        {
+            bindGroup: bindGroupCompute_A,
+            buffer: uBiffers.position_B,
+            bindGroupRender: bindGroupRender_A,
+        },
+        {
+            bindGroup: bindGroupCompute_B,
+            buffer: uBiffers.position_A,
+            bindGroupRender: bindGroupRender_B
+        }];
 
 
-   // uBindGroup.bindGroupsCompute = bindGroupsCompute;
+    uBindGroup.bindGroupsCompute = bindGroupsCompute;
     uBindGroup.bindGroupRender_Uniform = bindGroupRender_Uniform;
     uBindGroup.bindGroupUniform = bindGroupUniform;
     uBindGroup.bindGroupRender_A = bindGroupRender_A;
 
     uBindGroup.layout = {
         renderBindGroupLayout,
-        //computeBindGroupLayout,
+        computeBindGroupLayout,
         renderBindGroupLayout_Uniform,
-        //computeBindGroupLayoutUniform
+        computeBindGroupLayoutUniform
     };
 
 

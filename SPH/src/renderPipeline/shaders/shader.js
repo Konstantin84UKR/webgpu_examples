@@ -28,7 +28,7 @@ export const renderShader = {
     ) -> VertexOutput{
 
       //let scale:f32 = data[InstanceIndex].radius[0];
-      let scale:f32 = 0.05;
+      let scale:f32 = 0.01;
     
       let a:f32 = 1.0 * scale;
       let b:f32 = 0.71 * scale;  
@@ -80,7 +80,7 @@ export const renderShader = {
                                     0.0, 1.0); // zw  
      
 
-        output.color = vec3(0.0, 0.5, 1.0);
+        output.color = vec3(1.0, 0.5, 0.0);
 
         return output;
     }`,

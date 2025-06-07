@@ -2,6 +2,7 @@ import {
   mat4, vec3,
 } from './wgpu-matrix.module.js';
 import { SphereGeometry } from '../../common/primitives/SphereGeometry.js';
+import { initWebGPU } from '../../common/initWebGPU.js';
 
 async function loadJSON(result,modelURL) {
   var xhr = new XMLHttpRequest();
@@ -192,39 +193,40 @@ async function main() {
 
     //---------------------------------------------------
   
-    const canvas = document.getElementById("canvas-webgpu");
-    canvas.width = 1200;
-    canvas.height = 800;
+    // const canvas = document.getElementById("canvas-webgpu");
+    // canvas.width = 1200;
+    // canvas.height = 800;
 
-    // Получаем данные о физическом утсройстве ГПУ
-    const adapter = await navigator.gpu.requestAdapter();
-    //** Получаем данные о логическом устройсве ГПУ */
-    //** Пока не понятно можно ли переключаться между разными физ устройсвами или создавать несколько логический устройств */
-    const device = await adapter.requestDevice();
-    //** Контектс канваса тут все ясно  */
-    const context = canvas.getContext("webgpu");
+    // // Получаем данные о физическом утсройстве ГПУ
+    // const adapter = await navigator.gpu.requestAdapter();
+    // //** Получаем данные о логическом устройсве ГПУ */
+    // //** Пока не понятно можно ли переключаться между разными физ устройсвами или создавать несколько логический устройств */
+    // const device = await adapter.requestDevice();
+    // //** Контектс канваса тут все ясно  */
+    // const context = canvas.getContext("webgpu");
 
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    const size = [
-      canvas.clientWidth * devicePixelRatio ,
-      canvas.clientHeight * devicePixelRatio ,
-    ];
+    // const devicePixelRatio = window.devicePixelRatio || 1;
+    // const size = [
+    //   canvas.clientWidth * devicePixelRatio ,
+    //   canvas.clientHeight * devicePixelRatio ,
+    // ];
 
-    //const format = "bgra8unorm";
-    const format = navigator.gpu.getPreferredCanvasFormat(); // формат данных в которых храняться пиксели в физическом устройстве 
+    // //const format = "bgra8unorm";
+    // const format = navigator.gpu.getPreferredCanvasFormat(); // формат данных в которых храняться пиксели в физическом устройстве 
 
-    //** конфигурируем контекст подключаем логическое устройсво  */
-    //** формат вывода */
-    //** размер вывода */
-    context.configure({
-      device: device,
-      format: format,
-      size: size,
-      compositingAlphaMode: "opaque",
+    // //** конфигурируем контекст подключаем логическое устройсво  */
+    // //** формат вывода */
+    // //** размер вывода */
+    // context.configure({
+    //   device: device,
+    //   format: format,
+    //   size: size,
+    //   compositingAlphaMode: "opaque",
 
-    });
+    // });
 
-
+   //initWebGPU
+    const { device, context, format, canvas, aspect} = await initWebGPU(false);
     //---create uniform data
    
     let MODELMATRIX = mat4.identity();
