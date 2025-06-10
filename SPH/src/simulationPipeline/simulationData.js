@@ -6,7 +6,7 @@ export async function simulationData() {
 
   let position = new Float32Array(numParticles * 2);
   let previousPosition = new Float32Array(numParticles * 2);
-  let velocity = new Float32Array(numParticles * 8);
+  let velocity = new Float32Array(numParticles * 2);
   let density = new Float32Array(numParticles * 1);
   let nearDensity = new Float32Array(numParticles * 1);
   let pressure = new Float32Array(numParticles * 1);
@@ -34,6 +34,11 @@ export async function simulationData() {
 
   for (let i = 0; i < numParticles; ++i) {
     nearDensity[i] = 0.0; //nearDensity
+  }
+
+  for (let i = 0; i < numParticles; ++i) {
+    velocity[2 * i + 0] = 0.0; //vel
+    velocity[2 * i + 1] = 0.0;
   }
 
 

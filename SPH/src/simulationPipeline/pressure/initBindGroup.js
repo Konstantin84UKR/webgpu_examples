@@ -61,13 +61,13 @@ export async function initBindGroup(device, uBiffers) {
    
     ///////  BindGroup   ////
    
-    const bindGroupsComputePressure_A = device.createBindGroup({
-        label: 'bindGroup for work buffer A',
+    const bindGroupsComputePressure_B = device.createBindGroup({
+        label: 'bindGroup for work buffer B',
         layout: computeBindGroupLayoutPressure,
         entries: [
             //Position
-            { binding: 0, resource: { buffer: uBiffers.position_A } },
-            { binding: 1, resource: { buffer: uBiffers.position_B } },
+            { binding: 0, resource: { buffer: uBiffers.position_B } },
+            { binding: 1, resource: { buffer: uBiffers.position_A } },
             //Density
             { binding: 2, resource: { buffer: uBiffers.density } },
             //Near Density
@@ -79,13 +79,13 @@ export async function initBindGroup(device, uBiffers) {
          ],
     });
 
-        const bindGroupsComputePressure_B = device.createBindGroup({
-        label: 'bindGroup for work buffer B',
+        const bindGroupsComputePressure_A = device.createBindGroup({
+        label: 'bindGroup for work buffer A',
         layout: computeBindGroupLayoutPressure,
         entries: [
             //Position
-            { binding: 0, resource: { buffer: uBiffers.position_B } },
-            { binding: 1, resource: { buffer: uBiffers.position_A } },
+            { binding: 0, resource: { buffer: uBiffers.position_A } },
+            { binding: 1, resource: { buffer: uBiffers.position_B } },
             //Density
             { binding: 2, resource: { buffer: uBiffers.density } },
             //Near Density
@@ -109,11 +109,11 @@ export async function initBindGroup(device, uBiffers) {
     const bindGroupsCompute = [
         {
             bindGroup: bindGroupsComputePressure_A,
-            buffer: uBiffers.position_B          
+            buffer: uBiffers.position_A          
         },
         {
             bindGroup: bindGroupsComputePressure_B,
-            buffer: uBiffers.position_A         
+            buffer: uBiffers.position_B         
         }];
 
     uBindGroup.bindGroupsComputePressure = bindGroupsCompute;
@@ -123,6 +123,11 @@ export async function initBindGroup(device, uBiffers) {
         computeBindGroupLayoutPressure,
         computeBindGroupLayoutUniform       
     };
+
+    uBindGroup.layoutArr = [
+        uBindGroup.layout.computeBindGroupLayoutPressure,
+        uBindGroup.layout.computeBindGroupLayoutUniform
+    ];
 
 
     return { uBindGroup };

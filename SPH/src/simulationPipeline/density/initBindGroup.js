@@ -23,7 +23,25 @@ export async function initBindGroup(device, uBiffers) {
                 binding: 2,
                 visibility: GPUShaderStage.COMPUTE,
                 buffer: { type: "storage" }
-            }
+            },
+            //Previous position
+            {
+                binding: 3,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: { type: "storage" }
+            },
+             //velocity
+            { 
+                binding: 4,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: { type: "read-only-storage" }
+            },
+             //PositionB
+            { 
+                binding: 5,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: { type: "storage" }
+            },
         ],
     });
 
@@ -51,6 +69,12 @@ export async function initBindGroup(device, uBiffers) {
             { binding: 1, resource: { buffer: uBiffers.density } },
             //Near density
             { binding: 2, resource: { buffer: uBiffers.nearDensity } },
+            //Previous position
+            { binding: 3, resource: { buffer: uBiffers.previousPosition_A } },
+            //velocity
+            { binding: 4, resource: { buffer: uBiffers.velocity_A } },
+            //Position
+            { binding: 5, resource: { buffer: uBiffers.position_B } },
          ],
     });
 
@@ -66,7 +90,13 @@ export async function initBindGroup(device, uBiffers) {
             //Density
              { binding: 1, resource: { buffer: uBiffers.density } },
             //Near density
-             { binding: 2, resource: { buffer: uBiffers.nearDensity }}              
+             { binding: 2, resource: { buffer: uBiffers.nearDensity }},  
+             //Previous position
+            { binding: 3, resource: { buffer: uBiffers.previousPosition_A } },   
+             //velocity
+            { binding: 4, resource: { buffer: uBiffers.velocity_A } },
+            //Position
+            { binding: 5, resource: { buffer: uBiffers.position_A } },         
         ],
     });
 
@@ -98,6 +128,12 @@ export async function initBindGroup(device, uBiffers) {
         computeBindGroupLayoutDensity,
        // computeBindGroupLayoutUniform
     };
+
+    uBindGroup.layoutArr = [
+        uBindGroup.layout.computeBindGroupLayoutDensity        
+    ];
+
+   
 
 
     return { uBindGroup };

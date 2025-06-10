@@ -1,16 +1,17 @@
 import { computeShader } from './shaderDensity.js';
 
-export async function initPipeline(device, uBindGroup) {
+export async function initPipeline(device, uBindGroup, label = 'compute pipeline') {
     
     //-------------------------------------------------------------------------------------------------------
     // настраеваем объект pipeline
     // указываем текст шейдеров и точку входа в программу
     // 
     const pipelineCompute = device.createComputePipeline({
-        label: 'compute pipeline',
+        label: label,
         layout: device.createPipelineLayout({
             label: 'render_bindGroupLayouts ',
-            bindGroupLayouts: [uBindGroup.layout.computeBindGroupLayoutDensity],
+           // bindGroupLayouts: [uBindGroup.layout.computeBindGroupLayoutDensity],
+            bindGroupLayouts: uBindGroup.layoutArr,
         }),
         compute: {
             module: device.createShaderModule({

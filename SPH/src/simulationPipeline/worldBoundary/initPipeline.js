@@ -1,6 +1,6 @@
-import { computeShader } from './shaders/shader.js';
+import { computeShader } from './shaderWorldBoundary.js';
 
-export async function initPipeline(device,uBindGroup, label = 'compute pipeline') {
+export async function initPipeline(device, uBindGroup, label = 'compute pipeline') {
     
     //-------------------------------------------------------------------------------------------------------
     // настраеваем объект pipeline
@@ -10,7 +10,9 @@ export async function initPipeline(device,uBindGroup, label = 'compute pipeline'
         label: label,
         layout: device.createPipelineLayout({
             label: 'render_bindGroupLayouts ',
+           // bindGroupLayouts: [uBindGroup.layout.computeBindGroupLayoutVelocity, uBindGroup.layout.computeBindGroupLayoutUniform],
             bindGroupLayouts: uBindGroup.layoutArr,
+            
         }),
         compute: {
             module: device.createShaderModule({

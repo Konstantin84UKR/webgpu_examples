@@ -4,7 +4,7 @@ import { initWebGPU } from '../../common/initWebGPU.js';
 import { initUniformBuffers } from './initUniformBuffers.js';
 import { initBindGroup } from './initBindGroup.js';
 import { initPipeline } from './renderPipeline/initPipeline.js';
-import { initPipeline as simulationPipeline } from './simulationPipeline/initPipeline.js';
+
 import { simulationData } from './simulationPipeline/simulationData.js';
 
 //Density
@@ -15,6 +15,14 @@ import { initBindGroup as initBindGroupDensity } from './simulationPipeline/dens
 //Pressure
 import { initPipeline as simulationPipelinePressure  } from './simulationPipeline/pressure/initPipeline.js';    
 import { initBindGroup as initBindGroupPressure } from './simulationPipeline/pressure/initBindGroup.js';
+
+//worldBoundary
+import { initPipeline as simulationPipelinewWorldBoundary  } from './simulationPipeline/worldBoundary/initPipeline.js';    
+import { initBindGroup as initBindGroupWorldBoundary } from './simulationPipeline/worldBoundary/initBindGroup.js';
+
+//Velocity
+import { initPipeline as simulationPipelineVelocity  } from './simulationPipeline/velocity/initPipeline.js';    
+import { initBindGroup as initBindGroupVelocity } from './simulationPipeline/velocity/initBindGroup.js';
 
 //let gpu;
 const webGPU_Start = async () => {
@@ -35,14 +43,20 @@ const webGPU_Start = async () => {
     // указываем текст шейдеров и точку входа в программу
     // 
 
-    const {pipeline} =  await initPipeline(device,format,uBiffers,uBindGroup);
-    const {pipelineCompute} =  await simulationPipeline(device,format,uBiffers,uBindGroup);
+    const {pipeline : renderPipeline} =  await initPipeline(device,format,uBiffers,uBindGroup);
+  
 
     const {uBindGroup : uBindGroupDensity} = await initBindGroupDensity(device,uBiffers); 
-    const {pipelineCompute : pipelineDensity} =  await simulationPipelineDensity(device,uBindGroupDensity);
+    const {pipelineCompute : pipelineDensity} =  await simulationPipelineDensity(device,uBindGroupDensity, 'pipelineDensity');
 
     const {uBindGroup : uBindGroupPressure} = await initBindGroupPressure(device,uBiffers); 
-    const {pipelineCompute : pipelinePressure} =  await simulationPipelinePressure(device,uBindGroupPressure);
+    const {pipelineCompute : pipelinePressure} =  await simulationPipelinePressure(device,uBindGroupPressure,'pipelinePressure');
+
+    const {uBindGroup : uBindGroupWorldBoundary} = await initBindGroupWorldBoundary(device,uBiffers); 
+    const {pipelineCompute : pipelineWorldBoundary} =  await simulationPipelinewWorldBoundary(device,uBindGroupWorldBoundary,'pipelineWorldBoundary');
+
+    const {uBindGroup : uBindGroupVelocity} = await initBindGroupVelocity(device,uBiffers); 
+    const {pipelineCompute : pipelineVelocity} =  await simulationPipelineVelocity(device,uBindGroupVelocity,'pipelineVelocity');
         
     // Animation   
 let time_old = 0; 
@@ -71,12 +85,12 @@ async function animate(time) {
         });
 
     computePassDensity.setPipeline(pipelineDensity);
-    computePassDensity.setBindGroup(0, uBindGroupDensity.bindGroupsComputeDensity[t % 2].bindGroup);
+    computePassDensity.setBindGroup(0, uBindGroupDensity.bindGroupsComputeDensity[(t+0) % 2].bindGroup);
     computePassDensity.setBindGroup(1, uBindGroupDensity.bindGroupUniform);
     computePassDensity.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
     computePassDensity.end();
 
-   // encoder.copyBufferToBuffer( uBiffers.density, 0, uBiffers.resultBuffer, 0, uBiffers.density.size);
+   // encoder.copyBufferToBuffer( uBindGroupDensity.bindGroupsComputeDensity[t % 2].buffer, 0, uBiffers.resultBuffer, 0, uBiffers.density.size);
 
 //    // encoder.copyBufferToBuffer( uBiffers.density, 0, uBiffers.resultBuffer, 0, uBiffers.density.size);
     const computePassPressure = encoder.beginComputePass({
@@ -87,24 +101,48 @@ async function animate(time) {
     computePassPressure.setBindGroup(0, uBindGroupPressure.bindGroupsComputePressure[t % 2].bindGroup);
     computePassPressure.setBindGroup(1, uBindGroupPressure.bindGroupUniform);
     computePassPressure.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
-    computePassPressure.end();    
+    computePassPressure.end();   
+    
+
+
+
+    // const computePassWorldBoundary = encoder.beginComputePass({
+    //         label: 'doubling computePassWorldBoundary',
+    //     });
+    
+    // computePassWorldBoundary.setPipeline(pipelineWorldBoundary   );
+    // computePassWorldBoundary.setBindGroup(0, uBindGroupWorldBoundary.bindGroupsCompute[(t+0) % 2].bindGroup);
+    // computePassWorldBoundary.setBindGroup(1, uBindGroupWorldBoundary.bindGroupUniform);
+    // computePassWorldBoundary.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
+    // computePassWorldBoundary.end(); 
 
     
    // encoder.copyBufferToBuffer( uBindGroupPressure.bindGroupsComputePressure[t % 2].buffer, 0, uBiffers.resultBuffer, 0, 128);
 
-     device.queue.submit([encoder.finish()]);
+
+    const computePassVelocity = encoder.beginComputePass({
+            label: 'doubling computePassVelocity',
+        });
+    
+    computePassVelocity.setPipeline(pipelineVelocity);
+    computePassVelocity.setBindGroup(0, uBindGroupVelocity.bindGroupsComputeVelocity[(t) % 2].bindGroup);
+    computePassVelocity.setBindGroup(1, uBindGroupVelocity.bindGroupUniform);
+    computePassVelocity.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
+    computePassVelocity.end();    
+
+    //encoder.copyBufferToBuffer( uBiffers.velocity_A, 0, uBiffers.resultBuffer, 0, 128);
+    //encoder.copyBufferToBuffer( uBiffers.position_A, 0, uBiffers.resultBuffer, 0, 32);
+    
+    device.queue.submit([encoder.finish()]);
 
     //++t;
 
-    //Read the results
-    // await uBiffers.resultBuffer.mapAsync(GPUMapMode.READ);
-    // let result = new Float32Array(uBiffers.resultBuffer.getMappedRange().slice());
-    // uBiffers.resultBuffer.unmap();
-
-    // //console.log('input', inputData);
-    // console.log('result', result);
-    
-   // }
+//    //Read the results
+//     await uBiffers.resultBuffer.mapAsync(GPUMapMode.READ);
+//     let result = new Float32Array(uBiffers.resultBuffer.getMappedRange().slice());
+//     uBiffers.resultBuffer.unmap();
+//     console.log('result', result);
+     
    
        
     // //--------------------------------------------------
@@ -123,8 +161,8 @@ async function animate(time) {
             storeOp: 'store' //хз
         }]
     });
-    renderPass.setPipeline(pipeline); // подключаем наш pipeline
-    renderPass.setBindGroup(0,  uBindGroup.bindGroupsCompute[t % 2].bindGroupRender);
+    renderPass.setPipeline(renderPipeline); // подключаем наш pipeline
+    renderPass.setBindGroup(0,  uBindGroup.bindGroupsCompute[(t+0) % 2].bindGroupRender);
     renderPass.setBindGroup(1,  uBindGroup.bindGroupRender_Uniform);
     renderPass.draw(48, PARTICLE_COUNT);
     renderPass.end();

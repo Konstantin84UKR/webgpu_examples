@@ -17,9 +17,9 @@ export const computeShader = {
           }
 
           const K: f32 = 0.1;
-          const K_NEAR: f32 = 0.3;
+          const K_NEAR: f32 = 0.5;
           const INTERACTION_RADIUS: f32 = 20.0;
-          const REST_DENSITY : f32 = 30.0;
+          const REST_DENSITY : f32 = 50.0;
       
 
          
