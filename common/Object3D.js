@@ -1,6 +1,7 @@
 import {
   mat4,
 } from '../../common/wgpu-matrix.module.js';
+import { vec3 } from '../camera/src/wgpu-matrix.module.js';
 
 export class Object3D {
     constructor() {
@@ -10,6 +11,8 @@ export class Object3D {
        this.parent = null;
        this.modelMatrix = mat4.identity(); 
        this.worldMatrix = mat4.identity();
+       this.scale = vec3.create(1, 1, 1);
+       this.positionVec = vec3.create(0, 0, 0);
     }
 
     addChild(child) {
@@ -57,7 +60,12 @@ export class Object3D {
         if (this.parent) {
             this.worldMatrix = mat4.identity();
             this.worldMatrix = mat4.multiply(this.worldMatrix, this.parent.worldMatrix);
-            this.worldMatrix = mat4.multiply(this.worldMatrix, this.modelMatrix);            
+           // this.worldMatrix = mat4.scale(this.worldMatrix, this.scale);
+            this.worldMatrix = mat4.multiply(this.worldMatrix, this.modelMatrix);    
+            
+            
+          
+
         } else {
             this.worldMatrix = this.modelMatrix;
         }
@@ -66,8 +74,12 @@ export class Object3D {
         }
     }
 
-    scale(v) {
-        this.modelMatrix = mat4.scale(this.modelMatrix, v);
+    
+
+    setScale(v) {
+        this.scale = vec3.create(v[0], v[1], v[2]);
+
+        this.modelMatrix = mat4.scale(this.modelMatrix, this.scale);
         this.updateWorldMatrix();
     }
 
@@ -95,5 +107,41 @@ export class Object3D {
         this.modelMatrix = mat4.rotateZ(this.modelMatrix, angle);
         this.updateWorldMatrix();
     }
+
+    setPosition(v) {
+        this.modelMatrix = mat4.setTranslation(this.modelMatrix, v);
+        this.updateWorldMatrix();
+    }
+
+    getPosition() {
+        return mat4.getTranslation(this.modelMatrix);
+    }
+
+    lookAt(target, up = [0, 0, 1]) {
+        // if (!Array.isArray(target) || target.length !== 3) {
+        //     console.error("target must be a 3D vector");
+        //     return;
+        // }
+        up = new Float32Array(up);
+        // const direction = vec3.subtract(target, this.getPosition());
+        // //const up = [0, 1, 0]; // Assuming a default up vector
+        // const right = vec3.cross(direction, up);
+        // const newUp = vec3.cross(right, direction);
+
+       
+
+
+
+       // const rotMatrix = mat4.cameraAim(this.getPosition(), target, up);
+        
+        //this.modelMatrix = mat4.cameraAim(this.getPosition(), target, up);
+        this.modelMatrix = mat4.aim(this.getPosition(), target, up);
+        this.modelMatrix = mat4.scale(this.modelMatrix, this.scale);
+        
+        //this.updateWorldMatrix();
+    }
+    
+
+
 
 }

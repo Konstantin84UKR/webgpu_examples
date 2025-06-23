@@ -1,5 +1,12 @@
 import { computeShader } from './shaderVelocity.js';
 
+import { SIM_RESOLUTION,
+  K, 
+  K_NEAR,
+  INTERACTION_RADIUS,
+  REST_DENSITY,
+  VELOCITY_DAMPING } from "../../settings.js";
+
 export async function initPipeline(device, uBindGroup, label = 'compute pipeline') {
     
     //-------------------------------------------------------------------------------------------------------
@@ -19,6 +26,11 @@ export async function initPipeline(device, uBindGroup, label = 'compute pipeline
                 code: computeShader.code
             }),
             entryPoint: 'computeSomething',
+            constants: {
+                VELOCITY_DAMPING: VELOCITY_DAMPING,
+                SIM_RESOLUTION_X: SIM_RESOLUTION.width,   
+                SIM_RESOLUTION_Y: SIM_RESOLUTION.height        
+            }
         },
     });
 

@@ -1,3 +1,5 @@
+import { Buffer } from "./Buffer.js";
+
 export class Geometry{
     constructor(){
       this.vertices = [];
@@ -15,25 +17,22 @@ export class Geometry{
       
     }   
 
-    createBuffers(device){
+    async createBuffers(device){
         const cube_vertex = new Float32Array(this.vertices);
         const cube_uv = new Float32Array(this.uvs);
         const cube_normal = new Float32Array(this.normals);
         const cube_index = new Uint32Array(this.indices);
 
         //****************** BUFFER  vertexBuffer
-        const vertexBuffer = device.createBuffer({
-            label: "vertexBuffer",
-            size: cube_vertex.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,   //COPY_DST  ХЗ что это
-            mappedAtCreation: true
-        });
-
-        //загружаем данные в буффер */
-        new Float32Array(vertexBuffer.getMappedRange()).set(cube_vertex);
-        // передаем буфер в управление ГПУ */
-        vertexBuffer.unmap();
-        this.buffers.vertexBuffer = vertexBuffer;
+        const vertexBuffer = new Buffer(device,'vertexBuffer');  
+        vertexBuffer.gpuBuffer = await Buffer.createAttributeBuffer( device, 
+                                    cube_vertex,//data 
+                                    'vertexGPUBuffer' , //label
+                                    GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,//usage
+                                    true); //mappedAtCreation
+      
+        vertexBuffer.setData(cube_vertex)
+        this.buffers.vertexBuffer = vertexBuffer.gpuBuffer;
 
         //****************** BUFFER  uvBuffer
         const uvBuffer = device.createBuffer({

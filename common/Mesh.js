@@ -2,6 +2,7 @@ import {
   mat4,
 } from '../../common/wgpu-matrix.module.js';
 import { Object3D } from './object3D.js';
+import { Buffer } from './Buffer.js';
 
 export class Mesh extends Object3D {
 
@@ -17,7 +18,7 @@ static _layout = null;
         this.material = material;       
         this.boundingBox = null;
         this.uniformBuffer = null;
-
+        this.buffer = null;
         //this.createBindGroupLayout(this.device);
 
     }
@@ -44,22 +45,15 @@ static _layout = null;
     }
     
     async createUniformBuffer(device) {
-      
-        const uniformBuffer = device.createBuffer({
-        label: 'Mesh Uniform Buffer',
-        // size: 64, // 16 * 4 bytes for a 4x4 matrix
-        size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        }); 
 
-        this.uniformBuffer = uniformBuffer;        
-    }
+          this.buffer = new Buffer(device,'Mesh Uniform Buffer');  
+          this.buffer.gpuBuffer = await Buffer.createUniformBuffer(device,64,'Mesh GPU Buffer',GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);  
 
-    async updateUniformBuffer(device) {
-        //this.updateModelMatrix();
-        // const worldMatrix = this.worldMatrix;
-        // const uniformBuffer = this.uniformBuffer;
-        device.queue.writeBuffer(this.uniformBuffer, 0, this.worldMatrix);
+          //this.uniformBuffer = this.buffer.gpuBuffer;       
+    } 
+
+    async updateUniformBuffer() {
+         this.buffer.updateBuffer(this.worldMatrix,0);
     }
 
     static async createBindGroupLayout(device) {
@@ -87,7 +81,7 @@ static _layout = null;
           {
             binding: 0,
             resource: {
-                buffer: this.uniformBuffer,
+                buffer: this.buffer.gpuBuffer,
                 offset: 0,
                 size: 64   // PROJMATRIX + VIEWMATRIX + MODELMATRIX // Каждая матрица занимает 64 байта
             }

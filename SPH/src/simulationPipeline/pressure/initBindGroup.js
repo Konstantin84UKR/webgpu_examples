@@ -72,10 +72,12 @@ export async function initBindGroup(device, uBiffers) {
             { binding: 2, resource: { buffer: uBiffers.density } },
             //Near Density
             { binding: 3, resource: { buffer: uBiffers.nearDensity } },
-            //Pressure
-            { binding: 4, resource: { buffer: uBiffers.pressure } },
-            //Near Pressure
-            { binding: 5, resource: { buffer: uBiffers.nearPressure } },
+            //velocity_A
+            { binding: 4, resource: { buffer: uBiffers.velocity_A } },
+            // //Pressure
+            //{ binding: 4, resource: { buffer: uBiffers.pressure } },
+            // //Near Pressure
+            { binding: 5, resource: { buffer: uBiffers.particleDisplacement } },
          ],
     });
 
@@ -90,10 +92,12 @@ export async function initBindGroup(device, uBiffers) {
             { binding: 2, resource: { buffer: uBiffers.density } },
             //Near Density
             { binding: 3, resource: { buffer: uBiffers.nearDensity } },
-            //Pressure
-            { binding: 4, resource: { buffer: uBiffers.pressure } },
-            //Near Pressure
-            { binding: 5, resource: { buffer: uBiffers.nearPressure } },
+            //velocity_A
+            { binding: 4, resource: { buffer: uBiffers.velocity_A } },
+            // //Pressure
+            //{ binding: 4, resource: { buffer: uBiffers.pressure } },
+            // //Near Pressure
+             { binding: 5, resource: { buffer: uBiffers.particleDisplacement } },
          ],
     });
 

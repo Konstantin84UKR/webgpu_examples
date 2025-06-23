@@ -13,15 +13,21 @@ export const computeShader = {
           }
 
           struct Uniforms {
-            dTime : f32
+            dTime : f32,
+            SIM_RESOLUTION : vec2<f32>,
+            K: f32, 
+            K_NEAR: f32,
+            INTERACTION_RADIUS: f32,
+            REST_DENSITY: f32,
+            VELOCITY_DAMPING: f32 
           }
 
-          // const K: f32 = 0.5;
-          // const K_NEAR: f32 = 1.0;
-          const INTERACTION_RADIUS: f32 = 20.0;
-         // const REST_DENSITY : f32 = 3.0;
-
-         const VELOCITY_DAMPING : f32 = 1.0;
+          override K: f32 = 0.5;
+          override K_NEAR: f32 = 1.0;
+          override INTERACTION_RADIUS: f32 = 10.0;
+          override REST_DENSITY : f32 = 3.0;
+ 
+          override VELOCITY_DAMPING : f32 = 1.0;
       
 
           @group(0) @binding(0) var<storage, read> positionA: array<Particle>;
@@ -35,12 +41,16 @@ export const computeShader = {
           @group(0) @binding(5) var<storage, read_write> positionB: array<Particle>; 
                    
           
-          //@group(1) @binding(0) var<uniform> uniforms : Uniforms;
+          @group(1) @binding(0) var<uniform> uniforms : Uniforms;
     
           @compute @workgroup_size(64) fn computeSomething(
             @builtin(global_invocation_id) id: vec3<u32>
           ) {
            
+          //  let INTERACTION_RADIUS = uniforms.INTERACTION_RADIUS;
+          //  let VELOCITY_DAMPING = uniforms.VELOCITY_DAMPING;
+
+
             let arrayLengthParticlesA = u32(arrayLength(&positionA));
            
             // if (id.x >= arrayLengthParticlesA) {
@@ -91,8 +101,8 @@ export const computeShader = {
             //this.particles[i].position = Vector2.Add(this.particles[i].position,  Vector2.Scale(this.particles[i].velocity, dt * this.VELOCITY_DAMPING));
              
             //positionB[index].pos = vPos + (velocity[index] * f32(VELOCITY_DAMPING)); // update position
-
-            positionB[index].pos =  (velocity[index] * f32(VELOCITY_DAMPING)); // update position
+           
+            //positionB[index].pos =  (velocity[index] * f32(VELOCITY_DAMPING)); // update position
           }
         `,
 };

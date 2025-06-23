@@ -27,6 +27,9 @@ export class Camera {
         
         this.bindGroup = null;
 
+
+        this.ortho = false;
+
         // console.log(this.front);
         // console.log(this.up);
         // console.log(this.right);
@@ -82,7 +85,11 @@ export class Camera {
 
     update() {
 
-        this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);
+        if(this.ortho){
+           this.pMatrix =  mat4.ortho(-30, 30, -30, 30, 0.1, 50);  
+        }else{
+           this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);  
+        }       
         this.vMatrix = mat4.lookAt(this.eye, this.look, this.up);
 
         this.vMatrixRotOnly = mat4.copy(this.vMatrix);

@@ -18,6 +18,7 @@ export const computeShader = {
          
           @group(0) @binding(0) var<storage, read> particleA: array<Particle>;
           @group(0) @binding(1) var<storage, read_write> particleB: array<Particle>;
+          @group(0) @binding(2) var<storage, read> velocityBuffer: array<vec2<f32>>;
                          
           @group(1) @binding(0) var<uniform> uniforms : Uniforms;
     
@@ -26,27 +27,13 @@ export const computeShader = {
           ) {
                       
             let index = id.x;
-           
-            let positionA = particleA[index].pos;
-          
-            
-            var vPosA = positionA;
 
-            if(positionA.x < 10.0) {
-              vPosA.x += 0.1 * uniforms.dTime;
-            }
-            if(positionA.x > 90.0) {
-              vPosA.x -= 0.1 * uniforms.dTime;
-            }
-            if(positionA.y < 10.0) {
-              vPosA.y += 0.1 * uniforms.dTime;
-            } 
-            if(positionA.y > 90.0) {
-              vPosA.y -= 0.1 * uniforms.dTime;
-            }
-            
-            particleB[index].pos = vPosA;
+            let velocity = velocityBuffer[index];
            
+            let positionA = particleA[index].pos;                 
+            var vPosA = positionA;         
+            
+            particleB[index].pos = vPosA + velocity;           
           }
         `,
 };

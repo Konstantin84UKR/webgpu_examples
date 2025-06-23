@@ -1,5 +1,12 @@
 import { computeShader } from './shaderPressure.js';
 
+import { SIM_RESOLUTION,
+  K, 
+  K_NEAR,
+  INTERACTION_RADIUS,
+  REST_DENSITY,
+  VELOCITY_DAMPING } from "../../settings.js";
+
 export async function initPipeline(device, uBindGroup, label = 'compute pipeline') {
     
     //-------------------------------------------------------------------------------------------------------
@@ -18,6 +25,12 @@ export async function initPipeline(device, uBindGroup, label = 'compute pipeline
                 code: computeShader.code
             }),
             entryPoint: 'computeSomething',
+             constants: {
+                        K: K,
+                        K_NEAR: K_NEAR,
+                        INTERACTION_RADIUS: INTERACTION_RADIUS,
+                        REST_DENSITY: REST_DENSITY,           
+                  }
         },
     });
 

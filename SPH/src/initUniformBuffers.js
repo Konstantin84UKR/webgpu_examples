@@ -1,11 +1,19 @@
-export async function initUniformBuffers(device, inputData, uResolution) {
+
+import { SIM_RESOLUTION,
+  K, 
+  K_NEAR,
+  INTERACTION_RADIUS,
+  REST_DENSITY,
+  VELOCITY_DAMPING } from "./settings.js";
+
+export async function initUniformBuffers(device, inputData, uResolution,se) {
 
   const uBiffers = {};
   // create uniform buffer and layout
-  const inputTime = new Float32Array([1.0]);
+  const inputUniform = new Float32Array([1.0]);
   const bufferUniform = device.createBuffer({
     label: 'buffer Position',
-    size: inputTime.byteLength,
+    size: inputUniform.byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -54,6 +62,9 @@ export async function initUniformBuffers(device, inputData, uResolution) {
 
   // const velocity_B = initBufferForCompute(device,'velocity_B', inputData.velocity);
   // uBiffers.velocity_B = velocity_B;
+
+  const particleDisplacement = initBufferForCompute(device,'velocity_B', inputData.particleDisplacement);
+  uBiffers.particleDisplacement = particleDisplacement;
   
 
   //****************************************//

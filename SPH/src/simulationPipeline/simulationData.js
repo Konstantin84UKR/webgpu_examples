@@ -12,16 +12,17 @@ export async function simulationData() {
   let pressure = new Float32Array(numParticles * 1);
   let nearPressure = new Float32Array(numParticles * 1);
   let neighbours = new Float32Array(numParticles * 8);
+  let particleDisplacement = new Float32Array(numParticles * 2);
 
 
 
   for (let i = 0; i < numParticles; ++i) {
-    position[2 * i + 0] = (Math.random()) * 1.0 * SIM_RESOLUTION.width; //pos
-    position[2 * i + 1] = (Math.random()) * 1.0 * SIM_RESOLUTION.height;
+    position[2 * i + 0] = (Math.random() + 0.5) * 0.5 * SIM_RESOLUTION.width; //pos
+    position[2 * i + 1] = (Math.random() + 0.5) * 0.5 * SIM_RESOLUTION.height;
   }
 
-  previousPosition = new Float32Array(numParticles * 2);
-
+  previousPosition = position;
+  
 
   for (let i = 0; i < numParticles; ++i) {
     velocity[2 * i + 0] = 2 * (Math.random() - 0.5) * 0.5; //vel
@@ -41,6 +42,11 @@ export async function simulationData() {
     velocity[2 * i + 1] = 0.0;
   }
 
+    for (let i = 0; i < numParticles; ++i) {
+    particleDisplacement[2 * i + 0] = 0.0; //Displacemen
+    particleDisplacement[2 * i + 1] = 0.0;
+  }
+
 
   return {
     position,
@@ -50,6 +56,7 @@ export async function simulationData() {
     nearDensity,
     pressure,
     nearPressure,
+    particleDisplacement
   }
 
 }

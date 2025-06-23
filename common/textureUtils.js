@@ -1,3 +1,7 @@
+  export const assets = {
+    textures :{},
+    texruresSamplers: []
+   }  
 //-------------------- TEXTURE ---------------------
   // //Создаем картинку и загрудаем в нее данные из файла
   // https://webgpufundamentals.org/webgpu/lessons/webgpu-textures.html
@@ -232,6 +236,61 @@
     
     return texture_CUBEMAP;
   }
+
+
+  /////////////////
+
+  export async function createTextureAsset(device, name, param) { 
+      
+            assets.textures[name] = await createTextureFromImage(device, param.src,{mips:param.mips ? param.mips : false,});
+            assets.textures[name].view = assets.textures[name].createView();
+           
+            assets.textures[name].sampler = device.createSampler({
+                minFilter: param.sampler && param.sampler.minFilter ? param.sampler.minFilter : 'linear',
+                magFilter: param.sampler && param.sampler.magFilter ? param.sampler.magFilter : 'linear',
+                
+                mipmapFilter: param.sampler && param.sampler.mipmapFilter ? param.sampler.mipmapFilter : 'nearest',  //nearest
+                addressModeU: param.sampler && param.sampler.addressModeU ? param.sampler.addressModeU : 'repeat',
+                addressModeV: param.sampler && param.sampler.addressModeV ? param.sampler.addressModeV : 'repeat',
+            });
+
+            assets.textures[name].label = name;
+            assets.textures[name].device = device;
+
+            assets.textures[name];
+        
+    }  
+
+
+
+  export async function createTextureOnePixel(device, format = 'rgba8unorm') {
+    // Создаем текстуру с одним пикселем
+    const textureOnePixel = device.createTexture({
+      size: [1, 1],
+      format: format,
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    });
+    // Данные для текстуры один пиксель
+    const color = [1.0 * 255, 1.0 * 255, 1.0 * 255, 1.0 * 255];
+    const data = new Uint8Array(color);
+    // запись данных в текстуру
+    device.queue.writeTexture({ texture: textureOnePixel }, data, { bytesPerRow: 4 }, { width: 1, height: 1 });
+    
+    assets.textures['onePixel'] = textureOnePixel;
+    assets.textures['onePixel'].view = assets.textures['onePixel'].createView();
+    assets.textures['onePixel'].sampler = device.createSampler({
+                minFilter: 'nearest',
+                magFilter:  'nearest',
+                
+                mipmapFilter: 'nearest',  
+                addressModeU: 'repeat',
+                addressModeV: 'repeat',
+            });
+
+
+    return assets.textures['onePixel'];
+  }
+
   //depthOrArrayLayers
   //sampleCount
 

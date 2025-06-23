@@ -28,7 +28,7 @@ export const renderShader = {
     ) -> VertexOutput{
 
       //let scale:f32 = data[InstanceIndex].radius[0];
-      let scale:f32 = 0.01;
+      let scale:f32 = 0.005;
     
       let a:f32 = 1.0 * scale;
       let b:f32 = 0.71 * scale;  
@@ -68,12 +68,14 @@ export const renderShader = {
         
         var output : VertexOutput;
 
+        let aspect = simResolution.width / simResolution.height;
+
         let VertexAspectScale : vec2<f32> = vec2<f32>(pos[VertexIndex].x * simResolution.aspect.x, 
                                                       pos[VertexIndex].y * simResolution.aspect.y);
 
         let VertexSimScale : vec2<f32> = vec2<f32>((data[InstanceIndex].pos[0] / simResolution.width),
                                                   (data[InstanceIndex].pos[1] / simResolution.height)) - 0.5; // -0.5 to center the NDC;
-        let PaddingSimScale : f32 = 1.8;
+        let PaddingSimScale : f32 = 2.0;
 
         output.Position = vec4<f32>(VertexAspectScale.x + (VertexSimScale.x) * PaddingSimScale, // x
                                     VertexAspectScale.y + (VertexSimScale.y) * PaddingSimScale, // y

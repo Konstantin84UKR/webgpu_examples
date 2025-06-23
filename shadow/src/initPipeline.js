@@ -218,7 +218,8 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
     });
 
     const bindGroupLayout_1_pipeline = device.createBindGroupLayout({
-        entries: [{
+        entries: [
+         {
             binding: 0,
             visibility: GPUShaderStage.FRAGMENT,
             texture: {
@@ -230,7 +231,8 @@ export async function initPipeline(device, canvas, format, uBiffers, shader, tex
             sampler: {
                 type: 'comparison',
             },
-        }]
+        }
+    ]
     });
 
     const uniformBindGroup1 = device.createBindGroup({

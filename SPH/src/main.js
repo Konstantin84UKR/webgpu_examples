@@ -1,4 +1,10 @@
-import { PARTICLE_COUNT ,SIM_RESOLUTION} from './settings.js';
+import { PARTICLE_COUNT ,SIM_RESOLUTION,
+  K, 
+  K_NEAR,
+  INTERACTION_RADIUS,
+  REST_DENSITY,
+  VELOCITY_DAMPING
+} from './settings.js';
 
 import { initWebGPU } from '../../common/initWebGPU.js';
 import { initUniformBuffers } from './initUniformBuffers.js';
@@ -10,7 +16,6 @@ import { simulationData } from './simulationPipeline/simulationData.js';
 //Density
 import { initPipeline as simulationPipelineDensity  } from './simulationPipeline/density/initPipeline.js';
 import { initBindGroup as initBindGroupDensity } from './simulationPipeline/density/initBindGroup.js';
-
 
 //Pressure
 import { initPipeline as simulationPipelinePressure  } from './simulationPipeline/pressure/initPipeline.js';    
@@ -29,12 +34,13 @@ const webGPU_Start = async () => {
 
     //---------------------------------------------------
     //initWebGPU
-    const { device, context, format, canvas, aspect} = await initWebGPU(true);
+    const { device, context, format, canvas, aspect} = await initWebGPU(false);
     //---------------------------------------------------
    
     let simulationDataArr = await simulationData();
 
     // разрешение симуляции, для отрисовки на канвасе
+    SIM_RESOLUTION.width = SIM_RESOLUTION.width * aspect[1];
     const uResolution = new Float32Array([aspect[0],aspect[1], SIM_RESOLUTION.width, SIM_RESOLUTION.height]);
     const {uBiffers} = await initUniformBuffers(device,simulationDataArr,uResolution);
     const {uBindGroup} = await initBindGroup(device,uBiffers);
@@ -70,7 +76,10 @@ async function animate(time) {
      time_old = time;
      //console.log(dt);
      //--------------------------------------------------
-     device.queue.writeBuffer(uBiffers.bufferUniform, 0, new Float32Array([dt * 0.01]));
+
+     dt = Math.min(dt * 0.01, 0.16);
+
+     device.queue.writeBuffer(uBiffers.bufferUniform, 0, new Float32Array([dt]));
 
      //Encode commands to do the computation
     const encoder = device.createCommandEncoder({
@@ -98,7 +107,7 @@ async function animate(time) {
         });
     
     computePassPressure.setPipeline(pipelinePressure);
-    computePassPressure.setBindGroup(0, uBindGroupPressure.bindGroupsComputePressure[t % 2].bindGroup);
+    computePassPressure.setBindGroup(0, uBindGroupPressure.bindGroupsComputePressure[(t+0) % 2].bindGroup);
     computePassPressure.setBindGroup(1, uBindGroupPressure.bindGroupUniform);
     computePassPressure.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
     computePassPressure.end();   
@@ -111,21 +120,24 @@ async function animate(time) {
     //     });
     
     // computePassWorldBoundary.setPipeline(pipelineWorldBoundary   );
-    // computePassWorldBoundary.setBindGroup(0, uBindGroupWorldBoundary.bindGroupsCompute[(t+0) % 2].bindGroup);
+    // computePassWorldBoundary.setBindGroup(0, uBindGroupWorldBoundary.bindGroupsCompute[(t+1) % 2].bindGroup);
     // computePassWorldBoundary.setBindGroup(1, uBindGroupWorldBoundary.bindGroupUniform);
     // computePassWorldBoundary.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
     // computePassWorldBoundary.end(); 
 
     
    // encoder.copyBufferToBuffer( uBindGroupPressure.bindGroupsComputePressure[t % 2].buffer, 0, uBiffers.resultBuffer, 0, 128);
+    //device.queue.submit([encoder.finish()]);
 
-
+    //  const encoder2 = device.createCommandEncoder({
+    //     label: 'doubling encoder2',
+    // });
     const computePassVelocity = encoder.beginComputePass({
             label: 'doubling computePassVelocity',
         });
     
     computePassVelocity.setPipeline(pipelineVelocity);
-    computePassVelocity.setBindGroup(0, uBindGroupVelocity.bindGroupsComputeVelocity[(t) % 2].bindGroup);
+    computePassVelocity.setBindGroup(0, uBindGroupVelocity.bindGroupsComputeVelocity[(t+1) % 2].bindGroup);
     computePassVelocity.setBindGroup(1, uBindGroupVelocity.bindGroupUniform);
     computePassVelocity.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
     computePassVelocity.end();    
@@ -135,6 +147,21 @@ async function animate(time) {
     
     device.queue.submit([encoder.finish()]);
 
+    const encoder2 = device.createCommandEncoder({
+        label: 'doubling encoder',
+    });
+
+      const computePassWorldBoundary = encoder2.beginComputePass({
+            label: 'doubling computePassWorldBoundary',
+        });
+    
+    computePassWorldBoundary.setPipeline(pipelineWorldBoundary);
+    computePassWorldBoundary.setBindGroup(0, uBindGroupWorldBoundary.bindGroupsCompute[(t+1) % 2].bindGroup);
+    computePassWorldBoundary.setBindGroup(1, uBindGroupWorldBoundary.bindGroupUniform);
+    computePassWorldBoundary.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
+    computePassWorldBoundary.end(); 
+
+    device.queue.submit([encoder2.finish()]);
     //++t;
 
 //    //Read the results
@@ -162,7 +189,7 @@ async function animate(time) {
         }]
     });
     renderPass.setPipeline(renderPipeline); // подключаем наш pipeline
-    renderPass.setBindGroup(0,  uBindGroup.bindGroupsCompute[(t+0) % 2].bindGroupRender);
+    renderPass.setBindGroup(0,  uBindGroup.bindGroupsCompute[(t+1) % 2].bindGroupRender);
     renderPass.setBindGroup(1,  uBindGroup.bindGroupRender_Uniform);
     renderPass.draw(48, PARTICLE_COUNT);
     renderPass.end();

@@ -16,10 +16,10 @@ export const computeShader = {
             dTime : f32
           }
 
-          const K: f32 = 0.1;
-          const K_NEAR: f32 = 0.5;
-          const INTERACTION_RADIUS: f32 = 20.0;
-          const REST_DENSITY : f32 = 50.0;
+          override K: f32 = 0.0;
+          override K_NEAR: f32 = 0.0;
+          override INTERACTION_RADIUS: f32 = 0.0;
+          override REST_DENSITY : f32 = 0.0;
       
 
          
@@ -29,8 +29,8 @@ export const computeShader = {
           @group(0) @binding(2) var<storage, read> densityBuffer: array<f32>;
           @group(0) @binding(3) var<storage, read> densityNearBuffer: array<f32>;
 
-          // @group(0) @binding(4) var<storage, read_write> pressureBuffer: array<f32>;
-          // @group(0) @binding(5) var<storage, read_write> pressureNearBuffer: array<f32>;
+          @group(0) @binding(4) var<storage, read_write> velocity: array<vec2<f32>>;  
+          @group(0) @binding(5) var<storage, read_write> particleDisplacementBuffer: array<vec2<f32>>;
                  
           @group(1) @binding(0) var<uniform> uniforms : Uniforms;
     
@@ -48,7 +48,11 @@ export const computeShader = {
             var particleA = positionA[index];
             var vPos = particleA.pos;
 
-            let density = densityBuffer[index];
+            
+
+            let vPosVelocity = velocity[index];
+            
+            let density = densityBuffer[index]; 
             let densityNear = densityNearBuffer[index];       
           
             workgroupBarrier();   
@@ -61,9 +65,9 @@ export const computeShader = {
               for (var j = 0u; j < arrayLengthParticlesA; j++) {
                 let particleB = positionA[j].pos;
                 
-                // if (j == index) {
-                //    continue;
-                // }
+                if (j == index) {
+                   continue;
+                }
 
                 var rij = particleB - vPos; 
                 var rijLength : f32 = f32(distance(particleB, vPos)); 
@@ -86,9 +90,12 @@ export const computeShader = {
                                          
              }
             
-            workgroupBarrier(); 
+           // workgroupBarrier(); 
             
-            positionB[index].pos = positionA[index].pos + particleADisplacement * uniforms.dTime;
+           // positionB[index].pos = positionA[index].pos + (particleADisplacement + vPosVelocity) * uniforms.dTime;
+           // positionB[index].pos = positionA[index].pos;
+
+            particleDisplacementBuffer[index] = particleADisplacement;
 
           }
         `,

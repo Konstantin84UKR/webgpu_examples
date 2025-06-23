@@ -23,6 +23,12 @@ export const cameraStruct = `
       position : vec4<f32>   
 }`;
 
+export const cameraStructShadow = `
+    struct shadowCamera {
+      pMatrix : mat4x4<f32>,
+      vMatrix : mat4x4<f32>,
+      position : vec4<f32>   
+}`;
 export const lin2rgb = `
     fn lin2rgb(lin: vec3<f32>) -> vec3<f32>{
         return pow(lin, vec3<f32>(${INV_GAMMA}));
@@ -60,7 +66,7 @@ export const brdfPhong = `
    struct Light {   
      lightColor : vec4<f32>,        
      lightPosition : vec3<f32>,
-     lightType : u32, // 0 - directional, 1 - point, 2 - spot           
+     lightType : u32, // 0 - directional, 1 - point, 2 - spot
    };`;
 
 

@@ -18,7 +18,13 @@ export async function initBindGroup(device, uBiffers) {
                 binding: 1,
                 visibility: GPUShaderStage.COMPUTE,
                 buffer: { type: "storage" }
-            }     
+            } ,
+             //Velocity
+            { 
+                binding: 2,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: { type: "read-only-storage"}
+            }       
         ],
     });
 
@@ -42,7 +48,9 @@ export async function initBindGroup(device, uBiffers) {
         entries: [
             //Position
             { binding: 0, resource: { buffer: uBiffers.position_A } },
-            { binding: 1, resource: { buffer: uBiffers.position_B } }
+            { binding: 1, resource: { buffer: uBiffers.position_B } },
+            //Velocity
+            { binding: 2, resource: { buffer: uBiffers.velocity_A } }
                      
          ],
     });
@@ -53,7 +61,9 @@ export async function initBindGroup(device, uBiffers) {
         entries: [
             //Position
             { binding: 0, resource: { buffer: uBiffers.position_B } },
-            { binding: 1, resource: { buffer: uBiffers.position_A } }
+            { binding: 1, resource: { buffer: uBiffers.position_A } },
+            //Velocity
+            { binding: 2, resource: { buffer: uBiffers.velocity_A } }
          ],
     });
 

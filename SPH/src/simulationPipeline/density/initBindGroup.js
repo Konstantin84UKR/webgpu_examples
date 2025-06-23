@@ -100,13 +100,13 @@ export async function initBindGroup(device, uBiffers) {
         ],
     });
 
-    // const bindGroupUniform = device.createBindGroup({
-    //     label: 'bindGroupUniform',
-    //     layout: computeBindGroupLayoutUniform,
-    //     entries: [
-    //         { binding: 0, resource: { buffer: uBiffers.bufferUniform } },
-    //     ],
-    // });
+    const bindGroupUniform = device.createBindGroup({
+        label: 'bindGroupUniform',
+        layout: computeBindGroupLayoutUniform,
+        entries: [
+            { binding: 0, resource: { buffer: uBiffers.bufferUniform } },
+        ],
+    });
 
 
     const bindGroupsCompute = [
@@ -121,16 +121,17 @@ export async function initBindGroup(device, uBiffers) {
 
 
     uBindGroup.bindGroupsComputeDensity = bindGroupsCompute;
-    //uBindGroup.bindGroupUniform = bindGroupUniform;
+    uBindGroup.bindGroupUniform = bindGroupUniform;
    
 
     uBindGroup.layout = {
         computeBindGroupLayoutDensity,
-       // computeBindGroupLayoutUniform
+        computeBindGroupLayoutUniform
     };
 
     uBindGroup.layoutArr = [
-        uBindGroup.layout.computeBindGroupLayoutDensity        
+        uBindGroup.layout.computeBindGroupLayoutDensity,
+        uBindGroup.layout.computeBindGroupLayoutUniform        
     ];
 
    

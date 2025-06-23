@@ -28,6 +28,7 @@ export class Material {
       
             this.textures[name] = await createTextureFromImage(device, param.src,{mips:param.mips ? param.mips : false,});
             this.textures[name].view = this.textures[name].createView();
+           
             this.textures[name].sampler = device.createSampler({
                 minFilter: param.sampler && param.sampler.minFilter ? param.sampler.minFilter : 'linear',
                 magFilter: param.sampler && param.sampler.magFilter ? param.sampler.magFilter : 'linear',
@@ -37,6 +38,10 @@ export class Material {
                 addressModeV: param.sampler && param.sampler.addressModeV ? param.sampler.addressModeV : 'repeat',
             });
 
+            this.textures[name].label = name;
+            this.textures[name].device = device;
+
+            return this.textures[name];
         
     }  
 }

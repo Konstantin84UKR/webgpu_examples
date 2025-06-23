@@ -47,6 +47,8 @@ async function initScene(state){
   
     let eyePosition = [0.0, 5.0, 8.0];
     let camera = new Camera(canvas);
+
+
     camera.setPosition(eyePosition);
     camera.setLook([0.0, -0.5, -1.0])
 
