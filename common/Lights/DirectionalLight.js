@@ -1,8 +1,12 @@
+import { ShadowMaterial } from '../Materials/ShadowMaterial.js';
+import {Camera} from '../camera/camera.js'
+
 export class DirectionalLight {
 
     static _layout = null;
 
-    constructor(lightColor, lightPosition) {
+    constructor(device,lightColor, lightPosition) {
+        this.device = device;
         this.lightColor = lightColor || [1.0, 1.0, 1.0, 1.0]; // RGBA=
         this.lightPosition = lightPosition || [0.0, 0.0, 0.0, 1.0]; // XYZ + W  
        
@@ -15,8 +19,56 @@ export class DirectionalLight {
         this.layout = null;
         this.layoutMap = new Map();
         this.uniformBuffer = null;
-        this.bindGroup = null;  
+        this.bindGroup = null; 
+       // this.shadowMapUsing = false; 
+        // if (this.shadowMapUsing) {
+        //     this.shadowMapMaterial = new ShadowMaterial();
+        // }
     }
+
+     /**
+     * @param {boolean} value
+     */
+    // set shadowMapUsing(value){
+    //        this.shadowMapUsing = value;
+    
+    //        if(this._shadowMapUsing){    
+    //         // this.createshadowMapMaterial();
+    //        }
+    
+    //     }
+
+    async createshadowMapMaterial(canvas){
+           if(this.shadowMapUsing == false){    
+             return;
+           }
+
+            let cameraShadow = new Camera(canvas);
+            cameraShadow.ortho = true;
+            cameraShadow.createBuffer(this.device);
+            cameraShadow.createBindGroup(this.device);
+            cameraShadow.setPosition(this.lightPosition);
+            
+            cameraShadow.updateBuffer(this.device);          
+           
+            this.cameraShadow = cameraShadow; 
+
+
+          const shadowMapParams ={
+                     name :"ShadowMaterial for DirectionalLight",
+                     depthTexture : null,
+                     clientWidth : 512,  //  Потом буду брать из глобальных настроек
+                     clientHeight : 512,        
+             }      
+                    
+    
+    
+           
+      this.shadowMapMaterial = new ShadowMaterial(this.device,shadowMapParams); 
+
+      this.depthTexture = this.shadowMapMaterial.depthTexture;
+      this.depthTextureView = this.shadowMapMaterial.depthTexture.createView();
+    }    
 
     async createBindGroupLayout(device) {
         if (!device) {
@@ -107,12 +159,14 @@ export class DirectionalLight {
             };
             entries.push(depthTextureView); 
             
-            
-            const comparisonDepth = {
-                binding: this.layoutMap.get('comparisonDepth'),
-                resource: device.createSampler({
+            const sampler = device.createSampler({
+                    label : 'sampler for shadowMap',
                     compare: 'less',
                 })
+
+            const comparisonDepth = {
+                binding: this.layoutMap.get('comparisonDepth'),
+                resource: sampler
             }
             entries.push(comparisonDepth);
 

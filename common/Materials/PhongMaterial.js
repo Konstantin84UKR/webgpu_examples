@@ -2,11 +2,12 @@ import { Material } from './Material.js';
 //import { basicShaderSrc as phongShader } from '../shaders/phongShader.js';
 import { PhongShader } from '../shaders/phongShader.js';
 import { Buffer } from '../Buffer.js';
+//import { ShadowMaterial } from './ShadowMaterial.js';
 
 export class PhongMaterial extends Material {
 
     static _layout = null;
-
+    
     constructor(device, name = 'PhongMaterial') {
         super();
         this.name = name;
@@ -29,7 +30,11 @@ export class PhongMaterial extends Material {
         this.layout = null;
         this.layoutMap = new Map();
         this.bindGroupDiscription = [];
-        this.shadowMapUsing = false;
+        this._shadowMapUsing = false;
+
+        if(this._shadowMapUsing){
+         //this.shadowMapMaterial = new ShadowMaterial();
+        }
 
         this.uniforms = {
 
@@ -41,7 +46,7 @@ export class PhongMaterial extends Material {
             shadowMap: this.shadowMap,
             softShadow: this.softShadow,
             layoutMap: this.layoutMap,
-            shadowMapUsing : this.shadowMapUsing
+            shadowMapUsing : this._shadowMapUsing
         };
        
         this.setBuffer();
@@ -55,19 +60,42 @@ export class PhongMaterial extends Material {
     }
 
 
-    setDiffuseColor(color) {
+    async setDiffuseColor(color) {
         this.uniforms.diffuseColor = color;
-        this.updateUniformsBuffer(this.device);
+        await  this.updateUniformsBuffer(this.device);
     }
 
-    setSpecularColor(color) {
+    async setSpecularColor(color) {
         this.uniforms.specularColor = color;
-        this.updateUniformsBuffer(this.device);
+        await this.updateUniformsBuffer(this.device);
     }
 
-    setShiniess(shiniess) {
+    async setShiniess(shiniess) {
         this.uniforms.shiniess = shiniess;
-        this.updateUniformsBuffer(this.device);
+        await this.updateUniformsBuffer(this.device);
+    }
+
+    set shadowMapUsing(value){
+       this._shadowMapUsing = value;
+
+    //    if(this._shadowMapUsing){
+
+    //      const shadowMapParams ={
+    //              name :"ShadowMaterial for PhongMaterial",
+    //              depthTexture : null,
+    //              clientWidth : 512,  //  Потом буду брать из глобальных настроек
+    //              clientHeight : 512,        
+    //      }      
+                
+
+
+    //      this.shadowMapMaterial = new ShadowMaterial(this.device,shadowMapParams);
+    //    }
+
+    }
+
+    get shadowMapUsing() {
+        return this._shadowMapUsing;
     }
 
     async createUniformsBuffer(device) {
@@ -85,6 +113,10 @@ export class PhongMaterial extends Material {
         const specularColor = this.uniforms.specularColor;
         const shiniess = this.uniforms.shiniess;
         const ambientColor = this.uniforms.ambientColor;
+
+        if(this.uniformBuffer == null){
+           return;
+        }
 
         device.queue.writeBuffer(this.uniformBuffer, 0, new Float32Array(diffuseColor));
         device.queue.writeBuffer(this.uniformBuffer, 16, new Float32Array(specularColor));

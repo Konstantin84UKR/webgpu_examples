@@ -28,7 +28,7 @@ export class ShadowShader{
       @group(1) @binding(0) var<uniform> uniformMesh : UniformMesh;
       
       @vertex
-        fn main(@location(0) pos: vec4<f32>) -> @builtin(position) vec4<f32> {
+        fn mainVertex(@location(0) pos: vec4<f32>) -> @builtin(position) vec4<f32> {
           return uniformsCamera.pMatrix * uniformsCamera.vMatrix * uniformMesh.mMatrix * pos;
        }`
 

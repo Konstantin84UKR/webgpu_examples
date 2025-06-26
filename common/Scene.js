@@ -1,6 +1,8 @@
 import { Mesh } from './Mesh.js';
 import { Object3D } from './object3D.js';
 import { Camera } from '../../common/camera/camera.js';
+import { Light } from './shaders/shader_common.js';
+import { DirectionalLight } from './Lights/DirectionalLight.js';
 
 export class Scene {
   constructor(renderer) {
@@ -13,7 +15,12 @@ export class Scene {
     this.camera = undefined;
         
     this.meshes = [];
-   
+    this.lights = [];
+
+    this.objects = [];
+    
+    
+
     this.UNIFORM = {};
     this.LAYOUT = {}
     this.ASSETS = {}
@@ -35,11 +42,17 @@ export class Scene {
   }
 
     add(object) {   
-      if (object instanceof Object3D  ) { // Check if object is an instance of Object3D
+      
+      if (object instanceof Mesh  ) { // Check if object is an instance of Object3D
         this.meshes.push(object);
-      } else {
+      }
+      else if (object instanceof DirectionalLight){
+        this.lights.push(object);
+      }else {
         console.error("Object is not an instance of Object");
       } 
+
+       this.objects.push(object);
 
     }
 
