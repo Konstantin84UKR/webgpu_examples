@@ -6,15 +6,17 @@ export class Camera {
 
     static _layout = null;
 
-    constructor(canvas, eye = vec3.create(0.0, 0.0, 10.0), front = vec3.create(0.0, 0.0, -1.0),) {
+    constructor(canvas, eye = vec3.create(0.0, 0.0, 10.0), front = vec3.create(0.0, 0.0, -1.0), ortho = false) {
         this.canvas = canvas;
+        this.width = canvas===null ? 100:canvas.width; 
+        this.height = canvas===null ? 100:canvas.height;
         this.uniformBuffer = null;
         this.pMatrix = mat4.identity();
         this.vMatrix = mat4.identity();
         this.vMatrixRotOnly = mat4.identity();
         this.worldMatrix = mat4.identity();
 
-        this.speedCamera = 0.01;
+        this.speedCamera = 0.001;
 
         this.fovy = 45 * Math.PI / 180;
 
@@ -28,7 +30,7 @@ export class Camera {
         this.bindGroup = null;
 
 
-        this.ortho = false;
+        this.ortho = ortho;
 
         // console.log(this.front);
         // console.log(this.up);
@@ -48,14 +50,17 @@ export class Camera {
         this.dX = 0.0;
         this.dY = 0.0;
 
-        window.addEventListener("keydown", this.onkeydown.bind(this), false);
-        window.addEventListener("keypress", this.onkeypress.bind(this), false);
-        window.addEventListener("keyup", this.onkeyup.bind(this), false);
-
-        this.canvas.addEventListener("mousedown", this.mouseDown.bind(this), false);
-        this.canvas.addEventListener("mouseout", this.mouseOut.bind(this), false);
-        this.canvas.addEventListener("mousemove", this.mouseMove.bind(this), false);
-        this.canvas.addEventListener("mouseup", this.mouseUp.bind(this), false);
+        if(canvas != null){
+            window.addEventListener("keydown", this.onkeydown.bind(this), false);
+            window.addEventListener("keypress", this.onkeypress.bind(this), false);
+            window.addEventListener("keyup", this.onkeyup.bind(this), false);
+            
+            this.canvas.addEventListener("mousedown", this.mouseDown.bind(this), false);
+            this.canvas.addEventListener("mouseout", this.mouseOut.bind(this), false);
+            this.canvas.addEventListener("mousemove", this.mouseMove.bind(this), false);
+            this.canvas.addEventListener("mouseup", this.mouseUp.bind(this), false);  
+        }
+       
 
         this.update();
     }
@@ -86,9 +91,9 @@ export class Camera {
     update() {
 
         if(this.ortho){
-           this.pMatrix =  mat4.ortho(-30, 30, -30, 30, 0.1, 50);  
+           this.pMatrix =  mat4.ortho(-50, 50, -50, 50, 0.1, 50);  
         }else{
-           this.pMatrix = mat4.perspective(this.fovy, this.canvas.width / this.canvas.height, 1, 500);  
+           this.pMatrix = mat4.perspective(this.fovy, this.width / this.height, 1, 500);  
         }       
         this.vMatrix = mat4.lookAt(this.eye, this.look, this.up);
 
@@ -179,16 +184,16 @@ export class Camera {
 
         switch (key) {
             case "ArrowRight":
-                this.dX = (this.canvas.width * this.speedCamera) / this.canvas.width * Math.PI;
+                this.dX = (this.width * this.speedCamera) / this.width * Math.PI;
                 break;
             case "ArrowLeft":
-                this.dX = (this.canvas.width * -this.speedCamera) / this.canvas.width * Math.PI;
+                this.dX = (this.width * -this.speedCamera) / this.width * Math.PI;
                 break;
             case "ArrowUp":
-                this.dY = (this.canvas.height * -this.speedCamera) / this.canvas.height * Math.PI;
+                this.dY = (this.height * -this.speedCamera) / this.height * Math.PI;
                 break;
             case "ArrowDown":
-                this.dY = (this.canvas.height * this.speedCamera) / this.canvas.height * Math.PI;
+                this.dY = (this.height * this.speedCamera) / this.height * Math.PI;
                 break;
             default:
                 this.dX = 0;
@@ -266,8 +271,8 @@ export class Camera {
         } else {
 
 
-            this.dX = 0.5 * (e.pageX - this.old_x) / this.canvas.width * Math.PI;
-            this.dY = 0.5 * (e.pageY - this.old_y) / this.canvas.height * Math.PI;
+            this.dX = 0.5 * (e.pageX - this.old_x) / this.width * Math.PI;
+            this.dY = 0.5 * (e.pageY - this.old_y) / this.height * Math.PI;
 
             this.yaw -= this.dX;
             this.pitch -= this.dY;

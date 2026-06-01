@@ -291,6 +291,66 @@
     return assets.textures['onePixel'];
   }
 
+
+  export async function createArrayTexture(device, format, shadowTextures) {
+  
+    // Создаем текстуру с одним пикселем
+    const textureArray = device.createTexture({
+      layer: "textureArray_depth", 
+      //size: [512, 512, shadowTextures.length],
+      size: {
+        width: 512,
+        height: 512,
+        depthOrArrayLayers: shadowTextures.length, // ← кол-во слоев (4 источника света, например)
+      },
+      format: "depth24plus", // Формат текстуры теста глубины  depth16unorm depth24plus
+      usage: GPUTextureUsage.TEXTURE_BINDING |
+        GPUTextureUsage.COPY_DST | // мы можем писать данные в текстуру
+        GPUTextureUsage.COPY_SRC | // мы можем писать данные в текстуру
+        GPUTextureUsage.RENDER_ATTACHMENT, //// мы можем рендерить в текстуру
+    });
+    
+    // Предположим, depthData1 и depthData2 - ArrayBuffer с depth-данными
+    const commandEncoder = device.createCommandEncoder();
+    for (let layer = 0; layer < shadowTextures.length; layer++) {
+         commandEncoder.copyTextureToTexture(
+            { texture: shadowTextures[layer] ,
+              origin: {
+                x: 0,
+                y: 0,
+                z: 0
+                },
+                aspect: 'depth-only' // 'all' для depth, 'stencil-only' для тени 'depth-only'
+              },
+
+            { texture: textureArray, 
+              origin: {
+                x: 0,
+                y: 0,
+                z: 0
+                },
+                aspect: 'depth-only'
+            },
+            { width: shadowTextures[layer].width, height: shadowTextures[layer].height, depthOrArrayLayers: 0 } // Указываем размер копируемой текстуры
+    );
+    }
+    device.queue.submit([commandEncoder.finish()]);   
+    
+    // assets.textures['shadowTexturesArray'] = textureOnePixel;
+    // assets.textures['shadowTexturesArray'].view = assets.textures['shadowTexturesArray'].createView();
+    // assets.textures['shadowTexturesArray'].sampler = device.createSampler({
+    //             minFilter: 'nearest',
+    //             magFilter:  'nearest',
+                
+    //             mipmapFilter: 'nearest'  
+    //             // addressModeU: 'repeat',
+    //             // addressModeV: 'repeat',
+    //         });
+
+
+    return textureArray;
+  }
+
   //depthOrArrayLayers
   //sampleCount
 

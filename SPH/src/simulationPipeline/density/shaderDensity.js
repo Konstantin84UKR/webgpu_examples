@@ -23,11 +23,11 @@ export const computeShader = {
           }
 
           override K: f32 = 0.5;
-          override K_NEAR: f32 = 1.0;
-          override INTERACTION_RADIUS: f32 = 10.0;
-          override REST_DENSITY : f32 = 3.0;
+          override K_NEAR: f32 = 2.0;
+          override INTERACTION_RADIUS: f32 = 50.0;
+          override REST_DENSITY : f32 = 10.0;
  
-          override VELOCITY_DAMPING : f32 = 1.0;
+          override VELOCITY_DAMPING : f32 = 10.0;
       
 
           @group(0) @binding(0) var<storage, read> positionA: array<Particle>;

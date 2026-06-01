@@ -16,7 +16,7 @@ export class Buffer{
         return uniformBuffer;        
     }
 
-      static async createAttributeBuffer(
+    static async createAttributeBuffer(
         device, 
         data, 
         label = 'Mesh Attribute Buffer' , 
@@ -33,15 +33,12 @@ export class Buffer{
 
         return attributeGPUBuffer;        
     }
-
-    
-       
+   
     constructor(device,label){
         this.label = label;
         this.device = device;
         this.gpuBuffer = null;
     }
-
 
     async updateBuffer(
         data, 

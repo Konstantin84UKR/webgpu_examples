@@ -26,8 +26,8 @@ export const cameraStruct = `
 export const cameraStructShadow = `
     struct shadowCamera {
       pMatrix : mat4x4<f32>,
-      vMatrix : mat4x4<f32>,
-      position : vec4<f32>   
+      vMatrix : mat4x4<f32>
+      //position : vec4<f32>   
 }`;
 export const lin2rgb = `
     fn lin2rgb(lin: vec3<f32>) -> vec3<f32>{
@@ -63,10 +63,25 @@ export const brdfPhong = `
  }`;
 
  export const Light = `
+ //const NUM_LIGHTS: u32 = 2;
+
+ override NUM_LIGHTS: u32 = 1;
+ 
    struct Light {   
-     lightColor : vec4<f32>,        
+     lightColor : vec3<f32>,  
+     intensity: f32,      
      lightPosition : vec3<f32>,
      lightType : u32, // 0 - directional, 1 - point, 2 - spot
    };`;
+
+  export const Lights = ` 
+ // const NUM_LIGHTS: u32 = 1;
+  struct Lights {
+    count: u32,              // Кол-во активных источников
+    _padding: vec3<u32>,     // Выравнивание до 16 байт
+    lights: array<Light>, // Максимум  источников света
+  };`;
+
+   
 
 

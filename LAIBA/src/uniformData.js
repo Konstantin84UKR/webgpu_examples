@@ -8,13 +8,10 @@ export async function createUniformData(scene){
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
    });
 
-
    scene.UNIFORM.fragmentUniformBuffer = scene.device.createBuffer({
     size: 16+16,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
-
-
 
   for (let i = 0; i < scene.meshes.length; i++) {
     const mesh = scene.meshes[i];
@@ -25,7 +22,6 @@ export async function createUniformData(scene){
     size: (64) ,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
   });
- 
     
   }
 

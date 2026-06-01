@@ -14,7 +14,7 @@ export class RenderPipeline{
         this.primitiveTopology = settings.primitiveTopology || 'triangle-list';
         this.cullMode = settings.cullMode || 'back';
        
-        this.depthStencilFormat = settings.depthStencilFormat || "depth24plus" ; //'depth24plus-stencil8'
+        this.depthStencilFormat = settings.depthStencilFormat || "depth32float" ; //'depth24plus-stencil8' // "depth16unorm" "depth24plus" "depth32float" "depth24plus-stencil8"
         this.depthWriteEnabled = settings.depthWriteEnabled !== undefined ? settings.depthWriteEnabled : true;
         this.depthCompare = settings.depthCompare || 'less';
         this.depthTexture = settings.depthTexture || null;
@@ -27,6 +27,8 @@ export class RenderPipeline{
         this.shaderModule = null;
 
         this.isShadowMap = false;
+
+        this.constants = settings.constants;
 
         this.createRenderPipeline();
     }
@@ -41,9 +43,7 @@ export class RenderPipeline{
 
         this.shaderModule =  this.device.createShaderModule({
             code: shaderSrc,
-            constants: {
-                // ambientColor: 'vec3<f32>(0.9, 0.1, 0.1);', // Цвет окружающего света
-            },
+            constants: this.constants || {}, // Передача констант в шейдер
         });
     }
 
@@ -60,7 +60,8 @@ export class RenderPipeline{
       vertex: {
         module: this.shaderModule,
         entryPoint: this.material.shader.vertexEntryPoint,
-        buffers: this.material.shader.vertexBuffers
+        buffers: this.material.shader.vertexBuffers,
+        constants: this.constants || {}, 
       },
       
       fragment: {
@@ -71,7 +72,9 @@ export class RenderPipeline{
             format: this.format,
           },
         ],
+        //constants: this.constants || {}, // Передача констант в шейдер  
       },
+      constants: this.constants || {}, // Передача констант в шейдер
       primitive: {
         topology: this.primitiveTopology,//"triangle-list", //"line-list" "point-list"
         //cullMode: 'back',  //'back'  'front'  

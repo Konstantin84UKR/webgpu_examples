@@ -35,9 +35,6 @@ async function loadJSON(result,modelURL) {
 
 
 async function main() {
-    ///**  Шейдеры тут все понятно более мение. */  
-  
-
     //---------------------------------------------------
     let CUBE = {}; 
     await loadJSON(CUBE,'./res/Model.json');
@@ -197,21 +194,29 @@ async function main() {
     };
 
 
-// Animation   
-let time_old=0; 
+// Animation
+function deltaTime() {
+  let time_old=0; 
+  return function(time) {
+     let dt = time - time_old;
+     time_old = time;
+     return dt;
+  } 
+} 
+
+ let getDetaTime = deltaTime();
+ let dt= 0;
  async function animate(time) {
       
       //-----------------TIME-----------------------------
-      //console.log(time);
-      let dt=time-time_old;
-      time_old=time;
+      dt = getDetaTime(time);
       //--------------------------------------------------
      
       //------------------MATRIX EDIT---------------------
       Mesh1.matrix = mat4.rotateY(Mesh1.matrix, dt * 0.0002);
      
-      // Mesh1.translate(vec3.set(Math.sin(time * 0.005) * 0.1,  0 ,  0));
-      // Mesh1.rotateZ(0.02);
+      Mesh1.translate(vec3.set(Math.sin(time * 0.005) * 0.1,  0 ,  0));
+      Mesh1.rotateZ(0.02);
       
       //Mesh2.translate(vec3.set(0,  Math.cos(time * 0.005) * 0.1 ,  0));
       
@@ -224,8 +229,7 @@ let time_old=0;
       // Mesh2.upDateMatrix();
       Mesh3.upDateMatrix();
       Mesh4.upDateMatrix();
-      Mesh5.upDateMatrix();
-           
+      Mesh5.upDateMatrix();           
   
       // Mesh3.matrix =  mat4.rotateY(Mesh3.matrix, dt * 0.0002);
       //--------------------------------------------------
@@ -258,11 +262,8 @@ let time_old=0;
         renderPass.setBindGroup(1, Mesh.BINDGROUP.uniformBindGroup1);
         //renderPass.draw(6, 1, 0, 0);
         renderPass.drawIndexed(Mesh.indexCount); 
-       
-
       }  
-     
-       
+            
       renderPass.end();   
       device.queue.submit([commandEncoder.finish()]);
       

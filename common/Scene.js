@@ -49,7 +49,7 @@ export class Scene {
       else if (object instanceof DirectionalLight){
         this.lights.push(object);
       }else {
-        console.error("Object is not an instance of Object");
+        //console.error("Object is not an instance of Object");
       } 
 
        this.objects.push(object);
@@ -66,12 +66,12 @@ export class Scene {
 
 
     async updateWorldMatrixAllMesh(){
-        for (let i = 0; i < this.meshes.length; i++) {
-            const mesh = this.meshes[i];
-            if (mesh instanceof Object3D) {
-            mesh.updateWorldMatrix();
+        for (let i = 0; i < this.objects.length; i++) {
+            const object = this.objects[i];
+            if (object instanceof Object3D) {
+            object.updateWorldMatrix();
             } else {
-            console.error("Mesh is not an instance of Object3D");
+            //console.error("Mesh is not an instance of Object3D");
             }
         }
     }
@@ -176,6 +176,16 @@ async updateMeshBuffer(){
         console.error("Mesh is not an instance of Mesh");
       }
     }
+
+    //LIGHT
+    await DirectionalLight.createShadowMapTexArray(this.device,this.lights);   
+    await DirectionalLight.createUniformBuffer(this.device,this.lights); 
+    await DirectionalLight.createBindGroupLayout(this.device,this.lights);
+    await DirectionalLight.createBindGroup(this.device,this.lights); 
+    await DirectionalLight.loadDataOnBuffer(this.device,this.lights);
+    
+    
+
   }
  
   async createBindGroup() {

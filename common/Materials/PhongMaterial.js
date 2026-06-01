@@ -18,7 +18,7 @@ export class PhongMaterial extends Material {
         this.diffuseColor = [1.0, 1.0, 1.0, 1.0], // RGBA
         this.specularColor = [1.0, 1.0, 1.0],
         this.shiniess = 32.0,
-        this.ambientColor = [0.25, 0.3, 0.35, 1.0], // RGBA           
+        this.ambientColor = [0.0, 0.0, 0.0, 1.0], // RGBA           
         this.diffuseTexture = null
 
         this.cameraUniform = false;

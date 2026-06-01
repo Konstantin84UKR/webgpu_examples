@@ -9,7 +9,5 @@ class Transform {
         this.rMatrix = rMatrix || mat4.create();
         this.sMatrix = sMatrix || mat4.create();
         
-    }
-
-    
+    }    
 }

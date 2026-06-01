@@ -27,7 +27,7 @@ import { ShadowShader } from '../../common/shaders/shaderShadowMap.js';
 
 async function main() {
 
-  const { device, context, format, canvas } = await initWebGPU(false)
+  const { device, context, format, canvas } = await initWebGPU(true)
 
   //--LOAD ASSET--
 
@@ -61,29 +61,32 @@ async function main() {
   scene.setCamera(camera);
  
   //---DirectionalLight---------------------------------
-  const lightPosition = new Float32Array([0.0, 10.0, 20.0]);
+  const lightPosition = new Float32Array([20.0, 30.0, 0.0]);
   const lightColor = new Float32Array([1.0, 1.0, 1.0]);
 
   const light1 = new DirectionalLight(device, lightColor, lightPosition);
- 
-  // let cameraShadow = new Camera(canvas);
-  // cameraShadow.ortho = true;
-  // cameraShadow.createBuffer(device);
-  // cameraShadow.createBindGroup(device);
-  // cameraShadow.setPosition(lightPosition);
+  light1.intensity = 1.0;
   
-  // cameraShadow.updateBuffer(device);
-
- 
-  // light1.cameraShadow = cameraShadow;
   light1.shadowMapUsing = true;
-  await light1.createshadowMapMaterial(canvas);
- // light1.depthTextureView = light1.shadowMapMaterial.depthTexture;
+  //await light1.createshadowMapMaterial(canvas);
  
 
-  await light1.createBindGroupLayout(device);
+  // await light1.createBindGroupLayout(device);
   await light1.createUniformBuffer(device);
-  await light1.createBindGroup(device);
+  // await light1.createBindGroup(device);
+
+  
+  const lightPosition2 = new Float32Array([0.0, 20.0, 0.0]);
+  const lightColor2 = new Float32Array([1.0, 1.0, 1.0]);
+  const light2 = new DirectionalLight(device, lightColor2, lightPosition2);
+  light2.intensity = 1.0;
+  light2.shadowMapUsing = true;
+  //await light2.createshadowMapMaterial(canvas);
+ 
+
+  // await light2.createBindGroupLayout(device);
+  // await light2.createUniformBuffer(device);
+  // await light2.createBindGroup(device);
 
   // Mesh --------------------------------------------------- 
   Mesh.createBindGroupLayout(device);
@@ -94,7 +97,7 @@ async function main() {
   materialPhong.setShiniess(32.0);
   materialPhong.diffuseTexture = assets.textures.diffuseTexture;
   materialPhong.shadowMapUsing = true;
-  materialPhong.softShadow = true;
+  materialPhong.softShadow = false;
   materialPhong.createBindGroup(device);
 
 
@@ -147,11 +150,8 @@ async function main() {
   scene.add(meshTorus);
 
   scene.add(light1);
-
-  //  mesh1.uniformBuffer = await mesh1.createUniformBuffer(device);
-  //  mesh2.uniformBuffer = await mesh2.createUniformBuffer(device);
-  //  mesh3.uniformBuffer = await mesh3.createUniformBuffer(device);
-  //  mesh4.uniformBuffer = await mesh4.createUniformBuffer(device); 
+  scene.add(light2);
+  //scene.add(light1);
 
   await scene.prerender(); // Пререндерим сцену, чтобы все буферы были созданы и заполнены
   //mesh3.removeParent(); // Удаляем родителя у mesh3, теперь он не будет отрисовываться
@@ -159,14 +159,19 @@ async function main() {
   //*********************************************//
 
 
-  device.queue.writeBuffer(light1.uniformBuffer, 0, light1.lightColor); // lightPosition
-  device.queue.writeBuffer(light1.uniformBuffer, 16, light1.lightPosition); // eyePosition
-  device.queue.writeBuffer(light1.uniformBuffer, 16 + 12, light1.type); // type
+  // device.queue.writeBuffer(light1.uniformBuffer, 0, light1.lightColor); // lightPosition
+  // device.queue.writeBuffer(light1.uniformBuffer, 16, light1.lightPosition); // eyePosition
+  // device.queue.writeBuffer(light1.uniformBuffer, 16 + 12, light1.type); // type
+
+  // device.queue.writeBuffer(light1.uniformBuffer, 0, scene.lights[0].lightColor); // lightPosition
+  // device.queue.writeBuffer(light1.uniformBuffer, 12, new Float32Array([1.0])); // lightPosition
+  // device.queue.writeBuffer(light1.uniformBuffer, 16, scene.lights[0].lightPosition); // eyePosition
+  // device.queue.writeBuffer(light1.uniformBuffer, 16 + 12, scene.lights[0].type); // type
 
   const pipelineLayout = device.createPipelineLayout({
     bindGroupLayouts: [
       Camera._layout,           //@group(0)
-      DirectionalLight._layout, //@group(1) 
+      DirectionalLight._layout_for_array, //@group(1) 
       Mesh._layout,             //@group(2)
       materialPhong.layout      //@group(3)
     ]
@@ -175,14 +180,17 @@ async function main() {
   const pipelineControler = new RenderPipeline(device, {
     material: materialPhong,
     format: format,
-    pipelineLayout: pipelineLayout
-  });
+    pipelineLayout: pipelineLayout,
+    constants: {
+      NUM_LIGHTS: scene.lights.length, // Количество источников света
+  }
+});
                                                   
 
   const depthTexture = device.createTexture({
     // size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
     size: [canvas.clientWidth, canvas.clientHeight, 1],
-    format: "depth24plus",
+    format: "depth32float", // Используем формат depth32float для большей точности
     usage: GPUTextureUsage.RENDER_ATTACHMENT
   });
 
@@ -204,58 +212,6 @@ async function main() {
     }
   };
 
-
-  ////
-
-  // const bindGroupLayout_shadowPipeline = device.createBindGroupLayout({
-  //   label: 'bindGroupLayout_shadowPipeline',
-  //   entries: [{
-  //     binding: 0,
-  //     visibility: GPUShaderStage.VERTEX,
-  //     buffer: {}
-  //   }]
-  // });
-
-
-  // const pipelineLayout_shadowPipeline = device.createPipelineLayout({
-  //   bindGroupLayouts: [Camera._layout, bindGroupLayout_shadowPipeline]
-  // });
-  // const shadowShader = new ShadowShader();
-  // await shadowShader.createShaderSrc();
-
-  // const shadowPipeline = await device.createRenderPipeline({
-  //   label: "shadow piplen",
-  //   //layout: "auto",
-  //   layout: pipelineLayout_shadowPipeline,
-  //   vertex: {
-  //     module: device.createShaderModule({
-  //       code: shadowShader.shaderSrc,
-  //     }),
-  //     entryPoint: "mainVertex",
-  //     buffers: shadowShader.vertexBuffers
-  //   },
-  //   primitive: {
-  //     topology: "triangle-list",
-  //   },
-  //   depthStencil: {
-  //     format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
-  //     depthWriteEnabled: true, //вкл\выкл теста глубины 
-  //     depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. //greater
-  //   }
-  // });
-
-  //  let shadowDepthView = shadowDepthTexture.createView();
-  //  const renderPassDescriptionShadow = {
-  //   colorAttachments: [],
-  //   depthStencilAttachment: {
-  //     view: shadowDepthView, // текстура глубины для формирования теней
-  //     depthClearValue: 1.0,
-  //     depthLoadOp: 'clear',
-  //     depthStoreOp: 'store',
-  //   }
-  // };
-
-
   // Animation   
   let time_old = 0;
   async function renderLoop(time) {
@@ -267,12 +223,9 @@ async function main() {
     //--------------------------------------------------
 
     //------------------MATRIX EDIT---------------------
-    // mesh3.modelMatrix = mat4.rotateY(mesh3.modelMatrix, dt * -0.0009);
-    // mesh3.modelMatrix = mat4.rotateX(mesh4.modelMatrix, dt * -0.0002);
-    // mesh4.modelMatrix = mat4.rotateY(mesh3.modelMatrix, dt * 0.0002);
-
+   
     //mesh0.rotateY( dt * 0.0011);
-    mesh1.rotateZ(dt * 0.0001);
+    mesh1.rotateZ(dt * 0.0005);
     //mesh2.rotateZ( dt * 0.0002);
     mesh3.rotateX(dt * 0.0002);
     mesh4.rotateY(dt * 0.0004);
@@ -286,27 +239,35 @@ async function main() {
     scene.camera.setDeltaTime(dt);
     scene.camera.updateBuffer(device);
 
-    // cameraShadow.setDeltaTime(dt);
-    // cameraShadow.updateBuffer(device);
-    // //scene.updateMeshBuffer(device);
-
-
-
     const commandEncoder = device.createCommandEncoder();
     //-----------------SHADOW_MAP-----------------------
-    // const renderPassShadow = commandEncoder.beginRenderPass(light1.shadowMapMaterial.renderPassDescriptionShadow);
-    // renderPassShadow.setPipeline(materialPhong.shadowMapMaterial.pipeline);
-    // light1.depthTextureView = light1.shadowMapMaterial.depthTexture.createView();
-    scene.lights.forEach((light) => {
+
+    // Создаем тени для каждого источника света, который использует тени
+    
+  
+    scene.lights.forEach((light,index) => {
 
       if (!light.shadowMapUsing){
         return
       } 
 
-    const renderPassShadow = commandEncoder.beginRenderPass(light1.shadowMapMaterial.renderPassDescriptionShadow);
-    renderPassShadow.setPipeline(light1.shadowMapMaterial.pipeline);
-    //light1.depthTextureView = light1.shadowMapMaterial.depthTexture.createView();
+            const renderPassDescriptionShadow = {
+            colorAttachments: [],
+            depthStencilAttachment: {
+                view: DirectionalLight._shadowMapTexArray.createView({ baseArrayLayer: index, arrayLayerCount: 1 }), // текстура глубины для формирования теней
+                //view: DirectionalLight._shadowMapTexArray.createView(),
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            }
+        };
 
+
+    const renderPassShadow = commandEncoder.beginRenderPass(renderPassDescriptionShadow);    
+    
+    //const renderPassShadow = commandEncoder.beginRenderPass(light1.shadowMapMaterial.renderPassDescriptionShadow);
+    renderPassShadow.setPipeline(light2.shadowMapMaterial.pipeline);
+   
       if (light instanceof DirectionalLight && light.shadowMapUsing) {
         scene.meshes.forEach((mesh) => {
           if (mesh instanceof Mesh && mesh.geometry.buffers.vertexBuffer && mesh.geometry.buffers.indexBuffer) {
@@ -316,19 +277,18 @@ async function main() {
             renderPassShadow.setVertexBuffer(2, mesh.geometry.buffers.normalBuffer);
             renderPassShadow.setIndexBuffer(mesh.geometry.buffers.indexBuffer, "uint32");
 
-            renderPassShadow.setBindGroup(0, light.cameraShadow.bindGroup);
-            //renderPassShadow.setBindGroup(1, light1.bindGroup);
-            renderPassShadow.setBindGroup(1, mesh.bindGroup);
-            // renderPassShadow.setBindGroup(3, mesh.material.bindGroup);
+            renderPassShadow.setBindGroup(0, light.cameraShadow.bindGroup);          
+            renderPassShadow.setBindGroup(1, mesh.bindGroup);           
 
-            renderPassShadow.drawIndexed(mesh.geometry.indices.length);
-            //renderPassShadow.end();       
+            renderPassShadow.drawIndexed(mesh.geometry.indices.length);                
           }
         });
       }
 
       renderPassShadow.end();
     });
+
+
 
    
     //-----------------RENDER------------------------- 
@@ -350,7 +310,7 @@ async function main() {
         renderPass.setIndexBuffer(mesh.geometry.buffers.indexBuffer, "uint32");
 
         renderPass.setBindGroup(0, camera.bindGroup);
-        renderPass.setBindGroup(1, light1.bindGroup);
+        renderPass.setBindGroup(1, DirectionalLight._bindGroup);
         renderPass.setBindGroup(2, mesh.bindGroup);
         renderPass.setBindGroup(3, mesh.material.bindGroup);
 

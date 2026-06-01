@@ -31,10 +31,10 @@ export class ShadowMaterial extends Material {
         const depthTexture = this.device.createTexture({
             // size: [canvas.clientWidth * devicePixelRatio, canvas.clientHeight * devicePixelRatio, 1],
             size: [this.clientWidth, this.clientHeight, 1],
-            format: "depth24plus",
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+            format: "depth32float", //depth24plus // depth32float
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC
         }); 
-
+ 
         this.depthTexture = depthTexture;        
     }
 
@@ -70,7 +70,7 @@ export class ShadowMaterial extends Material {
             topology: "triangle-list",           
         },
         depthStencil: {
-            format: "depth24plus",// Формат текстуры теста глубины  depth16unorm depth24plus
+            format: "depth32float",// Формат текстуры теста глубины  depth16unorm depth24plus // depth32float
             depthWriteEnabled: true, //вкл\выкл теста глубины 
             depthCompare: "less" //Предоставленное значение проходит сравнительный тест, если оно меньше выборочного значения. //greater
         }
